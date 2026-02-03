@@ -1,0 +1,673 @@
+/* ========================================
+   GHRAMI - SOCIAL MEDIA PLATFORM DESIGN
+   Modern, Clean, Professional
+   ======================================== */
+
+/* Base Styles */
+.root {
+    -fx-font-family: "Segoe UI", "San Francisco", "Roboto", sans-serif;
+    -fx-background-color: #f0f2f5;
+}
+
+/* Top Navigation Bar */
+.top-nav {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0, 0, 2);
+}
+
+.logo-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.logo-text {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: bold;
+}
+
+.search-container {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 25;
+    -fx-padding: 5 15;
+}
+
+.search-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-prompt-text-fill: #65676b;
+}
+
+.search-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+}
+
+.icon-btn {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 50%;
+    -fx-text-fill: #050505;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.icon-btn:hover {
+    -fx-background-color: #e4e6eb;
+}
+
+.profile-menu-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.profile-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -fx-stroke: white;
+    -fx-stroke-width: 2;
+}
+
+/* Main Container */
+.main-container {
+    -fx-background-color: #f0f2f5;
+}
+
+/* Left Sidebar */
+.left-sidebar {
+    -fx-background-color: transparent;
+}
+
+.profile-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.large-profile-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -fx-stroke: white;
+    -fx-stroke-width: 3;
+}
+
+.profile-name {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: bold;
+}
+
+.profile-email {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 13px;
+}
+
+.stat-number {
+    -fx-text-fill: #667eea;
+    -fx-font-weight: bold;
+}
+
+.stat-label {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.quick-actions-card, .trending-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.section-title {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: bold;
+}
+
+.nav-btn-left {
+    -fx-background-color: transparent;
+    -fx-text-fill: #050505;
+    -fx-font-size: 14px;
+    -fx-padding: 10 15;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.nav-btn-left:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.trending-item {
+    -fx-padding: 8 0;
+    -fx-cursor: hand;
+}
+
+.trending-item:hover {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+}
+
+.trending-name {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.trending-count {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.see-more-btn {
+    -fx-background-color: #f0f2f5;
+    -fx-text-fill: #667eea;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-padding: 10;
+}
+
+.see-more-btn:hover {
+    -fx-background-color: #e4e6eb;
+}
+
+/* Feed Area */
+.feed-area {
+    -fx-background-color: transparent;
+}
+
+.create-post-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.post-input {
+    -fx-background-color: #f0f2f5;
+    -fx-border-color: transparent;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+    -fx-padding: 12 20;
+    -fx-font-size: 15px;
+    -fx-prompt-text-fill: #65676b;
+}
+
+.post-input:focused {
+    -fx-border-color: #667eea;
+    -fx-border-width: 2;
+}
+
+.post-action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #65676b;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 15;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.post-action-btn:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.btn-publish {
+    -fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+    -fx-padding: 10 30;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.btn-publish:hover {
+    -fx-background-color: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+}
+
+/* Stories */
+.stories-scroll {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.stories-container {
+    -fx-background-color: white;
+}
+
+.story-card {
+    -fx-cursor: hand;
+    -fx-padding: 10;
+    -fx-background-radius: 12;
+}
+
+.story-card:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.story-circle-add {
+    -fx-fill: #e4e6eb;
+    -fx-stroke: #667eea;
+    -fx-stroke-width: 3;
+    -fx-stroke-dash-array: 5 5;
+}
+
+.story-circle-active {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -fx-stroke: #667eea;
+    -fx-stroke-width: 3;
+}
+
+.story-name {
+    -fx-text-fill: #1c1e21;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+/* Feed Posts */
+.feed-scroll {
+    -fx-background-color: transparent;
+}
+
+.post-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+    -fx-padding: 0;
+}
+
+.post-header {
+    -fx-padding: 15 20;
+}
+
+.post-profile-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.post-author {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: bold;
+}
+
+.post-time {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.post-separator {
+    -fx-text-fill: #65676b;
+}
+
+.post-hobby {
+    -fx-text-fill: #667eea;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.post-menu-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #65676b;
+    -fx-font-size: 20px;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-background-radius: 50%;
+    -fx-padding: 5 10;
+}
+
+.post-menu-btn:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.post-content {
+    -fx-padding: 0 20 15 20;
+}
+
+.post-text {
+    -fx-text-fill: #1c1e21;
+    -fx-font-size: 15px;
+    -fx-line-spacing: 2px;
+}
+
+.post-image-placeholder {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+}
+
+.image-placeholder-text {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 14px;
+}
+
+.post-stats {
+    -fx-padding: 10 20;
+}
+
+.stat-text {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.stat-text:hover {
+    -fx-underline: true;
+}
+
+.post-actions {
+    -fx-padding: 5 20 10 20;
+}
+
+.action-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #65676b;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 0;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.action-btn:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.load-more-btn {
+    -fx-background-color: white;
+    -fx-text-fill: #667eea;
+    -fx-font-weight: 600;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.load-more-btn:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+/* Right Sidebar */
+.right-sidebar {
+    -fx-background-color: transparent;
+}
+
+.suggestions-card, .groups-card, .events-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 8, 0, 0, 2);
+}
+
+.link-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #667eea;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+    -fx-underline: false;
+}
+
+.link-btn:hover {
+    -fx-underline: true;
+}
+
+.suggestion-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.suggestion-name {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: 600;
+}
+
+.suggestion-mutual {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.add-friend-btn {
+    -fx-background-color: #e7f3ff;
+    -fx-text-fill: #667eea;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 12;
+    -fx-background-radius: 50%;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.add-friend-btn:hover {
+    -fx-background-color: #d0e7ff;
+}
+
+.group-item {
+    -fx-padding: 8 0;
+    -fx-cursor: hand;
+}
+
+.group-item:hover {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+}
+
+.group-circle {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.group-name {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.group-count {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.event-item {
+    -fx-padding: 10;
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.event-item:hover {
+    -fx-background-color: #e4e6eb;
+}
+
+.event-date {
+    -fx-text-fill: #667eea;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.event-title {
+    -fx-text-fill: #1c1e21;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+}
+
+.event-participants {
+    -fx-text-fill: #65676b;
+    -fx-font-size: 12px;
+}
+
+.footer-links {
+    -fx-padding: 15 10;
+}
+
+.footer-text {
+    -fx-text-fill: #8a8d91;
+    -fx-font-size: 11px;
+}
+
+.footer-copyright {
+    -fx-text-fill: #8a8d91;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+/* Scrollbars */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #bcc0c4;
+    -fx-background-radius: 8;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #8a8d91;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+/* Separator */
+.separator {
+    -fx-background-color: #e4e6eb;
+}
+
+.separator .line {
+    -fx-border-color: #e4e6eb;
+}
+
+/* ========================================
+   PROFILE PAGE STYLES
+   ======================================== */
+
+.profile-circle-huge {
+    -fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.modern-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 12, 0, 0, 4);
+}
+
+.stat-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+}
+
+.modern-input {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+    -fx-padding: 12 15;
+    -fx-font-size: 14;
+    -fx-border-color: transparent;
+}
+
+.modern-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.modern-input-disabled {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+    -fx-padding: 12 15;
+    -fx-font-size: 14;
+}
+
+.modern-textarea {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 8;
+    -fx-padding: 12 15;
+    -fx-font-size: 14;
+    -fx-border-color: transparent;
+}
+
+.modern-textarea:focused {
+    -fx-background-color: white;
+    -fx-border-color: #667eea;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.btn-primary-large {
+    -fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -fx-text-fill: white;
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 15 30;
+    -fx-cursor: hand;
+}
+
+.btn-primary-large:hover {
+    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.4), 12, 0, 0, 4);
+    -fx-scale-y: 1.02;
+}
+
+.btn-secondary-large {
+    -fx-background-color: #f0f2f5;
+    -fx-text-fill: #667eea;
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 15 30;
+    -fx-cursor: hand;
+}
+
+.btn-secondary-large:hover {
+    -fx-background-color: #e4e6eb;
+}
+
+.icon-refresh-btn {
+    -fx-background-color: #f0f2f5;
+    -fx-background-radius: 20;
+    -fx-font-size: 18;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+}
+
+.icon-refresh-btn:hover {
+    -fx-background-color: #e4e6eb;
+}
+
+/* Badge Card Styles */
+.badge-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-padding: 20;
+    -fx-border-color: #e4e6eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+.badge-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(102, 126, 234, 0.2), 12, 0, 0, 4);
+    -fx-scale-y: 1.02;
+    -fx-scale-x: 1.02;
+}
+
+/* Friend Card Styles */
+.friend-card {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 6, 0, 0, 2);
+    -fx-padding: 15;
+}
+
+.friend-card:hover {
+    -fx-background-color: #f0f2f5;
+}
+
+.badges-scroll, .friends-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}

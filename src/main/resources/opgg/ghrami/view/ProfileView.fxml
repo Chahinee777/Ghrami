@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.image.*?>
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml" fx:controller="opgg.ghrami.view.ProfileViewController"
+            styleClass="root" fitToWidth="true" prefWidth="1200" prefHeight="800">
+    
+    <VBox styleClass="profile-main-container" spacing="0">
+        
+        <!-- Cover Photo Area -->
+        <VBox styleClass="cover-photo-container" prefHeight="280">
+            <StackPane VBox.vgrow="ALWAYS" styleClass="cover-photo">
+                <!-- Cover Gradient Background -->
+                <VBox alignment="CENTER" mouseTransparent="true" style="-fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <Label text="🎨" style="-fx-font-size: 120; -fx-opacity: 0.3;"/>
+                </VBox>
+                
+                <!-- Profile Picture Overlay - Bottom Center -->
+                <VBox alignment="BOTTOM_CENTER">
+                    <padding>
+                        <Insets bottom="0"/>
+                    </padding>
+                    <StackPane mouseTransparent="false">
+                        <Circle radius="80" style="-fx-fill: white; -fx-stroke: #667eea; -fx-stroke-width: 5;" mouseTransparent="true"/>
+                        <Circle fx:id="profileImageCircle" radius="75" styleClass="profile-circle-huge" mouseTransparent="true"/>
+                        <!-- Camera Button at Bottom-Right -->
+                        <StackPane alignment="CENTER" mouseTransparent="false">
+                            <Button text="📷" onAction="#handleChangePhoto"
+                                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 25; -fx-font-size: 20; -fx-min-width: 50; -fx-min-height: 50; -fx-cursor: hand; -fx-translate-x: 50; -fx-translate-y: 50;">
+                                <tooltip><Tooltip text="Changer la photo de profil"/></tooltip>
+                            </Button>
+                        </StackPane>
+                    </StackPane>
+                </VBox>
+                
+                <!-- Back Button Overlay - Last so it's on top -->
+                <HBox alignment="TOP_LEFT" pickOnBounds="false">
+                    <padding>
+                        <Insets top="20" left="30"/>
+                    </padding>
+                    <Button text="← Retour" onAction="#handleBackToDashboard" 
+                            style="-fx-background-color: rgba(255,255,255,0.95); -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #667eea; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 8, 0, 0, 2);"/>
+                </HBox>
+            </StackPane>
+        </VBox>
+        
+        <!-- Profile Info Section -->
+        <VBox styleClass="profile-info-section" alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="60" right="40" bottom="30" left="40"/>
+            </padding>
+            
+            <Label fx:id="fullNameLabel" text="Full Name" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+            <Label fx:id="usernameLabel" text="@username" style="-fx-font-size: 18; -fx-text-fill: #65676b;"/>
+            
+            <!-- Stats Row -->
+            <HBox spacing="50" alignment="CENTER">
+                <padding>
+                    <Insets top="20"/>
+                </padding>
+                
+                <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <padding>
+                        <Insets top="20" right="30" bottom="20" left="30"/>
+                    </padding>
+                    <Label text="📝" style="-fx-font-size: 32;"/>
+                    <Label fx:id="postsCountLabel" text="0" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                    <Label text="Publications" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                </VBox>
+                
+                <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <padding>
+                        <Insets top="20" right="30" bottom="20" left="30"/>
+                    </padding>
+                    <Label text="👥" style="-fx-font-size: 32;"/>
+                    <Label fx:id="friendsCountLabel" text="0" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                    <Label text="Amis" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                </VBox>
+                
+                <VBox alignment="CENTER" spacing="8" styleClass="stat-card">
+                    <padding>
+                        <Insets top="20" right="30" bottom="20" left="30"/>
+                    </padding>
+                    <Label text="🏆" style="-fx-font-size: 32;"/>
+                    <Label fx:id="badgesCountLabel" text="0" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                    <Label text="Badges" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                </VBox>
+            </HBox>
+        </VBox>
+        
+        <!-- Main Content Area -->
+        <HBox styleClass="profile-content-area" spacing="30" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="30" right="40" bottom="40" left="40"/>
+            </padding>
+            
+            <!-- Left Column - Profile Edit -->
+            <VBox spacing="25" prefWidth="550" HBox.hgrow="ALWAYS">
+                
+                <!-- Edit Profile Card -->
+                <VBox styleClass="modern-card" spacing="20">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="✏️" style="-fx-font-size: 24;"/>
+                        <Label text="Modifier les Informations" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                    </HBox>
+                    
+                    <VBox spacing="20">
+                        <!-- Full Name -->
+                        <VBox spacing="8">
+                            <Label text="Nom Complet" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <TextField fx:id="fullNameField" styleClass="modern-input" promptText="Entrez votre nom complet"/>
+                        </VBox>
+                        
+                        <!-- Username -->
+                        <VBox spacing="8">
+                            <Label text="Nom d'utilisateur" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <TextField fx:id="usernameField" styleClass="modern-input" promptText="@votre_username"/>
+                        </VBox>
+                        
+                        <!-- Email (read-only) -->
+                        <VBox spacing="8">
+                            <Label text="Email" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <TextField fx:id="emailField" editable="false" styleClass="modern-input-disabled" style="-fx-opacity: 0.7;"/>
+                        </VBox>
+                        
+                        <!-- Location -->
+                        <VBox spacing="8">
+                            <Label text="📍 Localisation" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <TextField fx:id="locationField" styleClass="modern-input" promptText="Ville, Pays"/>
+                        </VBox>
+                        
+                        <!-- Bio -->
+                        <VBox spacing="8">
+                            <Label text="À propos de moi" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <TextArea fx:id="bioArea" styleClass="modern-textarea" prefRowCount="4" wrapText="true" 
+                                      promptText="Parlez-nous de vos passions, hobbies..."/>
+                        </VBox>
+                    </VBox>
+                    
+                    <Button text="💾 Enregistrer les Modifications" onAction="#handleSaveProfile" 
+                            styleClass="btn-primary-large" maxWidth="Infinity"/>
+                </VBox>
+                
+                <!-- Change Password Card -->
+                <VBox styleClass="modern-card" spacing="20">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Label text="🔒" style="-fx-font-size: 24;"/>
+                        <Label text="Sécurité du Compte" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                    </HBox>
+                    
+                    <VBox spacing="20">
+                        <VBox spacing="8">
+                            <Label text="Nouveau mot de passe" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <PasswordField fx:id="newPasswordField" styleClass="modern-input" promptText="••••••••"/>
+                        </VBox>
+                        
+                        <VBox spacing="8">
+                            <Label text="Confirmer le mot de passe" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                            <PasswordField fx:id="confirmPasswordField" styleClass="modern-input" promptText="••••••••"/>
+                        </VBox>
+                    </VBox>
+                    
+                    <Button text="🔑 Changer le Mot de Passe" onAction="#handleChangePassword" 
+                            styleClass="btn-secondary-large" maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+            
+            <!-- Right Column - Badges & Friends -->
+            <VBox spacing="25" prefWidth="550" HBox.hgrow="ALWAYS">
+                
+                <!-- Badges Section -->
+                <VBox styleClass="modern-card" spacing="20">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER_LEFT">
+                        <HBox spacing="15" HBox.hgrow="ALWAYS">
+                            <Label text="🏆" style="-fx-font-size: 24;"/>
+                            <Label text="Mes Badges" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                        </HBox>
+                        <Button text="🔄" onAction="#handleRefreshBadges" styleClass="icon-refresh-btn">
+                            <tooltip><Tooltip text="Actualiser"/></tooltip>
+                        </Button>
+                    </HBox>
+                    
+                    <ScrollPane styleClass="badges-scroll" fitToWidth="true" prefHeight="300">
+                        <FlowPane fx:id="badgesContainer" hgap="15" vgap="15" alignment="TOP_LEFT">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <!-- Badges will be added dynamically -->
+                        </FlowPane>
+                    </ScrollPane>
+                </VBox>
+                
+                <!-- Friends Section -->
+                <VBox styleClass="modern-card" spacing="20">
+                    <padding>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER_LEFT">
+                        <HBox spacing="15" HBox.hgrow="ALWAYS">
+                            <Label text="👥" style="-fx-font-size: 24;"/>
+                            <Label text="Mes Amis" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                        </HBox>
+                        <Button text="🔄" onAction="#handleRefreshFriends" styleClass="icon-refresh-btn">
+                            <tooltip><Tooltip text="Actualiser"/></tooltip>
+                        </Button>
+                    </HBox>
+                    
+                    <ScrollPane styleClass="friends-scroll" fitToWidth="true" prefHeight="400">
+                        <VBox fx:id="friendsContainer" spacing="15">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <!-- Friends will be added dynamically -->
+                        </VBox>
+                    </ScrollPane>
+                </VBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</ScrollPane>

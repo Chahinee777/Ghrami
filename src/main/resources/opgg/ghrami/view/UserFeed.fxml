@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" 
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="opgg.ghrami.view.UserFeedController"
+            stylesheets="@../../../css/social-style.css"
+            prefWidth="1400" prefHeight="900">
+    
+    <!-- Top Navigation Bar -->
+    <top>
+        <HBox styleClass="top-nav" alignment="CENTER_LEFT" spacing="20" prefHeight="70">
+            <padding>
+                <Insets top="0" right="30" bottom="0" left="30"/>
+            </padding>
+            
+            <!-- Logo with Image -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <ImageView fitWidth="130" fitHeight="130" preserveRatio="true">
+                    <image>
+                        <Image url="@../../../images/assets/ghrami-logo.png"/>
+                    </image>
+                </ImageView>
+            </HBox>
+            
+            <!-- Search Bar -->
+            <HBox styleClass="search-container" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" maxWidth="350">
+                <TextField fx:id="searchField" promptText="🔍 Rechercher hobbies, personnes, groupes..." styleClass="search-input" HBox.hgrow="ALWAYS"/>
+            </HBox>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <!-- Top Nav Icons -->
+            <HBox spacing="15" alignment="CENTER">
+                <Button text="🏠" styleClass="icon-btn" onAction="#handleHome" minWidth="50" minHeight="50">
+                    <tooltip><Tooltip text="Accueil"/></tooltip>
+                </Button>
+                <Button text="👥" styleClass="icon-btn" onAction="#handleFriends" minWidth="50" minHeight="50">
+                    <tooltip><Tooltip text="Amis"/></tooltip>
+                </Button>
+                <Button text="🔔" styleClass="icon-btn" onAction="#handleNotifications" minWidth="50" minHeight="50">
+                    <tooltip><Tooltip text="Notifications"/></tooltip>
+                </Button>
+                <Button text="💬" styleClass="icon-btn" onAction="#handleMessages" minWidth="50" minHeight="50">
+                    <tooltip><Tooltip text="Messages"/></tooltip>
+                </Button>
+                
+                <!-- Profile Menu -->
+                <MenuButton styleClass="profile-menu-btn" minWidth="50" minHeight="50">
+                    <graphic>
+                        <Circle fx:id="menuProfileCircle" radius="20" styleClass="profile-circle"/>
+                    </graphic>
+                    <items>
+                        <MenuItem text="👤 Mon Profil" onAction="#handleProfile"/>
+                        <MenuItem text="⚙️ Paramètres" onAction="#handleSettings"/>
+                        <SeparatorMenuItem/>
+                        <MenuItem text="🚪 Déconnexion" onAction="#handleLogout"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+        </HBox>
+    </top>
+    
+    <!-- Main Content Area -->
+    <center>
+        <HBox styleClass="main-container" spacing="20">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <!-- Left Sidebar -->
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox styleClass="left-sidebar" spacing="10" prefWidth="280" maxWidth="280">
+                    
+                    <!-- User Profile Card -->
+                    <VBox styleClass="profile-card" spacing="15">
+                        <padding>
+                            <Insets top="20" right="20" bottom="20" left="20"/>
+                        </padding>
+                        
+                        <HBox alignment="CENTER">
+                            <Circle fx:id="sidebarProfileCircle" radius="50" styleClass="large-profile-circle"/>
+                        </HBox>
+                        
+                        <VBox alignment="CENTER" spacing="5">
+                            <Label fx:id="userNameLabel" text="Nom Utilisateur" styleClass="profile-name">
+                                <font><Font name="System Bold" size="18"/></font>
+                            </Label>
+                            <Label fx:id="userEmailLabel" text="email@ghrami.tn" styleClass="profile-email"/>
+                        </VBox>
+                        
+                        <Separator/>
+                        
+                        <!-- Stats -->
+                        <HBox spacing="20" alignment="CENTER">
+                            <VBox alignment="CENTER" spacing="3">
+                                <Label fx:id="postsCountLabel" text="42" styleClass="stat-number">
+                                    <font><Font name="System Bold" size="20"/></font>
+                                </Label>
+                                <Label text="Posts" styleClass="stat-label"/>
+                            </VBox>
+                            <Separator orientation="VERTICAL"/>
+                            <VBox alignment="CENTER" spacing="3">
+                                <Label fx:id="friendsCountLabel" text="156" styleClass="stat-number">
+                                    <font><Font name="System Bold" size="20"/></font>
+                                </Label>
+                                <Label text="Amis" styleClass="stat-label"/>
+                            </VBox>
+                            <Separator orientation="VERTICAL"/>
+                            <VBox alignment="CENTER" spacing="3">
+                                <Label fx:id="hobbiesCountLabel" text="8" styleClass="stat-number">
+                                    <font><Font name="System Bold" size="20"/></font>
+                                </Label>
+                                <Label text="Hobbies" styleClass="stat-label"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- Quick Actions -->
+                    <VBox styleClass="quick-actions-card" spacing="10">
+                        <padding>
+                            <Insets top="15" right="15" bottom="15" left="15"/>
+                        </padding>
+                        
+                        <Label text="Navigation Rapide" styleClass="section-title">
+                            <font><Font name="System Bold" size="14"/></font>
+                        </Label>
+                        
+                        <VBox spacing="5">
+                            <Button text="📰 Fil d'Actualité" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleFeed"/>
+                            <Button text="🎯 Mes Loisirs" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMyHobbies"/>
+                            <Button text="🌟 Découvrir" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleExplore"/>
+                            <Button text="👥 Mes Amis" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMyFriends"/>
+                            <Button text="🏆 Badges" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleBadges"/>
+                            <Button text="📅 Événements" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleEvents"/>
+                            <Button text="💡 Groupes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleGroups"/>
+                            <Button text="🎓 Classes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleClasses"/>
+                            <Button text="🥽 Salles VR" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleVRRooms"/>
+                            <Button text="🤝 Matchings" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMatchings"/>
+                        </VBox>
+                    </VBox>
+                    
+                    <!-- Trending Hobbies -->
+                    <VBox styleClass="trending-card" spacing="10">
+                        <padding>
+                            <Insets top="15" right="15" bottom="15" left="15"/>
+                        </padding>
+                        
+                        <Label text="🔥 Tendances" styleClass="section-title">
+                            <font><Font name="System Bold" size="14"/></font>
+                        </Label>
+                        
+                        <VBox spacing="8">
+                            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="trending-item">
+                                <Label text="📸" style="-fx-font-size: 20;"/>
+                                <VBox>
+                                    <Label text="Photographie" styleClass="trending-name"/>
+                                    <Label text="2.3k membres actifs" styleClass="trending-count"/>
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="trending-item">
+                                <Label text="🎸" style="-fx-font-size: 20;"/>
+                                <VBox>
+                                    <Label text="Musique" styleClass="trending-name"/>
+                                    <Label text="1.8k membres actifs" styleClass="trending-count"/>
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="trending-item">
+                                <Label text="🏃" style="-fx-font-size: 20;"/>
+                                <VBox>
+                                    <Label text="Sport &amp; Fitness" styleClass="trending-name"/>
+                                    <Label text="1.5k membres actifs" styleClass="trending-count"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                        
+                        <Button text="Voir plus" styleClass="see-more-btn" maxWidth="Infinity"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+            
+            <!-- Center Feed Area -->
+            <VBox styleClass="feed-area" spacing="20" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                
+                <!-- Stories Section -->
+                <VBox styleClass="create-post-card" spacing="15">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    <ScrollPane fitToHeight="true" hbarPolicy="NEVER" minHeight="200" prefHeight="200" maxHeight="200" style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <HBox spacing="15" styleClass="stories-container">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            
+                            <!-- Add Story -->
+                            <VBox styleClass="story-card add-story" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
+                                <Circle radius="50" styleClass="story-circle-add" style="-fx-stroke-width: 3; -fx-stroke: #667eea;"/>
+                                <Label text="➕" style="-fx-font-size: 24;"/>
+                                <Label text="Créer Story" styleClass="story-name"/>
+                            </VBox>
+                            
+                            <!-- Story Items -->
+                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
+                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
+                                <Label text="Amine" styleClass="story-name"/>
+                            </VBox>
+                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
+                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
+                                <Label text="Salma" styleClass="story-name"/>
+                            </VBox>
+                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
+                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
+                                <Label text="Youssef" styleClass="story-name"/>
+                            </VBox>
+                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
+                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
+                                <Label text="Lina" styleClass="story-name"/>
+                            </VBox>
+                        </HBox>
+                    </ScrollPane>
+                </VBox>
+                
+                <!-- Create Post Box -->
+                <VBox styleClass="create-post-card" spacing="15">
+                    <padding>
+                        <Insets top="20" right="20" bottom="20" left="20"/>
+                    </padding>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Circle radius="25" styleClass="profile-circle"/>
+                        <TextField fx:id="postTextField" promptText="Quoi de neuf? Partagez votre passion..." styleClass="post-input" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    
+                    <Separator/>
+                    
+                    <HBox spacing="10" alignment="CENTER">
+                        <Button text="📷 Photo/Vidéo" styleClass="post-action-btn" onAction="#handleAddMedia"/>
+                        <Button text="🎯 Hobby" styleClass="post-action-btn" onAction="#handleAddHobby"/>
+                        <Button text="😊 Sentiment" styleClass="post-action-btn" onAction="#handleAddFeeling"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Publier" styleClass="btn-publish" onAction="#handlePublish"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- Feed Posts -->
+                <ScrollPane styleClass="feed-scroll" fitToWidth="true" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="feedContainer" spacing="20">
+                        <padding>
+                            <Insets top="0" right="5" bottom="10" left="0"/>
+                        </padding>
+                        
+                        <!-- Sample Post 1 -->
+                        <VBox styleClass="post-card">
+                            <!-- Post Header -->
+                            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="post-header">
+                                <Circle radius="20" styleClass="post-profile-circle"/>
+                                <VBox>
+                                    <Label text="Amine Ben Ali" styleClass="post-author">
+                                        <font><Font name="System Bold" size="14"/></font>
+                                    </Label>
+                                    <HBox spacing="5" alignment="CENTER_LEFT">
+                                        <Label text="Il y a 2 heures" styleClass="post-time"/>
+                                        <Label text="•" styleClass="post-separator"/>
+                                        <Label text="🎸 Musique" styleClass="post-hobby"/>
+                                    </HBox>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="⋮" styleClass="post-menu-btn"/>
+                            </HBox>
+                            
+                            <!-- Post Content -->
+                            <VBox styleClass="post-content" spacing="10">
+                                <Label text="Viens de terminer ma première composition! Tellement heureux de partager ça avec vous 🎵🎸" 
+                                       wrapText="true" styleClass="post-text"/>
+                                
+                                <!-- Post Image Placeholder -->
+                                <VBox styleClass="post-image-placeholder" alignment="CENTER" prefHeight="300">
+                                    <Label text="🎸" style="-fx-font-size: 80;"/>
+                                    <Label text="Composition Musicale" styleClass="image-placeholder-text"/>
+                                </VBox>
+                            </VBox>
+                            
+                            <!-- Post Stats -->
+                            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="post-stats">
+                                <HBox spacing="5" alignment="CENTER_LEFT">
+                                    <Label text="❤️" style="-fx-font-size: 16;"/>
+                                    <Label text="42 J'aime" styleClass="stat-text"/>
+                                </HBox>
+                                <Label text="15 Commentaires" styleClass="stat-text"/>
+                                <Label text="8 Partages" styleClass="stat-text"/>
+                            </HBox>
+                            
+                            <Separator/>
+                            
+                            <!-- Post Actions -->
+                            <HBox spacing="10" alignment="CENTER" styleClass="post-actions">
+                                <Button text="👍 J'aime" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Button text="💬 Commenter" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Button text="↗️ Partager" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
+                        
+                        <!-- Sample Post 2 -->
+                        <VBox styleClass="post-card">
+                            <HBox alignment="CENTER_LEFT" spacing="10" styleClass="post-header">
+                                <Circle radius="20" styleClass="post-profile-circle"/>
+                                <VBox>
+                                    <Label text="Salma Trabelsi" styleClass="post-author">
+                                        <font><Font name="System Bold" size="14"/></font>
+                                    </Label>
+                                    <HBox spacing="5" alignment="CENTER_LEFT">
+                                        <Label text="Il y a 5 heures" styleClass="post-time"/>
+                                        <Label text="•" styleClass="post-separator"/>
+                                        <Label text="📚 Lecture" styleClass="post-hobby"/>
+                                    </HBox>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="⋮" styleClass="post-menu-btn"/>
+                            </HBox>
+                            
+                            <VBox styleClass="post-content" spacing="10">
+                                <Label text="Recommandation du jour : 'L'Alchimiste' de Paulo Coelho. Un chef-d'œuvre sur la poursuite de ses rêves! 📖✨" 
+                                       wrapText="true" styleClass="post-text"/>
+                            </VBox>
+                            
+                            <HBox alignment="CENTER_LEFT" spacing="15" styleClass="post-stats">
+                                <HBox spacing="5" alignment="CENTER_LEFT">
+                                    <Label text="❤️" style="-fx-font-size: 16;"/>
+                                    <Label text="67 J'aime" styleClass="stat-text"/>
+                                </HBox>
+                                <Label text="23 Commentaires" styleClass="stat-text"/>
+                                <Label text="12 Partages" styleClass="stat-text"/>
+                            </HBox>
+                            
+                            <Separator/>
+                            
+                            <HBox spacing="10" alignment="CENTER" styleClass="post-actions">
+                                <Button text="👍 J'aime" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Button text="💬 Commenter" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <Button text="↗️ Partager" styleClass="action-btn" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
+                        
+                        <!-- Load More -->
+                        <Button text="Charger plus de posts..." styleClass="load-more-btn" maxWidth="Infinity"/>
+                        
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+            
+            <!-- Right Sidebar -->
+            <VBox styleClass="right-sidebar" spacing="15" prefWidth="300" maxWidth="300">
+                
+                <!-- Friend Suggestions -->
+                <VBox styleClass="suggestions-card" spacing="10">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Suggestions d'amis" styleClass="section-title">
+                            <font><Font name="System Bold" size="14"/></font>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Voir tout" styleClass="link-btn"/>
+                    </HBox>
+                    
+                    <VBox spacing="15">
+                        <!-- Friend Suggestion 1 -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Circle radius="25" styleClass="suggestion-circle"/>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Mehdi Jebali" styleClass="suggestion-name">
+                                    <font><Font name="System Bold" size="13"/></font>
+                                </Label>
+                                <Label text="3 amis en commun" styleClass="suggestion-mutual"/>
+                            </VBox>
+                            <Button text="➕" styleClass="add-friend-btn"/>
+                        </HBox>
+                        
+                        <!-- Friend Suggestion 2 -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Circle radius="25" styleClass="suggestion-circle"/>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Lina Gharbi" styleClass="suggestion-name">
+                                    <font><Font name="System Bold" size="13"/></font>
+                                </Label>
+                                <Label text="5 amis en commun" styleClass="suggestion-mutual"/>
+                            </VBox>
+                            <Button text="➕" styleClass="add-friend-btn"/>
+                        </HBox>
+                        
+                        <!-- Friend Suggestion 3 -->
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Circle radius="25" styleClass="suggestion-circle"/>
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Youssef Chaouch" styleClass="suggestion-name">
+                                    <font><Font name="System Bold" size="13"/></font>
+                                </Label>
+                                <Label text="8 amis en commun" styleClass="suggestion-mutual"/>
+                            </VBox>
+                            <Button text="➕" styleClass="add-friend-btn"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+                
+                <!-- Active Groups -->
+                <VBox styleClass="groups-card" spacing="10">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <Label text="Groupes Actifs" styleClass="section-title">
+                        <font><Font name="System Bold" size="14"/></font>
+                    </Label>
+                    
+                    <VBox spacing="10">
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="group-item">
+                            <Circle radius="15" styleClass="group-circle"/>
+                            <VBox>
+                                <Label text="Photographes Tunisiens" styleClass="group-name"/>
+                                <Label text="234 membres" styleClass="group-count"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="group-item">
+                            <Circle radius="15" styleClass="group-circle"/>
+                            <VBox>
+                                <Label text="Passionnés de Cuisine" styleClass="group-name"/>
+                                <Label text="189 membres" styleClass="group-count"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="group-item">
+                            <Circle radius="15" styleClass="group-circle"/>
+                            <VBox>
+                                <Label text="Club de Lecture" styleClass="group-name"/>
+                                <Label text="156 membres" styleClass="group-count"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                    
+                    <Button text="Découvrir plus de groupes" styleClass="see-more-btn" maxWidth="Infinity"/>
+                </VBox>
+                
+                <!-- Upcoming Events -->
+                <VBox styleClass="events-card" spacing="10">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <Label text="📅 Événements à venir" styleClass="section-title">
+                        <font><Font name="System Bold" size="14"/></font>
+                    </Label>
+                    
+                    <VBox spacing="10">
+                        <VBox styleClass="event-item" spacing="5">
+                            <Label text="28 JAN" styleClass="event-date"/>
+                            <Label text="Atelier Photo Urbaine" wrapText="true" styleClass="event-title"/>
+                            <Label text="15 participants" styleClass="event-participants"/>
+                        </VBox>
+                        <VBox styleClass="event-item" spacing="5">
+                            <Label text="02 FÉV" styleClass="event-date"/>
+                            <Label text="Concert Acoustic Night" wrapText="true" styleClass="event-title"/>
+                            <Label text="42 participants" styleClass="event-participants"/>
+                        </VBox>
+                    </VBox>
+                </VBox>
+                
+                <!-- Footer Links -->
+                <VBox spacing="5" styleClass="footer-links">
+                    <Label text="À propos · Aide · Confidentialité · Conditions" styleClass="footer-text" wrapText="true"/>
+                    <Label text="Ghrami © 2026" styleClass="footer-copyright"/>
+                </VBox>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

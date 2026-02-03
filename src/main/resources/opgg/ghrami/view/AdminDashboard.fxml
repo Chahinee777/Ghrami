@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns="http://javafx.com/javafx" 
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="opgg.ghrami.view.AdminDashboardController"
+           style="-fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    
+    <!-- Animated Background Circles -->
+    <Circle radius="300" style="-fx-fill: rgba(255,255,255,0.04); -fx-translate-x: -500; -fx-translate-y: -300;"/>
+    <Circle radius="200" style="-fx-fill: rgba(255,255,255,0.06); -fx-translate-x: 600; -fx-translate-y: 400;"/>
+    <Circle radius="250" style="-fx-fill: rgba(255,255,255,0.03); -fx-translate-x: 0; -fx-translate-y: -400;"/>
+
+    <BorderPane style="-fx-background-color: transparent;">
+        
+        <!-- Modern Header with Glass Effect -->
+        <top>
+            <VBox style="-fx-background-color: rgba(255,255,255,0.95); -fx-padding: 20 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0, 0, 3);">
+                <HBox alignment="CENTER_LEFT" spacing="25">
+                    <!-- Logo -->
+                    <ImageView fitWidth="140" fitHeight="140" preserveRatio="true">
+                        <image>
+                            <Image url="@../../../images/assets/ghrami-logo.png"/>
+                        </image>
+                    </ImageView>
+                    <VBox spacing="2">
+                        <Label text="👑 Panneau Admin" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                            <font><Font name="System Bold" size="26"/></font>
+                        </Label>
+                        <Label text="Ghrami by OPGG - Administration" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_RIGHT" spacing="20">
+                        <VBox alignment="CENTER_RIGHT" spacing="2">
+                            <Label fx:id="adminNameLabel" text="Admin" style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label text="Administrateur" style="-fx-font-size: 12; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                        <Button fx:id="logoutButton" text="Déconnexion 🚪" onAction="#handleLogout"
+                                style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12 25; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 10, 0, 0, 5);"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </top>
+    
+    <!-- Main Content -->
+    <center>
+        <VBox spacing="25" style="-fx-padding: 30;">
+            
+            <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: rgba(255,255,255,0.95); -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 20, 0, 0, 10);">
+                
+                <!-- User Management Tab -->
+                <Tab text="👥 Utilisateurs">
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <!-- User Form Card -->
+                            <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                                <Label text="📝 Formulaire Utilisateur" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                                    <font><Font name="System Bold" size="18"/></font>
+                                </Label>
+                                <Separator/>
+                                <GridPane hgap="20" vgap="15" style="-fx-padding: 10;">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="140" prefWidth="160"/>
+                                        <ColumnConstraints minWidth="250" prefWidth="350" hgrow="ALWAYS"/>
+                                    </columnConstraints>
+                                    
+                                    <Label text="Nom d'utilisateur:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextField fx:id="usernameField" promptText="Entrez le nom" GridPane.columnIndex="1" GridPane.rowIndex="0" 
+                                               style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Nom complet:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextField fx:id="fullNameField" promptText="Prénom Nom" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                               style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextField fx:id="emailField" promptText="utilisateur@ghrami.tn" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                               style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Mot de passe:" GridPane.columnIndex="0" GridPane.rowIndex="3" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <PasswordField fx:id="passwordField" promptText="Mot de passe" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                                   style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Emplacement:" GridPane.columnIndex="0" GridPane.rowIndex="4" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextField fx:id="locationField" promptText="Tunis, Sfax, etc." GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                               style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Biographie:" GridPane.columnIndex="0" GridPane.rowIndex="5" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextArea fx:id="bioArea" promptText="Biographie..." GridPane.columnIndex="1" GridPane.rowIndex="5" prefRowCount="3"
+                                              style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="Photo de profil:" GridPane.columnIndex="0" GridPane.rowIndex="6" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <TextField fx:id="profilePicField" promptText="URL de l'image" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                                               style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                                    
+                                    <Label text="En ligne:" GridPane.columnIndex="0" GridPane.rowIndex="7" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                    <CheckBox fx:id="onlineCheckBox" GridPane.columnIndex="1" GridPane.rowIndex="7" style="-fx-font-size: 13;"/>
+                                    
+                                    <HBox spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="8">
+                                        <Button text="✅ Ajouter" onAction="#handleAddUser"
+                                                style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                        <Button text="✏️ Modifier" onAction="#handleUpdateUser"
+                                                style="-fx-background-color: #ffa726; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                        <Button text="🗑️ Supprimer" onAction="#handleDeleteUser"
+                                                style="-fx-background-color: #ef5350; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                        <Button text="🔄 Effacer" onAction="#handleClearUser"
+                                                style="-fx-background-color: #f0f2f5; -fx-text-fill: #1c1e21; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                    </HBox>
+                                </GridPane>
+                            </VBox>
+                            
+                            <!-- User Table Card -->
+                            <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                                <HBox alignment="CENTER_LEFT" spacing="15">
+                                    <Label text="📋 Liste des Utilisateurs" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                                        <font><Font name="System Bold" size="18"/></font>
+                                    </Label>
+                                    <Region HBox.hgrow="ALWAYS"/>
+                                    <Button text="🔄 Rafraîchir" onAction="#handleRefreshUser"
+                                            style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                </HBox>
+                                <Separator/>
+                                <TableView fx:id="userTable" prefHeight="350" style="-fx-background-color: #f8f9fa; -fx-background-radius: 8;">
+                                    <columns>
+                                        <TableColumn fx:id="userIdCol" text="ID" prefWidth="60"/>
+                                        <TableColumn fx:id="usernameCol" text="Nom" prefWidth="150"/>
+                                        <TableColumn fx:id="emailCol" text="Email" prefWidth="220"/>
+                                        <TableColumn fx:id="locationCol" text="Emplacement" prefWidth="130"/>
+                                        <TableColumn fx:id="onlineCol" text="En ligne" prefWidth="90"/>
+                                    </columns>
+                                </TableView>
+                            </VBox>
+                            
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+            
+            <!-- Friendship Management Tab -->
+            <Tab text="🤝 Amitiés">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                    
+                    <!-- Friendship Form Card -->
+                    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                        <Label text="📝 Formulaire Amitié" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                            <font><Font name="System Bold" size="18"/></font>
+                        </Label>
+                        <Separator/>
+                        <GridPane hgap="20" vgap="15" style="-fx-padding: 10;">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="140" prefWidth="160"/>
+                                <ColumnConstraints minWidth="250" prefWidth="350" hgrow="ALWAYS"/>
+                            </columnConstraints>
+                            
+                            <Label text="ID Utilisateur 1:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <TextField fx:id="friendUser1Field" promptText="ID du premier utilisateur" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                       style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                            
+                            <Label text="ID Utilisateur 2:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <TextField fx:id="friendUser2Field" promptText="ID du deuxième utilisateur" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                       style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                            
+                            <Label text="Statut:" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <ComboBox fx:id="statusComboBox" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity"
+                                      style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 5; -fx-font-size: 13;"/>
+                            
+                            <HBox spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                <Button text="✅ Ajouter" onAction="#handleAddFriendship"
+                                        style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="✏️ Modifier" onAction="#handleUpdateFriendship"
+                                        style="-fx-background-color: #ffa726; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="🗑️ Supprimer" onAction="#handleDeleteFriendship"
+                                        style="-fx-background-color: #ef5350; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="🔄 Effacer" onAction="#handleClearFriendship"
+                                        style="-fx-background-color: #f0f2f5; -fx-text-fill: #1c1e21; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                            </HBox>
+                        </GridPane>
+                    </VBox>
+                    
+                    <!-- Friendship Table Card -->
+                    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                            <Label text="📋 Liste des Amitiés" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                                <font><Font name="System Bold" size="18"/></font>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="🔄 Rafraîchir" onAction="#handleRefreshFriendship"
+                                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                        </HBox>
+                        <Separator/>
+                        <TableView fx:id="friendshipTable" prefHeight="350" style="-fx-background-color: #f8f9fa; -fx-background-radius: 8;">
+                            <columns>
+                                <TableColumn fx:id="friendshipIdCol" text="ID" prefWidth="70"/>
+                                <TableColumn fx:id="user1IdCol" text="Utilisateur 1" prefWidth="130"/>
+                                <TableColumn fx:id="user2IdCol" text="Utilisateur 2" prefWidth="130"/>
+                                <TableColumn fx:id="statusCol" text="Statut" prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                    
+                </VBox>
+            </ScrollPane>
+        </Tab>
+            
+            <!-- Badge Management Tab -->
+            <Tab text="🏆 Badges">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                    
+                    <!-- Badge Form Card -->
+                    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                        <Label text="📝 Formulaire Badge" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                            <font><Font name="System Bold" size="18"/></font>
+                        </Label>
+                        <Separator/>
+                        <GridPane hgap="20" vgap="15" style="-fx-padding: 10;">
+                            <columnConstraints>
+                                <ColumnConstraints minWidth="140" prefWidth="160"/>
+                                <ColumnConstraints minWidth="250" prefWidth="350" hgrow="ALWAYS"/>
+                            </columnConstraints>
+                            
+                            <Label text="ID Utilisateur:" GridPane.columnIndex="0" GridPane.rowIndex="0" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <TextField fx:id="badgeUserIdField" promptText="ID de l'utilisateur" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                       style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                            
+                            <Label text="Nom:" GridPane.columnIndex="0" GridPane.rowIndex="1" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <TextField fx:id="badgeNameField" promptText="Nom du badge" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                       style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                            
+                            <Label text="Description:" GridPane.columnIndex="0" GridPane.rowIndex="2" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <TextArea fx:id="badgeDescArea" promptText="Description..." GridPane.columnIndex="1" GridPane.rowIndex="2" prefRowCount="3"
+                                      style="-fx-background-color: #f0f2f5; -fx-background-radius: 8; -fx-padding: 10; -fx-font-size: 13;"/>
+                            
+                            <HBox spacing="12" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                                <Button text="✅ Ajouter" onAction="#handleAddBadge"
+                                        style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="✏️ Modifier" onAction="#handleUpdateBadge"
+                                        style="-fx-background-color: #ffa726; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="🗑️ Supprimer" onAction="#handleDeleteBadge"
+                                        style="-fx-background-color: #ef5350; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                                <Button text="🔄 Effacer" onAction="#handleClearBadge"
+                                        style="-fx-background-color: #f0f2f5; -fx-text-fill: #1c1e21; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                            </HBox>
+                        </GridPane>
+                    </VBox>
+                    
+                    <!-- Badge Table Card -->
+                    <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                        <HBox alignment="CENTER_LEFT" spacing="15">
+                            <Label text="📋 Liste des Badges" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                                <font><Font name="System Bold" size="18"/></font>
+                            </Label>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="🔄 Rafraîchir" onAction="#handleRefreshBadge"
+                                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-cursor: hand;"/>
+                        </HBox>
+                        <Separator/>
+                        <TableView fx:id="badgeTable" prefHeight="350" style="-fx-background-color: #f8f9fa; -fx-background-radius: 8;">
+                            <columns>
+                                <TableColumn fx:id="badgeIdCol" text="ID" prefWidth="60"/>
+                                <TableColumn fx:id="badgeUserIdCol" text="Utilisateur" prefWidth="110"/>
+                                <TableColumn fx:id="badgeNameCol" text="Nom" prefWidth="180"/>
+                                <TableColumn fx:id="descriptionCol" text="Description" prefWidth="300"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
+                    
+                </VBox>
+            </ScrollPane>
+        </Tab>
+            
+        </TabPane>
+        
+        <!-- Footer -->
+        <HBox alignment="CENTER" style="-fx-padding: 20;">
+            <Label text="© 2026 Ghrami by OPGG - Made with ❤️ in Tunisia 🇹🇳 | Admin Panel" 
+                   style="-fx-text-fill: #764ba2; -fx-font-size: 13; -fx-font-weight: 600;">
+                <font><Font size="13.0" /></font>
+            </Label>
+        </HBox>
+        
+    </VBox>
+</center>
+    
+</BorderPane>
+
+</StackPane>

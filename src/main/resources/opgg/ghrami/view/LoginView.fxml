@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="opgg.ghrami.view.LoginViewController"
+      style="-fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    
+    <!-- Animated Background Circles -->
+    <Circle radius="200" style="-fx-fill: rgba(255,255,255,0.05); -fx-translate-x: -300; -fx-translate-y: -200;"/>
+    <Circle radius="150" style="-fx-fill: rgba(255,255,255,0.08); -fx-translate-x: 400; -fx-translate-y: 300;"/>
+    <Circle radius="250" style="-fx-fill: rgba(255,255,255,0.03); -fx-translate-x: 200; -fx-translate-y: -300;"/>
+    
+    <VBox alignment="CENTER" spacing="40" style="-fx-padding: 40;">
+        
+        <!-- Logo Card with Glass Effect -->
+        <VBox alignment="CENTER" spacing="25" 
+              style="-fx-background-color: rgba(255,255,255,0.15); -fx-background-radius: 25; -fx-padding: 40; -fx-backdrop-filter: blur(20px); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 30, 0, 0, 15);">
+            <ImageView fitWidth="150" fitHeight="150" preserveRatio="true">
+                <image>
+                    <Image url="@../../../images/assets/ghrami-logo.png"/>
+                </image>
+            </ImageView>
+            <VBox alignment="CENTER" spacing="8">
+                <Label text="Ghrami" style="-fx-font-size: 48; -fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 8; -fx-text-fill: linear-gradient(to right, #a8b8ff, #c59ddb); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);">
+                    <font><Font name="System Bold" size="48.0" /></font>
+                </Label>
+                <Label text="Ghrami by OPGG" 
+                       style="-fx-font-size: 16; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 6; -fx-text-fill: linear-gradient(to right, #b8c5ff, #d5afe8); -fx-font-weight: 500;">
+                    <font><Font size="16.0" /></font>
+                </Label>
+            </VBox>
+        </VBox>
+
+        <!-- Login Form Card with Glass Morphism -->
+        <VBox spacing="25" maxWidth="480" 
+              style="-fx-background-color: rgba(255,255,255,0.98); -fx-background-radius: 25; -fx-padding: 45; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 35, 0, 0, 18);">
+            
+            <VBox alignment="CENTER" spacing="10">
+                <Label text="✨ Connexion" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #667eea;">
+                    <font><Font name="System Bold" size="32.0" /></font>
+                </Label>
+                <Label text="Bienvenue sur votre espace personnel" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+            </VBox>
+
+            <VBox spacing="10">
+                <Label text="Email" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                <TextField fx:id="emailField" promptText="votre.email@ghrami.tn" 
+                          styleClass="modern-input" 
+                          style="-fx-font-size: 15; -fx-padding: 15; -fx-background-radius: 12; -fx-border-radius: 12;"/>
+            </VBox>
+
+            <VBox spacing="10">
+                <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                <PasswordField fx:id="passwordField" promptText="••••••••" 
+                              styleClass="modern-input" 
+                              style="-fx-font-size: 15; -fx-padding: 15; -fx-background-radius: 12; -fx-border-radius: 12;"/>
+            </VBox>
+
+            <Label fx:id="errorLabel" styleClass="error-label" wrapText="true" 
+                   style="-fx-text-fill: #e74c3c; -fx-font-size: 13; -fx-font-weight: 600;"/>
+
+            <Button fx:id="loginButton" text="Se connecter →" onAction="#handleLogin" 
+                    styleClass="btn-primary-large" maxWidth="Infinity" 
+                    style="-fx-font-size: 18; -fx-padding: 18; -fx-cursor: hand; -fx-background-radius: 12; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 15, 0, 0, 8);">
+                <font><Font name="System Bold" size="18.0" /></font>
+            </Button>
+
+            <HBox alignment="CENTER" spacing="8" style="-fx-padding: 10 0 0 0;">
+                <Label text="Pas encore de compte ?" style="-fx-text-fill: #65676b; -fx-font-size: 14;"/>
+                <Hyperlink fx:id="registerLink" text="S'inscrire maintenant" onAction="#handleRegister" 
+                          style="-fx-text-fill: #667eea; -fx-font-weight: bold; -fx-font-size: 14; -fx-underline: false;"/>
+            </HBox>
+
+            <VBox alignment="CENTER" spacing="12" 
+                  style="-fx-background-color: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%); -fx-background-radius: 12; -fx-padding: 20;">
+                <Label text="💡 Comptes de test" style="-fx-font-weight: bold; -fx-text-fill: #667eea; -fx-font-size: 14;"/>
+                <VBox spacing="6" alignment="CENTER">
+                    <Label text="👑 Admin: chahine@ghrami.tn / admin123" style="-fx-text-fill: #1c1e21; -fx-font-size: 13; -fx-font-weight: 500;"/>
+                    <Label text="👤 Utilisateur: anas@ghrami.tn / password123" style="-fx-text-fill: #1c1e21; -fx-font-size: 13; -fx-font-weight: 500;"/>
+                </VBox>
+            </VBox>
+        </VBox>
+
+        <!-- Footer with enhanced styling -->
+        <Label text="© 2026 Ghrami - Made with ❤️ in Tunisia 🇹🇳" 
+               style="-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 600; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2);">
+            <font><Font size="13.0" /></font>
+        </Label>
+    </VBox>
+</StackPane>
