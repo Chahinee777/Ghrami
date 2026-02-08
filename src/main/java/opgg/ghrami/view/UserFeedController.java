@@ -9,7 +9,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.ImagePattern;
 import javafx.stage.Stage;
+import opgg.ghrami.controller.FriendshipController;
 import opgg.ghrami.controller.UserController;
+import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.User;
 import opgg.ghrami.util.SessionManager;
 
@@ -18,6 +20,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class UserFeedController implements Initializable {
@@ -38,11 +41,13 @@ public class UserFeedController implements Initializable {
     
     private SessionManager sessionManager;
     private UserController userController;
+    private FriendshipController friendshipController;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sessionManager = SessionManager.getInstance();
         userController = new UserController();
+        friendshipController = new FriendshipController();
         loadUserInfo();
         loadFeed();
     }
@@ -60,7 +65,12 @@ public class UserFeedController implements Initializable {
             userNameLabel.setText(username != null ? username : "Utilisateur");
             userEmailLabel.setText(email != null ? email : "");
             postsCountLabel.setText("0");
-            friendsCountLabel.setText("0");
+            
+            // Load friend count
+            long userId = sessionManager.getUserId();
+            List<Friendship> acceptedFriendships = friendshipController.getAcceptedFriendships(userId);
+            friendsCountLabel.setText(String.valueOf(acceptedFriendships.size()));
+            
             hobbiesCountLabel.setText("0");
             
             // Load profile image
@@ -114,7 +124,18 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleFriends() {
-        System.out.println("Friends clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/FriendsView.fxml"));
+            Scene scene = new Scene(loader.load(), 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Mes Amis");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir la page des amis: " + e.getMessage());
+        }
     }
     
     @FXML
@@ -151,6 +172,15 @@ public class UserFeedController implements Initializable {
     @FXML
     private void handleLogout() {
         try {
+            // Set user offline before logout
+            long userId = sessionManager.getUserId();
+            User user = userController.findById((int) userId);
+            if (user != null) {
+                user.setOnline(false);
+                userController.update(user);
+                System.out.println("✅ User set to offline: " + user.getUsername());
+            }
+            
             sessionManager.logout();
             
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
@@ -184,7 +214,18 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleMyFriends() {
-        System.out.println("My Friends clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/FriendsView.fxml"));
+            Scene scene = new Scene(loader.load(), 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Mes Amis");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir la page des amis: " + e.getMessage());
+        }
     }
     
     @FXML

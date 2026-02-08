@@ -7,103 +7,197 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.shape.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="opgg.ghrami.view.RegisterViewController"
-      style="-fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+      minHeight="850" minWidth="1400">
     
-    <!-- Animated Background Circles -->
-    <Circle radius="180" style="-fx-fill: rgba(255,255,255,0.05); -fx-translate-x: -350; -fx-translate-y: -150;"/>
-    <Circle radius="160" style="-fx-fill: rgba(255,255,255,0.08); -fx-translate-x: 380; -fx-translate-y: 250;"/>
-    <Circle radius="220" style="-fx-fill: rgba(255,255,255,0.03); -fx-translate-x: 150; -fx-translate-y: -280;"/>
-    
-    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" vbarPolicy="AS_NEEDED">
-        <VBox alignment="CENTER" spacing="35" style="-fx-padding: 40;">
+    <!-- LEFT SIDE: Register Form (50%) -->
+    <ScrollPane fitToWidth="true" fitToHeight="true" HBox.hgrow="ALWAYS"
+                style="-fx-background-color: white; -fx-background: white;" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER">
+        <VBox alignment="CENTER" spacing="30" style="-fx-padding: 60; -fx-background-color: white;">
             
-            <!-- Logo Card with Glass Effect -->
-            <VBox alignment="CENTER" spacing="20" 
-                  style="-fx-background-color: rgba(255,255,255,0.15); -fx-background-radius: 25; -fx-padding: 35; -fx-backdrop-filter: blur(20px); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 30, 0, 0, 15);">
-                <ImageView fitWidth="120" fitHeight="120" preserveRatio="true">
+            <!-- Logo -->
+            <VBox alignment="CENTER" spacing="15">
+                <ImageView fitWidth="200" fitHeight="200" preserveRatio="true">
                     <image>
                         <Image url="@../../../images/assets/ghrami-logo.png"/>
                     </image>
                 </ImageView>
-                <VBox alignment="CENTER" spacing="6">
-                    <Label text="Rejoignez Ghrami" style="-fx-font-size: 38; -fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 8; -fx-text-fill: linear-gradient(to right, #a8b8ff, #c59ddb); -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 3);">
-                        <font><Font name="System Bold" size="38.0" /></font>
-                    </Label>
-                    <Label text="Ghrami by OPGG" 
-                           style="-fx-font-size: 15; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 6; -fx-text-fill: linear-gradient(to right, #b8c5ff, #d5afe8); -fx-font-weight: 500;">
-                        <font><Font size="15.0" /></font>
-                    </Label>
-                </VBox>
+                <Label text="Ghrami" style="-fx-font-size: 38; -fx-font-weight: bold; -fx-text-fill: linear-gradient(to right, #5a3fb8, #7c5cff);">
+                    <font><Font name="System Bold" size="38.0" /></font>
+                </Label>
+                <Label text="by OPGG" style="-fx-font-size: 15; -fx-text-fill: #8c6dff; -fx-font-weight: 600;"/>
             </VBox>
 
-            <!-- Register Form with Glass Morphism -->
-            <VBox spacing="18" maxWidth="500" 
-                  style="-fx-background-color: rgba(255,255,255,0.98); -fx-background-radius: 25; -fx-padding: 38; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 35, 0, 0, 18);">
+            <!-- Register Form -->
+            <VBox spacing="20" maxWidth="420">
 
-                <VBox alignment="CENTER" spacing="8">
-                    <Label text="✨ Inscription" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #667eea;">
-                        <font><Font name="System Bold" size="28.0" /></font>
+                <VBox alignment="CENTER" spacing="10">
+                    <Label text="✨ Créer un compte" style="-fx-font-size: 34; -fx-font-weight: bold; -fx-text-fill: #1c1e21;">
+                        <font><Font name="System Bold" size="34.0" /></font>
                     </Label>
-                    <Label text="Créez votre compte en quelques secondes" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                    <Label text="Rejoignez la communauté Ghrami" style="-fx-font-size: 15; -fx-text-fill: #65676b;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Nom d'utilisateur *" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <TextField fx:id="usernameField" promptText="Ex: amine_ben_ali" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Nom d'utilisateur" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <TextField fx:id="usernameField" promptText="Ex: chahine_aouled_amor" styleClass="modern-input" 
+                              style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Nom complet" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <TextField fx:id="fullNameField" promptText="Ex: Amine Ben Ali" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Nom complet" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <TextField fx:id="fullNameField" promptText="Ex: Chahine Aouled Amor" styleClass="modern-input" 
+                              style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Email *" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <TextField fx:id="emailField" promptText="votre.email@ghrami.tn" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Email" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <TextField fx:id="emailField" promptText="votre.email@ghrami.tn" styleClass="modern-input" 
+                              style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Mot de passe *" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <PasswordField fx:id="passwordField" promptText="Minimum 6 caractères" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <PasswordField fx:id="passwordField" promptText="Minimum 6 caractères" styleClass="modern-input" 
+                                  style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Confirmer le mot de passe *" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <PasswordField fx:id="confirmPasswordField" promptText="Retapez votre mot de passe" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Confirmer le mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <PasswordField fx:id="confirmPasswordField" promptText="Retapez votre mot de passe" styleClass="modern-input" 
+                                  style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Localisation" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <TextField fx:id="locationField" promptText="Ville, Tunisie" styleClass="modern-input" style="-fx-font-size: 14; -fx-padding: 13; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Localisation" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <TextField fx:id="locationField" promptText="Ville, Tunisie" styleClass="modern-input" 
+                              style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
-                <VBox spacing="8">
-                    <Label text="Bio (optionnel)" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13;"/>
-                    <TextArea fx:id="bioArea" promptText="Parlez-nous de vous..." prefRowCount="2" styleClass="modern-textarea" style="-fx-font-size: 14; -fx-padding: 10; -fx-background-radius: 10; -fx-border-radius: 10;"/>
+                <VBox spacing="10">
+                    <Label text="Bio (optionnel)" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                    <TextArea fx:id="bioArea" promptText="Parlez-nous de vous..." prefRowCount="2" styleClass="modern-textarea" 
+                             style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
                 </VBox>
 
                 <Label fx:id="errorLabel" styleClass="error-label" wrapText="true" style="-fx-text-fill: #e74c3c; -fx-font-size: 13; -fx-font-weight: 600;"/>
 
                 <Button fx:id="registerButton" text="Créer mon compte →" onAction="#handleRegister" 
                         styleClass="btn-primary-large" maxWidth="Infinity" 
-                        style="-fx-font-size: 17; -fx-padding: 17; -fx-cursor: hand; -fx-background-radius: 12; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 15, 0, 0, 8);">
-                    <font><Font name="System Bold" size="17.0" /></font>
+                        style="-fx-font-size: 18; -fx-padding: 19; -fx-cursor: hand; -fx-background-radius: 12; -fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.5), 20, 0, 0, 10);">
+                    <font><Font name="System Bold" size="18.0" /></font>
                 </Button>
 
-                <HBox alignment="CENTER" spacing="8" style="-fx-padding: 8 0 0 0;">
+                <HBox alignment="CENTER" spacing="8" style="-fx-padding: 10 0 0 0;">
                     <Label text="Déjà un compte ?" style="-fx-text-fill: #65676b; -fx-font-size: 14;"/>
                     <Hyperlink fx:id="loginLink" text="Se connecter" onAction="#handleBackToLogin" 
                               style="-fx-text-fill: #667eea; -fx-font-weight: bold; -fx-font-size: 14; -fx-underline: false;"/>
                 </HBox>
             </VBox>
-
-            <!-- Footer -->
-            <Label text="© 2026 Ghrami - Made with ❤️ in Tunisia 🇹🇳" 
-                   style="-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: 600; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2);">
-                <font><Font size="13.0" /></font>
-            </Label>
         </VBox>
     </ScrollPane>
-</StackPane>
+
+    <!-- RIGHT SIDE: Enhanced Visual Content with Purple Background (50%) -->
+    <StackPane HBox.hgrow="ALWAYS" 
+               style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #5a3fb8 0%, #6b4fd1 40%, #7c5cff 100%);">
+        
+        <!-- Enhanced Background Effects -->
+        <Circle radius="450" style="-fx-fill: rgba(255,255,255,0.08); -fx-translate-x: -280; -fx-translate-y: -240;"/>
+        <Circle radius="380" style="-fx-fill: rgba(255,255,255,0.10); -fx-translate-x: 300; -fx-translate-y: 250;"/>
+        <Circle radius="320" style="-fx-fill: rgba(255,255,255,0.12); -fx-translate-x: -150; -fx-translate-y: 320;"/>
+        <Circle radius="400" style="-fx-fill: rgba(255,255,255,0.09); -fx-translate-x: 320; -fx-translate-y: -220;"/>
+        <Circle radius="280" style="-fx-fill: rgba(255,255,255,0.11); -fx-translate-x: 100; -fx-translate-y: -100;"/>
+        
+        <!-- Animated Decorative Dots -->
+        <Circle radius="12" style="-fx-fill: rgba(255,255,255,0.45); -fx-translate-x: -340; -fx-translate-y: 130;"/>
+        <Circle radius="16" style="-fx-fill: rgba(255,255,255,0.40); -fx-translate-x: 350; -fx-translate-y: -150;"/>
+        <Circle radius="10" style="-fx-fill: rgba(255,255,255,0.50); -fx-translate-x: 290; -fx-translate-y: 320;"/>
+        <Circle radius="14" style="-fx-fill: rgba(255,255,255,0.42); -fx-translate-x: -310; -fx-translate-y: -230;"/>
+        <Circle radius="11" style="-fx-fill: rgba(255,255,255,0.48); -fx-translate-x: 210; -fx-translate-y: 160;"/>
+        <Circle radius="13" style="-fx-fill: rgba(255,255,255,0.44); -fx-translate-x: -180; -fx-translate-y: 80;"/>
+        
+        <VBox alignment="CENTER" spacing="25" style="-fx-padding: 40 70;">
+            
+            <!-- MEGA Header Section with Star Icon -->
+            <VBox alignment="CENTER" spacing="20">
+                <!-- Giant Star Icon with Multi-layer Glow -->
+                <StackPane>
+                    <Circle radius="115" style="-fx-fill: rgba(255,255,255,0.35);"/>
+                    <Circle radius="100" style="-fx-fill: rgba(255,255,255,0.22);"/>
+                    <Circle radius="85" style="-fx-fill: rgba(255,255,255,0.15);"/>
+                    <Label text="🌟" style="-fx-font-size: 140;"/>
+                </StackPane>
+                
+                <!-- Powerful Headlines with Enhanced Shadow -->
+                <VBox alignment="CENTER" spacing="8">
+                    <Label text="Rejoignez." 
+                           style="-fx-font-size: 62; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.65), 24, 0, 0, 10);">
+                        <font><Font name="System Bold" size="62.0" /></font>
+                    </Label>
+                    <Label text="Créez." 
+                           style="-fx-font-size: 62; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.65), 24, 0, 0, 10);">
+                        <font><Font name="System Bold" size="62.0" /></font>
+                    </Label>
+                    <Label text="Grandissez." 
+                           style="-fx-font-size: 62; -fx-font-weight: bold; -fx-text-fill: #ffffff; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.65), 24, 0, 0, 10);">
+                        <font><Font name="System Bold" size="62.0" /></font>
+                    </Label>
+                </VBox>
+                
+            </VBox>
+
+            <!-- Premium Feature Cards -->
+            <VBox spacing="12" maxWidth="580">
+                
+                <!-- Feature 1 - Inscription Instantanée -->
+                <HBox spacing="20" alignment="CENTER_LEFT" 
+                      style="-fx-background-color: rgba(255,255,255,0.35); -fx-background-radius: 24; -fx-padding: 22 28; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 22, 0, 0, 12);">
+                    <StackPane>
+                        <Circle radius="38" style="-fx-fill: rgba(255,255,255,0.45);"/>
+                        <Label text="⚡" style="-fx-font-size: 50;"/>
+                    </StackPane>
+                    <VBox spacing="7" HBox.hgrow="ALWAYS">
+                        <Label text="Inscription Instantanée" style="-fx-font-size: 21; -fx-font-weight: bold; -fx-text-fill: #ffffff;">
+                            <font><Font name="System Bold" size="21.0" /></font>
+                        </Label>
+                        <Label text="Créez votre compte en moins de 2 minutes" wrapText="true" 
+                               style="-fx-font-size: 15; -fx-text-fill: #ffffff; -fx-line-spacing: 4;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Feature 2 - Sécurité Maximale -->
+                <HBox spacing="20" alignment="CENTER_LEFT" 
+                      style="-fx-background-color: rgba(255,255,255,0.35); -fx-background-radius: 24; -fx-padding: 22 28; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 22, 0, 0, 12);">
+                    <StackPane>
+                        <Circle radius="38" style="-fx-fill: rgba(255,255,255,0.45);"/>
+                        <Label text="🔒" style="-fx-font-size: 50;"/>
+                    </StackPane>
+                    <VBox spacing="7" HBox.hgrow="ALWAYS">
+                        <Label text="Sécurité Maximale" style="-fx-font-size: 21; -fx-font-weight: bold; -fx-text-fill: #ffffff;">
+                            <font><Font name="System Bold" size="21.0" /></font>
+                        </Label>
+                        <Label text="Vos données sont chiffrées et protégées" wrapText="true" 
+                               style="-fx-font-size: 15; -fx-text-fill: #ffffff; -fx-line-spacing: 4;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Feature 3 - Totalement Gratuit -->
+                <HBox spacing="20" alignment="CENTER_LEFT" 
+                      style="-fx-background-color: rgba(255,255,255,0.35); -fx-background-radius: 24; -fx-padding: 22 28; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 22, 0, 0, 12);">
+                    <StackPane>
+                        <Circle radius="38" style="-fx-fill: rgba(255,255,255,0.45);"/>
+                        <Label text="🎁" style="-fx-font-size: 50;"/>
+                    </StackPane>
+                    <VBox spacing="7" HBox.hgrow="ALWAYS">
+                        <Label text="Totalement Gratuit" style="-fx-font-size: 21; -fx-font-weight: bold; -fx-text-fill: #ffffff;">
+                            <font><Font name="System Bold" size="21.0" /></font>
+                        </Label>
+                        <Label text="Toutes les fonctionnalités gratuitement" wrapText="true" 
+                               style="-fx-font-size: 15; -fx-text-fill: #ffffff; -fx-line-spacing: 4;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </StackPane>
+</HBox>

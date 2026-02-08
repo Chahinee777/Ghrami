@@ -58,6 +58,18 @@
             <Label fx:id="fullNameLabel" text="Full Name" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
             <Label fx:id="usernameLabel" text="@username" style="-fx-font-size: 18; -fx-text-fill: #65676b;"/>
             
+            <!-- Online Status Section -->
+            <HBox spacing="15" alignment="CENTER">
+                <padding>
+                    <Insets top="10"/>
+                </padding>
+                <Label fx:id="onlineStatusLabel" text="🟢 En ligne" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #22c55e;"/>
+                <Button fx:id="toggleStatusButton" text="Passer Hors ligne" onAction="#handleToggleOnlineStatus"
+                        style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button text="🚪 Déconnexion" onAction="#handleLogout"
+                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+            
             <!-- Stats Row -->
             <HBox spacing="50" alignment="CENTER">
                 <padding>

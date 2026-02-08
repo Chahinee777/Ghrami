@@ -45,6 +45,8 @@ public class ProfileViewController implements Initializable {
     @FXML private Label postsCountLabel;
     @FXML private Label friendsCountLabel;
     @FXML private Label badgesCountLabel;
+    @FXML private Label onlineStatusLabel;
+    @FXML private Button toggleStatusButton;
     
     // Edit Fields
     @FXML private TextField fullNameField;
@@ -77,6 +79,7 @@ public class ProfileViewController implements Initializable {
         loadUserData();
         loadBadges();
         loadFriends();
+        updateOnlineStatusDisplay();
     }
     
     private void loadUserData() {
@@ -444,6 +447,78 @@ public class ProfileViewController implements Initializable {
             System.err.println("ERROR in handleBackToDashboard: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Erreur lors du retour au feed: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleToggleOnlineStatus() {
+        try {
+            if (currentUser == null) {
+                showAlert("Erreur", "Utilisateur non trouvé");
+                return;
+            }
+            
+            // Toggle the online status
+            boolean newStatus = !currentUser.isOnline();
+            currentUser.setOnline(newStatus);
+            userController.update(currentUser);
+            
+            // Update the display
+            updateOnlineStatusDisplay();
+            
+            String statusText = newStatus ? "En ligne" : "Hors ligne";
+            System.out.println("✅ Status changed to: " + statusText);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors du changement de statut: " + e.getMessage());
+        }
+    }
+    
+    private void updateOnlineStatusDisplay() {
+        if (currentUser == null || onlineStatusLabel == null || toggleStatusButton == null) {
+            return;
+        }
+        
+        if (currentUser.isOnline()) {
+            onlineStatusLabel.setText("🟢 En ligne");
+            onlineStatusLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #22c55e;");
+            toggleStatusButton.setText("Passer Hors ligne");
+            toggleStatusButton.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; " +
+                    "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
+                    "-fx-font-weight: bold; -fx-cursor: hand;");
+        } else {
+            onlineStatusLabel.setText("⚫ Hors ligne");
+            onlineStatusLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #6b7280;");
+            toggleStatusButton.setText("Passer En ligne");
+            toggleStatusButton.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white; " +
+                    "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
+                    "-fx-font-weight: bold; -fx-cursor: hand;");
+        }
+    }
+    
+    @FXML
+    private void handleLogout() {
+        try {
+            // Set user offline before logout
+            if (currentUser != null) {
+                currentUser.setOnline(false);
+                userController.update(currentUser);
+                System.out.println("✅ User set to offline on logout: " + currentUser.getUsername());
+            }
+            
+            sessionManager.logout();
+            
+            // Navigate to login
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
+            Scene scene = new Scene(loader.load(), 450, 600);
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+            Stage stage = (Stage) fullNameLabel.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Connexion");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors de la déconnexion: " + e.getMessage());
         }
     }
     

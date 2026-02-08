@@ -27,6 +27,26 @@ public class GhramiApplication extends Application {
         primaryStage.setHeight(600);
         primaryStage.setResizable(true);
         primaryStage.setMaximized(false);
+        
+        // Set user offline when closing application window
+        primaryStage.setOnCloseRequest(event -> {
+            opgg.ghrami.util.SessionManager session = opgg.ghrami.util.SessionManager.getInstance();
+            if (session.isLoggedIn()) {
+                try {
+                    UserController userController = new UserController();
+                    long userId = session.getUserId();
+                    User user = userController.findById((int) userId);
+                    if (user != null) {
+                        user.setOnline(false);
+                        userController.update(user);
+                        System.out.println("✅ User set to offline on window close: " + user.getUsername());
+                    }
+                } catch (Exception e) {
+                    System.err.println("❌ Error setting user offline on close: " + e.getMessage());
+                }
+            }
+        });
+        
         primaryStage.show();
     }
 

@@ -4,6 +4,10 @@ module opgg.ghrami {
     requires java.sql;
     requires jbcrypt;
     requires jjwt.api;
+    
+    // iText PDF library
+    requires kernel;
+    requires layout;
 
     opens opgg.ghrami to javafx.fxml;
     opens opgg.ghrami.view to javafx.fxml;
