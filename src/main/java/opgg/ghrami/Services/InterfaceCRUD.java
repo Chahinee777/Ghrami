@@ -10,4 +10,5 @@ public interface InterfaceCRUD<T>{
     List<T> afficher();
 
 
+
 }
