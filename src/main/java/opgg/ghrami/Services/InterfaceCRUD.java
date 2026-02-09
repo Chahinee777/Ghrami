@@ -9,4 +9,5 @@ public interface InterfaceCRUD<T>{
     void supprimer(String id);
     List<T> afficher();
 
+
 }
