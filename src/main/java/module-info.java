@@ -10,6 +10,4 @@ module opgg.ghrami {
     opens opgg.ghrami.model to javafx.base;
     
     exports opgg.ghrami;
-    exports opgg.ghrami.view;
-    exports opgg.ghrami.model;
 }
