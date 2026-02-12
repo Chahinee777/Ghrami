@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx" 
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="opgg.ghrami.view.BadgesViewController"
+           stylesheets="@../../../css/social-style.css"
+           styleClass="root" fitToWidth="true" prefWidth="1200" prefHeight="800">
+    
+    <VBox spacing="0" style="-fx-background-color: #f0f2f5;">
+        
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: white; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="🏆" style="-fx-font-size: 40;"/>
+                    <VBox spacing="2">
+                        <Label text="My Badges" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                        <Label text="Your achievements and progress" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Label fx:id="badgeCountLabel" text="0 badges earned" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #667eea; -fx-background-color: rgba(102,126,234,0.1); -fx-background-radius: 20; -fx-padding: 10 20;"/>
+            
+            <Button text="← Back to Feed" onAction="#handleBack" 
+                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
+        </HBox>
+        
+        <!-- Stats Section -->
+        <HBox spacing="20" alignment="CENTER" style="-fx-padding: 30 40;">
+            <!-- Total Badges -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 250;">
+                <Label text="🏆" style="-fx-font-size: 40;"/>
+                <Label fx:id="totalBadgesLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                <Label text="Total Badges" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <!-- Recent Badges -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 250;">
+                <Label text="⭐" style="-fx-font-size: 40;"/>
+                <Label fx:id="recentBadgesLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                <Label text="This Month" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <!-- Collection Progress -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 250;">
+                <Label text="🎯" style="-fx-font-size: 40;"/>
+                <Label fx:id="progressLabel" text="0%" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #FF9800;"/>
+                <Label text="Collection Progress" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Main Content Area -->
+        <VBox spacing="25" style="-fx-padding: 0 40 40 40;">
+            
+            <!-- Filter Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                <Label text="🔍 Filter:" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                <ComboBox fx:id="filterCombo" promptText="All Time" prefWidth="200"
+                          style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="💡 How to earn badges" style="-fx-font-size: 13; -fx-text-fill: #65676b; -fx-cursor: hand;" onMouseClicked="#showBadgeInfo"/>
+            </HBox>
+            
+            <!-- Badges Grid -->
+            <VBox spacing="15">
+                <!-- Empty State -->
+                <VBox fx:id="emptyState" alignment="CENTER" spacing="15" managed="false" visible="false"
+                      style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 60 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                    <Label text="🎖️" style="-fx-font-size: 72;"/>
+                    <Label text="No badges yet" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                    <Label text="Start interacting with the platform to earn your first badges!" 
+                           style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-text-alignment: center;" wrapText="true" textAlignment="CENTER" maxWidth="400"/>
+                </VBox>
+                
+                <!-- Badges Container -->
+                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" prefHeight="500">
+                    <FlowPane fx:id="badgesContainer" hgap="20" vgap="20" alignment="TOP_LEFT" style="-fx-padding: 5;">
+                        <!-- Badge cards will be added dynamically -->
+                    </FlowPane>
+                </ScrollPane>
+            </VBox>
+            
+            <!-- Info Card - How to Earn Badges -->
+            <VBox spacing="20" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 30; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5);">
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label text="💡" style="-fx-font-size: 24;"/>
+                    <Label text="How to Earn Badges" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                </HBox>
+                
+                <VBox spacing="15">
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="👥" style="-fx-font-size: 24; -fx-min-width: 40;"/>
+                        <VBox spacing="3">
+                            <Label text="Connect with Others" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label text="Make friends and build your network" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="🎯" style="-fx-font-size: 24; -fx-min-width: 40;"/>
+                        <VBox spacing="3">
+                            <Label text="Pursue Your Hobbies" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label text="Actively participate in hobbies and events" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="📚" style="-fx-font-size: 24; -fx-min-width: 40;"/>
+                        <VBox spacing="3">
+                            <Label text="Complete Classes" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label text="Enroll in classes and achieve milestones" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <Label text="🌟" style="-fx-font-size: 24; -fx-min-width: 40;"/>
+                        <VBox spacing="3">
+                            <Label text="Share &amp; Help" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label text="Share your experience and help the community grow" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

@@ -3,6 +3,7 @@ package opgg.ghrami.view;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -55,7 +56,7 @@ public class UserFeedController implements Initializable {
     private void loadUserInfo() {
         try {
             if (sessionManager == null || !sessionManager.isLoggedIn()) {
-                System.err.println("❌ Session invalid in loadUserInfo");
+                System.err.println("Session invalid in loadUserInfo");
                 return;
             }
             
@@ -77,7 +78,7 @@ public class UserFeedController implements Initializable {
             loadProfileImage();
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("❌ Error loading user info: " + e.getMessage());
+            System.err.println("Error loading user info: " + e.getMessage());
         }
     }
     
@@ -108,7 +109,7 @@ public class UserFeedController implements Initializable {
         // Keep default gradient if no image
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("❌ Error loading profile image: " + e.getMessage());
+            System.err.println("Error loading profile image: " + e.getMessage());
         }
     }
     
@@ -178,7 +179,7 @@ public class UserFeedController implements Initializable {
             if (user != null) {
                 user.setOnline(false);
                 userController.update(user);
-                System.out.println("✅ User set to offline: " + user.getUsername());
+                System.out.println("User set to offline: " + user.getUsername());
             }
             
             sessionManager.logout();
@@ -204,7 +205,18 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleMyHobbies() {
-        System.out.println("My Hobbies clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/HobbiesView.fxml"));
+            Scene scene = new Scene(loader.load(), 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - My Hobbies");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not open hobbies page: " + e.getMessage());
+        }
     }
     
     @FXML
@@ -230,7 +242,18 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleBadges() {
-        System.out.println("Badges clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/BadgesView.fxml"));
+            Scene scene = new Scene(loader.load(), 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Mes Badges");
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir la page des badges: " + e.getMessage());
+        }
     }
     
     @FXML
@@ -245,7 +268,19 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleClasses() {
-        System.out.println("Classes clicked");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/ClassMarketplace.fxml"));
+            Scene scene = new Scene(loader.load(), 1400, 900);
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+            
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Class Marketplace");
+        } catch (Exception e) {
+            System.err.println("Error loading Class Marketplace: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "Unable to open Class Marketplace");
+        }
     }
     
     @FXML

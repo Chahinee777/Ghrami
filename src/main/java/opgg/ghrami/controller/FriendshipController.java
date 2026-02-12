@@ -19,13 +19,13 @@ public class FriendshipController {
     public Friendship create(Friendship friendship) {
         // Validate: users cannot be friends with themselves
         if (friendship.getUser1Id().equals(friendship.getUser2Id())) {
-            System.err.println("❌ Cannot create friendship: user cannot be friend with themselves");
+            System.err.println("Cannot create friendship: user cannot be friend with themselves");
             return null;
         }
         
         // Check if friendship already exists
         if (friendshipExists(friendship.getUser1Id(), friendship.getUser2Id())) {
-            System.err.println("❌ Friendship already exists between users " + friendship.getUser1Id() + " and " + friendship.getUser2Id());
+            System.err.println("Friendship already exists between users " + friendship.getUser1Id() + " and " + friendship.getUser2Id());
             return null;
         }
         
@@ -43,13 +43,13 @@ public class FriendshipController {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         friendship.setFriendshipId(generatedKeys.getLong(1));
-                        System.out.println("✅ Friendship request created: " + friendship.getFriendshipId());
+                        System.out.println("Friendship request created: " + friendship.getFriendshipId());
                         return friendship;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating friendship: " + e.getMessage());
+            System.err.println("Error creating friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -66,7 +66,7 @@ public class FriendshipController {
                 return Optional.of(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding friendship by ID: " + e.getMessage());
+            System.err.println("Error finding friendship by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
@@ -83,7 +83,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding all friendships: " + e.getMessage());
+            System.err.println("Error finding all friendships: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -102,11 +102,11 @@ public class FriendshipController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Friendship updated: " + friendship.getFriendshipId());
+                System.out.println("Friendship updated: " + friendship.getFriendshipId());
                 return friendship;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error updating friendship: " + e.getMessage());
+            System.err.println("Error updating friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -121,11 +121,11 @@ public class FriendshipController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Friendship deleted: " + friendshipId);
+                System.out.println("Friendship deleted: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting friendship: " + e.getMessage());
+            System.err.println("Error deleting friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -163,7 +163,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding friendships by user ID: " + e.getMessage());
+            System.err.println("Error finding friendships by user ID: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -182,7 +182,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding pending requests: " + e.getMessage());
+            System.err.println("Error finding pending requests: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -202,7 +202,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding accepted friendships: " + e.getMessage());
+            System.err.println("Error finding accepted friendships: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -218,11 +218,11 @@ public class FriendshipController {
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("✅ Friend request accepted: " + friendshipId);
+                System.out.println("Friend request accepted: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error accepting friend request: " + e.getMessage());
+            System.err.println("Error accepting friend request: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -237,11 +237,11 @@ public class FriendshipController {
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("✅ Friend request rejected: " + friendshipId);
+                System.out.println("Friend request rejected: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error rejecting friend request: " + e.getMessage());
+            System.err.println("Error rejecting friend request: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -263,7 +263,7 @@ public class FriendshipController {
                 return Optional.of(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error checking friendship status: " + e.getMessage());
+            System.err.println("Error checking friendship status: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();

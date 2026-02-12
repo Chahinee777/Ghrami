@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -124,10 +125,8 @@ public class ProfileViewController implements Initializable {
             return;
         }
         
-        List<Badge> allBadges = badgeController.findAll();
-        List<Badge> userBadges = allBadges.stream()
-                .filter(badge -> badge.getUserId() == currentUser.getUserId().intValue())
-                .collect(Collectors.toList());
+        // Use the optimized method to get badges for this user
+        List<Badge> userBadges = badgeController.findByUserId(currentUser.getUserId());
         
         badgesCountLabel.setText(String.valueOf(userBadges.size()));
         
@@ -135,10 +134,25 @@ public class ProfileViewController implements Initializable {
         badgesContainer.getChildren().clear();
         
         if (userBadges.isEmpty()) {
-            Label emptyLabel = new Label("Aucun badge pour le moment\nCommencez à explorer pour en gagner!");
-            emptyLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 14; -fx-text-alignment: center;");
-            emptyLabel.setWrapText(true);
-            badgesContainer.getChildren().add(emptyLabel);
+            VBox emptyBox = new VBox(10);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setStyle("-fx-padding: 40; -fx-background-color: #f8f9fa; -fx-background-radius: 15;");
+            
+            Label icon = new Label("🏆");
+            icon.setStyle("-fx-font-size: 50; -fx-opacity: 0.5;");
+            
+            Label emptyLabel = new Label("No badges yet");
+            emptyLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 16; -fx-font-weight: bold;");
+            
+            Label subLabel = new Label("Keep being active to earn your first badge!");
+            subLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 12;");
+            subLabel.setWrapText(true);
+            subLabel.setMaxWidth(200);
+            subLabel.setAlignment(Pos.CENTER);
+            subLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+            
+            emptyBox.getChildren().addAll(icon, emptyLabel, subLabel);
+            badgesContainer.getChildren().add(emptyBox);
         } else {
             for (Badge badge : userBadges) {
                 badgesContainer.getChildren().add(createBadgeCard(badge));
@@ -152,10 +166,27 @@ public class ProfileViewController implements Initializable {
         card.getStyleClass().add("badge-card");
         card.setPrefWidth(140);
         card.setMaxWidth(140);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 15; " +
+                "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3); " +
+                "-fx-border-color: #e4e6eb; -fx-border-radius: 15; -fx-border-width: 1; -fx-cursor: hand;");
         
-        // Badge Icon/Emoji
-        Label icon = new Label("🏆");
-        icon.setStyle("-fx-font-size: 40;");
+        // Add hover effect
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 15; " +
+                    "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 15, 0, 0, 5); " +
+                    "-fx-border-color: #667eea; -fx-border-radius: 15; -fx-border-width: 2; -fx-cursor: hand; " +
+                    "-fx-scale-x: 1.05; -fx-scale-y: 1.05;");
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 15; " +
+                    "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3); " +
+                    "-fx-border-color: #e4e6eb; -fx-border-radius: 15; -fx-border-width: 1; -fx-cursor: hand;");
+        });
+        
+        // Badge Icon/Emoji - Intelligent icon selection
+        String icon = getBadgeIcon(badge.getName());
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size: 45;");
         
         // Badge Name
         Label name = new Label(badge.getName());
@@ -163,21 +194,99 @@ public class ProfileViewController implements Initializable {
         name.setWrapText(true);
         name.setMaxWidth(120);
         name.setAlignment(Pos.CENTER);
+        name.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         
         // Badge Description
-        Label desc = new Label(badge.getDescription());
-        desc.setStyle("-fx-font-size: 11; -fx-text-fill: #65676b;");
+        Label desc = new Label(badge.getDescription() != null && !badge.getDescription().isEmpty() 
+            ? badge.getDescription() : "Special achievement");
+        desc.setStyle("-fx-font-size: 10; -fx-text-fill: #65676b;");
         desc.setWrapText(true);
         desc.setMaxWidth(120);
         desc.setAlignment(Pos.CENTER);
+        desc.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         
         // Earned Date
-        Label date = new Label("✓ " + badge.getEarnedDate().toString().substring(0, 10));
-        date.setStyle("-fx-font-size: 10; -fx-text-fill: #667eea;");
+        String dateStr = badge.getEarnedDate() != null 
+            ? badge.getEarnedDate().toLocalDate().toString() 
+            : LocalDateTime.now().toLocalDate().toString();
+        Label date = new Label("✓ " + dateStr);
+        date.setStyle("-fx-font-size: 9; -fx-text-fill: #667eea; -fx-font-weight: bold; " +
+                "-fx-background-color: #e8eaf6; -fx-padding: 4 8; -fx-background-radius: 10;");
         
-        card.getChildren().addAll(icon, name, desc, date);
+        card.getChildren().addAll(iconLabel, name, desc, date);
+        
+        // Click to view details
+        card.setOnMouseClicked(e -> showBadgeDetails(badge));
         
         return card;
+    }
+    
+    /**
+     * Get appropriate icon based on badge name
+     */
+    private String getBadgeIcon(String badgeName) {
+        if (badgeName == null) return "🏆";
+        
+        String name = badgeName.toLowerCase();
+        
+        // Check for keywords and return appropriate icon
+        if (name.contains("first") || name.contains("welcome") || name.contains("aboard")) return "🎉";
+        if (name.contains("friend") || name.contains("social")) return "🤝";
+        if (name.contains("creator") || name.contains("content") || name.contains("post")) return "📝";
+        if (name.contains("vip") || name.contains("premium") || name.contains("diamond")) return "💎";
+        if (name.contains("star") || name.contains("rising")) return "🌟";
+        if (name.contains("fire") || name.contains("streak") || name.contains("on fire")) return "🔥";
+        if (name.contains("goal") || name.contains("achiever") || name.contains("target")) return "🎯";
+        if (name.contains("connect") || name.contains("butterfly")) return "🦋";
+        if (name.contains("champion") || name.contains("winner")) return "🏆";
+        if (name.contains("creative") || name.contains("artist")) return "🎨";
+        if (name.contains("support") || name.contains("helper")) return "⭐";
+        if (name.contains("early") || name.contains("pioneer") || name.contains("beta")) return "🚀";
+        if (name.contains("gold") || name.contains("golden")) return "🥇";
+        if (name.contains("silver")) return "🥈";
+        if (name.contains("bronze")) return "🥉";
+        if (name.contains("expert") || name.contains("master")) return "👨‍🎓";
+        if (name.contains("love") || name.contains("heart")) return "❤️";
+        if (name.contains("verified") || name.contains("authentic")) return "✅";
+        
+        return "🏆"; // Default
+    }
+    
+    /**
+     * Show detailed badge information in a modal
+     */
+    private void showBadgeDetails(Badge badge) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Badge Details");
+        alert.setHeaderText(getBadgeIcon(badge.getName()) + " " + badge.getName());
+        
+        VBox content = new VBox(10);
+        content.setStyle("-fx-padding: 15;");
+        
+        Label descLabel = new Label("Description:");
+        descLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12;");
+        
+        Label descValue = new Label(badge.getDescription() != null && !badge.getDescription().isEmpty() 
+            ? badge.getDescription() : "No description available");
+        descValue.setWrapText(true);
+        descValue.setMaxWidth(350);
+        descValue.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b;");
+        
+        Label earnedLabel = new Label("Earned on:");
+        earnedLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12;");
+        
+        String earnedDate = badge.getEarnedDate() != null 
+            ? badge.getEarnedDate().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm"))
+            : "Unknown date";
+        Label earnedValue = new Label(earnedDate);
+        earnedValue.setStyle("-fx-font-size: 12; -fx-text-fill: #667eea; -fx-font-weight: bold;");
+        
+        content.getChildren().addAll(descLabel, descValue, new Separator(), earnedLabel, earnedValue);
+        
+        alert.getDialogPane().setContent(content);
+        alert.getDialogPane().setStyle("-fx-background-color: white; -fx-background-radius: 20;");
+        
+        alert.showAndWait();
     }
     
     private void loadFriends() {
@@ -384,7 +493,7 @@ public class ProfileViewController implements Initializable {
                 currentUser.setProfilePicture(fileName);
                 userController.update(currentUser);
                 
-                System.out.println("✅ Profile picture updated: " + fileName);
+                System.out.println("Profile picture updated: " + fileName);
                 
                 // Load the new image
                 loadProfileImage();
@@ -467,7 +576,7 @@ public class ProfileViewController implements Initializable {
             updateOnlineStatusDisplay();
             
             String statusText = newStatus ? "En ligne" : "Hors ligne";
-            System.out.println("✅ Status changed to: " + statusText);
+            System.out.println("Status changed to: " + statusText);
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -504,7 +613,7 @@ public class ProfileViewController implements Initializable {
             if (currentUser != null) {
                 currentUser.setOnline(false);
                 userController.update(currentUser);
-                System.out.println("✅ User set to offline on logout: " + currentUser.getUsername());
+                System.out.println("User set to offline on logout: " + currentUser.getUsername());
             }
             
             sessionManager.logout();

@@ -39,10 +39,10 @@ public class GhramiApplication extends Application {
                     if (user != null) {
                         user.setOnline(false);
                         userController.update(user);
-                        System.out.println("✅ User set to offline on window close: " + user.getUsername());
+                        System.out.println("User set to offline on window close: " + user.getUsername());
                     }
                 } catch (Exception e) {
-                    System.err.println("❌ Error setting user offline on close: " + e.getMessage());
+                    System.err.println("Error setting user offline on close: " + e.getMessage());
                 }
             }
         });
@@ -73,12 +73,12 @@ public class GhramiApplication extends Application {
             
             User createdAdmin = userController.create(admin);
             if (createdAdmin != null) {
-                System.out.println("✅ Admin user created successfully!");
+                System.out.println("Admin user created successfully!");
             } else {
-                System.err.println("❌ Failed to create admin user");
+                System.err.println("Failed to create admin user");
             }
         } else {
-            System.out.println("✅ Admin user already exists (ID: " + existingAdmin.getUserId() + ")");
+            System.out.println("Admin user already exists (ID: " + existingAdmin.getUserId() + ")");
         }
     }
 

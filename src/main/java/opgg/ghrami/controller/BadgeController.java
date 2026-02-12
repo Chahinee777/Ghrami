@@ -30,13 +30,13 @@ public class BadgeController {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         badge.setBadgeId(generatedKeys.getLong(1));
-                        System.out.println("✅ Badge created: " + badge.getName() + " (ID: " + badge.getBadgeId() + ")");
+                        System.out.println("Badge created: " + badge.getName() + " (ID: " + badge.getBadgeId() + ")");
                         return badge;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating badge: " + e.getMessage());
+            System.err.println("Error creating badge: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -53,7 +53,7 @@ public class BadgeController {
                 return Optional.of(mapResultSetToBadge(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding badge by ID: " + e.getMessage());
+            System.err.println("Error finding badge by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
@@ -70,7 +70,7 @@ public class BadgeController {
                 badges.add(mapResultSetToBadge(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding all badges: " + e.getMessage());
+            System.err.println("Error finding all badges: " + e.getMessage());
             e.printStackTrace();
         }
         return badges;
@@ -89,11 +89,11 @@ public class BadgeController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Badge updated: " + badge.getName());
+                System.out.println("Badge updated: " + badge.getName());
                 return badge;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error updating badge: " + e.getMessage());
+            System.err.println("Error updating badge: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -108,11 +108,73 @@ public class BadgeController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Badge deleted: " + badgeId);
+                System.out.println("Badge deleted: " + badgeId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting badge: " + e.getMessage());
+            System.err.println("Error deleting badge: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Find all badges for a specific user
+     */
+    public List<Badge> findByUserId(Long userId) {
+        List<Badge> badges = new ArrayList<>();
+        String sql = "SELECT * FROM badges WHERE user_id = ? ORDER BY earned_date DESC";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                badges.add(mapResultSetToBadge(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error finding badges by user ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return badges;
+    }
+
+    /**
+     * Count badges for a specific user
+     */
+    public int countByUserId(Long userId) {
+        String sql = "SELECT COUNT(*) FROM badges WHERE user_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error counting badges: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Check if a user already has a badge with the same name
+     */
+    public boolean userHasBadge(Long userId, String badgeName) {
+        String sql = "SELECT COUNT(*) FROM badges WHERE user_id = ? AND name = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            stmt.setString(2, badgeName);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking badge existence: " + e.getMessage());
             e.printStackTrace();
         }
         return false;

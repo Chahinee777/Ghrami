@@ -42,13 +42,13 @@ public class UserController {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         user.setUserId(generatedKeys.getLong(1));
-                        System.out.println("✅ User created: " + user.getUsername() + " (ID: " + user.getUserId() + ")");
+                        System.out.println("User created: " + user.getUsername() + " (ID: " + user.getUserId() + ")");
                         return user;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating user: " + e.getMessage());
+            System.err.println("Error creating user: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -64,7 +64,7 @@ public class UserController {
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
                         long existingId = rs.getLong("user_id");
-                        System.err.println("❌ Cannot create admin: User already exists with ID=" + existingId);
+                        System.err.println("Cannot create admin: User already exists with ID=" + existingId);
                         System.err.println("   Username or email 'chahine' / 'chahine@ghrami.tn' is already taken");
                         System.err.println("   Please delete this user or use a different admin username/email");
                         return null;
@@ -97,23 +97,23 @@ public class UserController {
             connection.createStatement().execute("SET SESSION sql_mode = DEFAULT");
 
             if (affectedRows > 0) {
-                System.out.println("✅ Admin user SQL executed successfully (affected rows: " + affectedRows + ")");
+                System.out.println("Admin user SQL executed successfully (affected rows: " + affectedRows + ")");
                 
                 // Verify the user was actually inserted
                 User verifyAdmin = findById(0);
                 if (verifyAdmin != null) {
-                    System.out.println("✅ VERIFIED: Admin exists in database!");
+                    System.out.println("VERIFIED: Admin exists in database!");
                     System.out.println("   ID: " + verifyAdmin.getUserId());
                     System.out.println("   Username: " + verifyAdmin.getUsername());
                     System.out.println("   Email: " + verifyAdmin.getEmail());
                     return verifyAdmin;
                 } else {
-                    System.err.println("❌ FAILED: Admin was inserted but not found at ID=0");
+                    System.err.println("FAILED: Admin was inserted but not found at ID=0");
                     System.err.println("   MySQL may have auto-assigned a different ID");
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating admin user: " + e.getMessage());
+            System.err.println("Error creating admin user: " + e.getMessage());
             System.err.println("   SQL State: " + e.getSQLState());
             System.err.println("   Error Code: " + e.getErrorCode());
             e.printStackTrace();
@@ -132,7 +132,7 @@ public class UserController {
                 return Optional.of(mapResultSetToUser(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding user by ID: " + e.getMessage());
+            System.err.println("Error finding user by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
@@ -154,7 +154,7 @@ public class UserController {
                 users.add(mapResultSetToUser(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding all users: " + e.getMessage());
+            System.err.println("Error finding all users: " + e.getMessage());
             e.printStackTrace();
         }
         return users;
@@ -179,11 +179,11 @@ public class UserController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ User updated: " + user.getUsername());
+                System.out.println("User updated: " + user.getUsername());
                 return user;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error updating user: " + e.getMessage());
+            System.err.println("Error updating user: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -198,11 +198,11 @@ public class UserController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ User deleted: " + userId);
+                System.out.println("User deleted: " + userId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting user: " + e.getMessage());
+            System.err.println("Error deleting user: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -218,7 +218,7 @@ public class UserController {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding user by email: " + e.getMessage());
+            System.err.println("Error finding user by email: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();

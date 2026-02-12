@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx" 
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="opgg.ghrami.view.ClassMarketplaceController"
+           styleClass="root" fitToWidth="true" prefWidth="1400" prefHeight="900">
+    
+    <VBox spacing="0" style="-fx-background-color: #f0f2f5;">
+        
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: white; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="🎓" style="-fx-font-size: 40;"/>
+                    <VBox spacing="2">
+                        <Label text="Class Marketplace" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                        <Label text="Discover and book amazing classes" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Button fx:id="becomeInstructorBtn" text="👨‍🏫 Become Instructor" 
+                    style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(76,175,80,0.4), 12, 0, 0, 4);"/>
+            
+            <Button fx:id="myBookingsBtn" text="📋 My Bookings" 
+                    style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(33,150,243,0.4), 12, 0, 0, 4);"/>
+            
+            <Button text="← Back to Feed" onAction="#handleBack" 
+                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
+        </HBox>
+        
+        <!-- Main Content Area -->
+        <VBox spacing="25" style="-fx-padding: 30 40 40 40;">
+            
+            <!-- Search and Filter Section -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                <TextField fx:id="searchField" promptText="🔍 Search classes..." prefWidth="350"
+                           style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13;"/>
+                <Button fx:id="searchBtn" text="Search" onAction="#handleSearch"
+                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                
+                <Separator orientation="VERTICAL"/>
+                
+                <Label text="Category:" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                <ComboBox fx:id="categoryCombo" promptText="All Categories" prefWidth="180"
+                          style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+                
+                <Label text="Max Price:" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                <TextField fx:id="maxPriceField" promptText="TND" prefWidth="100"
+                           style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 8 15; -fx-font-size: 13;"/>
+                
+                <Button fx:id="filterBtn" text="Apply" onAction="#handleFilter"
+                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="clearBtn" text="Clear" onAction="#handleClearFilters"
+                        style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            </HBox>
+            
+            <!-- Sort and Results Header -->
+            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 15 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
+                <Label fx:id="resultsLabel" text="Available Classes" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Sort by:" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                <ComboBox fx:id="sortCombo" promptText="Sort by..." prefWidth="180"
+                          style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+            </HBox>
+            
+            <!-- Classes Grid -->
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;" prefHeight="600">
+                <VBox fx:id="classesContainer" spacing="20" style="-fx-padding: 5;">
+                    <!-- Class cards will be added dynamically -->
+                </VBox>
+            </ScrollPane>
+        </VBox>
+    </VBox>
+</ScrollPane>

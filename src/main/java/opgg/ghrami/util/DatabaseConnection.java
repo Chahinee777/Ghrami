@@ -19,12 +19,12 @@ public class DatabaseConnection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(url, username, password);
-            System.out.println("✅ Database connection established successfully!");
+            System.out.println("Database connection established successfully!");
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ MySQL JDBC Driver not found!");
+            System.err.println("MySQL JDBC Driver not found!");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("❌ Failed to connect to database!");
+            System.err.println("Failed to connect to database!");
             e.printStackTrace();
         }
     }
@@ -33,7 +33,7 @@ public class DatabaseConnection {
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("db.properties")) {
             if (input == null) {
-                System.err.println("❌ db.properties file not found! Using default values.");
+                System.err.println("db.properties file not found! Using default values.");
                 useDefaultValues();
                 return;
             }
@@ -42,7 +42,7 @@ public class DatabaseConnection {
             this.username = properties.getProperty("db.username");
             this.password = properties.getProperty("db.password");
         } catch (IOException e) {
-            System.err.println("❌ Error loading db.properties! Using default values.");
+            System.err.println("Error loading db.properties! Using default values.");
             useDefaultValues();
         }
     }
@@ -70,7 +70,7 @@ public class DatabaseConnection {
                 connection = DriverManager.getConnection(url, username, password);
             }
         } catch (SQLException e) {
-            System.err.println("❌ Failed to reconnect to database!");
+            System.err.println("Failed to reconnect to database!");
             e.printStackTrace();
         }
         return connection;
@@ -80,9 +80,9 @@ public class DatabaseConnection {
         if (connection != null) {
             try {
                 connection.close();
-                System.out.println("🔒 Database connection closed.");
+                System.out.println("Database connection closed.");
             } catch (SQLException e) {
-                System.err.println("❌ Error closing database connection!");
+                System.err.println("Error closing database connection!");
                 e.printStackTrace();
             }
         }
