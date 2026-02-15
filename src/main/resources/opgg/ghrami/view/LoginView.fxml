@@ -46,7 +46,11 @@
             </VBox>
 
             <VBox spacing="10">
-                <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                <HBox alignment="CENTER_LEFT" spacing="0">
+                    <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;" HBox.hgrow="ALWAYS"/>
+                    <Hyperlink fx:id="forgotPasswordLink" text="Mot de passe oublié?" onAction="#handleForgotPassword" 
+                              style="-fx-text-fill: #667eea; -fx-font-size: 12; -fx-underline: false; -fx-font-weight: 600;"/>
+                </HBox>
                 <PasswordField fx:id="passwordField" promptText="••••••••" 
                               styleClass="modern-input" 
                               style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>
@@ -67,16 +71,17 @@
                           style="-fx-text-fill: #667eea; -fx-font-weight: bold; -fx-font-size: 14; -fx-underline: false;"/>
             </HBox>
 
-            <VBox alignment="CENTER" spacing="12" 
-                  style="-fx-background-color: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%); -fx-background-radius: 12; -fx-padding: 20;">
-                <Label text="💡 Comptes de test" style="-fx-font-weight: bold; -fx-text-fill: #667eea; -fx-font-size: 14;"/>
+            <VBox alignment="CENTER" spacing="12"
+                  style="-fx-font-size: 38; -fx-font-weight: bold; -fx-text-fill: linear-gradient(from 0% 0% to 100% 0%, #5a3fb8, #7c5cff);" >
+
+            </VBox>               <Label text="💡 Comptes de test" style="-fx-font-weight: bold; -fx-text-fill: #667eea; -fx-font-size: 14;"/>
                 <VBox spacing="6" alignment="CENTER">
                     <Label text="👑 Admin: chahine@ghrami.tn / admin123" style="-fx-text-fill: #1c1e21; -fx-font-size: 12; -fx-font-weight: 500;"/>
                     <Label text="👤 User: anas@ghrami.tn / password123" style="-fx-text-fill: #1c1e21; -fx-font-size: 12; -fx-font-weight: 500;"/>
                 </VBox>
             </VBox>
         </VBox>
-    </VBox>
+
 
     <!-- RIGHT SIDE: Enhanced Visual Content with Purple Background (50%) -->
     <StackPane HBox.hgrow="ALWAYS" 

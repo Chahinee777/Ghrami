@@ -10,28 +10,24 @@ import java.util.List;
 import java.util.Optional;
 
 public class FriendshipController {
-    private Connection connection;
-
-    public FriendshipController() {
-        this.connection = DatabaseConnection.getInstance().getConnection();
-    }
 
     public Friendship create(Friendship friendship) {
         // Validate: users cannot be friends with themselves
         if (friendship.getUser1Id().equals(friendship.getUser2Id())) {
-            System.err.println("❌ Cannot create friendship: user cannot be friend with themselves");
+            System.err.println("Cannot create friendship: user cannot be friend with themselves");
             return null;
         }
         
         // Check if friendship already exists
         if (friendshipExists(friendship.getUser1Id(), friendship.getUser2Id())) {
-            System.err.println("❌ Friendship already exists between users " + friendship.getUser1Id() + " and " + friendship.getUser2Id());
+            System.err.println("Friendship already exists between users " + friendship.getUser1Id() + " and " + friendship.getUser2Id());
             return null;
         }
         
         String sql = "INSERT INTO friendships (user1_id, user2_id, status, created_date) VALUES (?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setLong(1, friendship.getUser1Id());
             stmt.setLong(2, friendship.getUser2Id());
             stmt.setString(3, friendship.getStatus().name());
@@ -43,13 +39,13 @@ public class FriendshipController {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         friendship.setFriendshipId(generatedKeys.getLong(1));
-                        System.out.println("✅ Friendship request created: " + friendship.getFriendshipId());
+                        System.out.println("Friendship request created: " + friendship.getFriendshipId());
                         return friendship;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating friendship: " + e.getMessage());
+            System.err.println("Error creating friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -58,7 +54,8 @@ public class FriendshipController {
     public Optional<Friendship> findById(Long friendshipId) {
         String sql = "SELECT * FROM friendships WHERE friendship_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, friendshipId);
             ResultSet rs = stmt.executeQuery();
 
@@ -66,7 +63,7 @@ public class FriendshipController {
                 return Optional.of(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding friendship by ID: " + e.getMessage());
+            System.err.println("Error finding friendship by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
@@ -76,14 +73,15 @@ public class FriendshipController {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "SELECT * FROM friendships ORDER BY created_date DESC";
 
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding all friendships: " + e.getMessage());
+            System.err.println("Error finding all friendships: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -92,7 +90,8 @@ public class FriendshipController {
     public Friendship update(Friendship friendship) {
         String sql = "UPDATE friendships SET user1_id = ?, user2_id = ?, status = ?, accepted_date = ? WHERE friendship_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, friendship.getUser1Id());
             stmt.setLong(2, friendship.getUser2Id());
             stmt.setString(3, friendship.getStatus().name());
@@ -102,11 +101,11 @@ public class FriendshipController {
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Friendship updated: " + friendship.getFriendshipId());
+                System.out.println("Friendship updated: " + friendship.getFriendshipId());
                 return friendship;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error updating friendship: " + e.getMessage());
+            System.err.println("Error updating friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -115,17 +114,18 @@ public class FriendshipController {
     public boolean delete(Long friendshipId) {
         String sql = "DELETE FROM friendships WHERE friendship_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, friendshipId);
 
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ Friendship deleted: " + friendshipId);
+                System.out.println("Friendship deleted: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting friendship: " + e.getMessage());
+            System.err.println("Error deleting friendship: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -134,7 +134,8 @@ public class FriendshipController {
     private boolean friendshipExists(Long user1Id, Long user2Id) {
         String sql = "SELECT COUNT(*) FROM friendships WHERE " +
                      "(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, user1Id);
             stmt.setLong(2, user2Id);
             stmt.setLong(3, user2Id);
@@ -154,7 +155,8 @@ public class FriendshipController {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "SELECT * FROM friendships WHERE user1_id = ? OR user2_id = ? ORDER BY created_date DESC";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             stmt.setLong(2, userId);
             ResultSet rs = stmt.executeQuery();
@@ -163,7 +165,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding friendships by user ID: " + e.getMessage());
+            System.err.println("Error finding friendships by user ID: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -174,7 +176,8 @@ public class FriendshipController {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "SELECT * FROM friendships WHERE user2_id = ? AND status = 'PENDING' ORDER BY created_date DESC";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
             
@@ -182,7 +185,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding pending requests: " + e.getMessage());
+            System.err.println("Error finding pending requests: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -193,7 +196,8 @@ public class FriendshipController {
         List<Friendship> friendships = new ArrayList<>();
         String sql = "SELECT * FROM friendships WHERE (user1_id = ? OR user2_id = ?) AND status = 'ACCEPTED' ORDER BY accepted_date DESC";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             stmt.setLong(2, userId);
             ResultSet rs = stmt.executeQuery();
@@ -202,7 +206,7 @@ public class FriendshipController {
                 friendships.add(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding accepted friendships: " + e.getMessage());
+            System.err.println("Error finding accepted friendships: " + e.getMessage());
             e.printStackTrace();
         }
         return friendships;
@@ -212,17 +216,18 @@ public class FriendshipController {
     public boolean acceptFriendRequest(Long friendshipId) {
         String sql = "UPDATE friendships SET status = 'ACCEPTED', accepted_date = ? WHERE friendship_id = ? AND status = 'PENDING'";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setTimestamp(1, Timestamp.valueOf(java.time.LocalDateTime.now()));
             stmt.setLong(2, friendshipId);
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("✅ Friend request accepted: " + friendshipId);
+                System.out.println("Friend request accepted: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error accepting friend request: " + e.getMessage());
+            System.err.println("Error accepting friend request: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -232,16 +237,17 @@ public class FriendshipController {
     public boolean rejectFriendRequest(Long friendshipId) {
         String sql = "UPDATE friendships SET status = 'REJECTED' WHERE friendship_id = ? AND status = 'PENDING'";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, friendshipId);
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("✅ Friend request rejected: " + friendshipId);
+                System.out.println("Friend request rejected: " + friendshipId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error rejecting friend request: " + e.getMessage());
+            System.err.println("Error rejecting friend request: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -252,7 +258,8 @@ public class FriendshipController {
         String sql = "SELECT * FROM friendships WHERE " +
                      "(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)";
         
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, user1Id);
             stmt.setLong(2, user2Id);
             stmt.setLong(3, user2Id);
@@ -263,7 +270,7 @@ public class FriendshipController {
                 return Optional.of(mapResultSetToFriendship(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error checking friendship status: " + e.getMessage());
+            System.err.println("Error checking friendship status: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
