@@ -141,8 +141,8 @@
                             <Button text="📅 Événements" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleEvents"/>
                             <Button text="💡 Groupes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleGroups"/>
                             <Button text="🎓 Classes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleClasses"/>
-                            <Button text="🥽 Salles VR" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleVRRooms"/>
-                            <Button text="🤝 Matchings" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMatchings"/>
+                            <Button text="🤝 Meetups" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMeetups"/>
+                            <Button text="🎮 Salles VR" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleVRRooms"/>
                         </VBox>
                     </VBox>
                     

@@ -62,7 +62,7 @@ public class Main {
         System.out.println("\n🔍 Finding user again...");
         Optional<User> foundAgain = userController.findById(newUser != null ? newUser.getUserId() : 1L);
         if (foundAgain.isPresent()) {
-            System.out.println("   ✅ User found!");
+            System.out.println("   User found!");
             System.out.println("   User: " + foundAgain.get().getUsername());
         }
 
@@ -106,7 +106,7 @@ public class Main {
 
             // Update friendship status
             if (friendRequest != null) {
-                System.out.println("\n✅ Accepting friend request...");
+                System.out.println("\nAccepting friend request...");
                 friendRequest.setStatus(FriendshipStatus.ACCEPTED);
                 friendRequest.setAcceptedDate(java.time.LocalDateTime.now());
                 friendshipController.update(friendRequest);
@@ -195,7 +195,7 @@ public class Main {
         */
 
         System.out.println("\n========================================");
-        System.out.println("✅ Demo completed successfully!");
+        System.out.println("Demo completed successfully!");
         System.out.println("========================================\n");
     }
 }

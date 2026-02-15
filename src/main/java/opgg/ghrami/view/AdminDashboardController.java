@@ -20,12 +20,15 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import opgg.ghrami.controller.BadgeController;
+import opgg.ghrami.controller.ClassProviderController;
 import opgg.ghrami.controller.FriendshipController;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.Badge;
+import opgg.ghrami.model.ClassProvider;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.FriendshipStatus;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.BadgeNotificationUtil;
 import opgg.ghrami.util.PasswordUtil;
 import opgg.ghrami.util.SessionManager;
 
@@ -56,11 +59,13 @@ public class AdminDashboardController implements Initializable {
     @FXML private Label userCountLabel;
     @FXML private Label friendshipCountLabel;
     @FXML private Label badgeCountLabel;
+    @FXML private Label instructorCountLabel;
 
     // Search Fields
     @FXML private TextField userSearchField;
     @FXML private TextField friendshipSearchField;
     @FXML private TextField badgeSearchField;
+    @FXML private TextField instructorSearchField;
 
     // User Tab
     @FXML private TableView<User> userTable;
@@ -87,10 +92,22 @@ public class AdminDashboardController implements Initializable {
     @FXML private TableColumn<Badge, String> badgeNameCol;
     @FXML private TableColumn<Badge, String> descriptionCol;
     @FXML private TableColumn<Badge, Void> badgeActionsCol;
+    
+    // Instructor Tab
+    @FXML private TableView<ClassProvider> instructorTable;
+    @FXML private TableColumn<ClassProvider, Long> providerIdCol;
+    @FXML private TableColumn<ClassProvider, String> instructorUsernameCol;
+    @FXML private TableColumn<ClassProvider, String> instructorEmailCol;
+    @FXML private TableColumn<ClassProvider, String> companyNameCol;
+    @FXML private TableColumn<ClassProvider, String> expertiseCol;
+    @FXML private TableColumn<ClassProvider, Double> ratingCol;
+    @FXML private TableColumn<ClassProvider, Boolean> verifiedCol;
+    @FXML private TableColumn<ClassProvider, Void> instructorActionsCol;
 
     private UserController userController;
     private FriendshipController friendshipController;
     private BadgeController badgeController;
+    private ClassProviderController providerController;
     
     private ObservableList<User> userList;
     private ObservableList<User> filteredUserList;
@@ -98,12 +115,15 @@ public class AdminDashboardController implements Initializable {
     private ObservableList<Friendship> filteredFriendshipList;
     private ObservableList<Badge> badgeList;
     private ObservableList<Badge> filteredBadgeList;
+    private ObservableList<ClassProvider> instructorList;
+    private ObservableList<ClassProvider> filteredInstructorList;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         userController = new UserController();
         friendshipController = new FriendshipController();
         badgeController = new BadgeController();
+        providerController = ClassProviderController.getInstance();
         
         SessionManager session = SessionManager.getInstance();
         adminNameLabel.setText(session.getUsername());
@@ -114,10 +134,13 @@ public class AdminDashboardController implements Initializable {
         filteredFriendshipList = FXCollections.observableArrayList();
         badgeList = FXCollections.observableArrayList();
         filteredBadgeList = FXCollections.observableArrayList();
+        instructorList = FXCollections.observableArrayList();
+        filteredInstructorList = FXCollections.observableArrayList();
         
         setupUserTable();
         setupFriendshipTable();
         setupBadgeTable();
+        setupInstructorTable();
         
         loadAllData();
         setupSearchListeners();
@@ -137,10 +160,17 @@ public class AdminDashboardController implements Initializable {
             SessionManager.getInstance().logout();
             
             Stage stage = (Stage) logoutButton.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
-            Scene scene = new Scene(loader.load(), 450, 600);
+            Scene scene = new Scene(loader.load(), width, height);
             stage.setScene(scene);
             stage.setTitle("Ghrami - Connexion");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
         } catch (Exception e) {
             showError("Erreur lors de la déconnexion: " + e.getMessage());
         }
@@ -416,11 +446,102 @@ public class AdminDashboardController implements Initializable {
         
         badgeTable.setItems(badgeList);
     }
+    
+    private void setupInstructorTable() {
+        providerIdCol.setCellValueFactory(new PropertyValueFactory<>("providerId"));
+        instructorUsernameCol.setCellValueFactory(new PropertyValueFactory<>("username"));
+        instructorEmailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
+        companyNameCol.setCellValueFactory(new PropertyValueFactory<>("companyName"));
+        expertiseCol.setCellValueFactory(new PropertyValueFactory<>("expertise"));
+        ratingCol.setCellValueFactory(new PropertyValueFactory<>("rating"));
+        
+        // Verified status column
+        verifiedCol.setCellValueFactory(new PropertyValueFactory<>("verified"));
+        verifiedCol.setCellFactory(param -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean isVerified, boolean empty) {
+                super.updateItem(isVerified, empty);
+                if (empty || isVerified == null) {
+                    setGraphic(null);
+                } else {
+                    Label statusLabel = new Label(isVerified ? "✅ Verified" : "⏳ Pending");
+                    statusLabel.setStyle(isVerified ? 
+                        "-fx-background-color: #e8f5e9; -fx-text-fill: #4CAF50; -fx-padding: 5 12; -fx-background-radius: 15; -fx-font-weight: bold; -fx-font-size: 12;" :
+                        "-fx-background-color: #fff3e0; -fx-text-fill: #ff9800; -fx-padding: 5 12; -fx-background-radius: 15; -fx-font-weight: bold; -fx-font-size: 12;");
+                    setGraphic(statusLabel);
+                }
+            }
+        });
+        
+        // Actions column
+        instructorActionsCol.setCellFactory(param -> new TableCell<>() {
+            private final Button verifyBtn = new Button("✅ Verify");
+            private final Button rejectBtn = new Button("❌ Reject");
+            private final Button viewBtn = new Button("👁️ View");
+            private final HBox pane = new HBox(6, viewBtn, verifyBtn, rejectBtn);
+            
+            {
+                pane.setAlignment(Pos.CENTER);
+                
+                viewBtn.setStyle("-fx-background-color: #2196F3; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(33,150,243,0.3), 8, 0, 0, 2);");
+                
+                verifyBtn.setStyle("-fx-background-color: #4CAF50; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(76,175,80,0.3), 8, 0, 0, 2);");
+                
+                rejectBtn.setStyle("-fx-background-color: #f44336; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(244,67,54,0.3), 8, 0, 0, 2);");
+                
+                viewBtn.setOnAction(event -> {
+                    ClassProvider provider = getTableView().getItems().get(getIndex());
+                    handleViewInstructor(provider);
+                });
+                
+                verifyBtn.setOnAction(event -> {
+                    ClassProvider provider = getTableView().getItems().get(getIndex());
+                    handleVerifyInstructor(provider);
+                });
+                
+                rejectBtn.setOnAction(event -> {
+                    ClassProvider provider = getTableView().getItems().get(getIndex());
+                    handleRejectInstructor(provider);
+                });
+            }
+            
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    ClassProvider provider = getTableView().getItems().get(getIndex());
+                    if (provider.isVerified()) {
+                        // Only show view button for verified instructors
+                        HBox verifiedPane = new HBox(6, viewBtn);
+                        verifiedPane.setAlignment(Pos.CENTER);
+                        setGraphic(verifiedPane);
+                    } else {
+                        // Show all buttons for pending instructors
+                        setGraphic(pane);
+                    }
+                }
+            }
+        });
+        
+        instructorTable.setItems(instructorList);
+    }
 
     private void loadAllData() {
         loadUsers();
         loadFriendships();
         loadBadges();
+        loadInstructors();
     }
 
     private void loadUsers() {
@@ -458,6 +579,84 @@ public class AdminDashboardController implements Initializable {
     private void handleRefreshBadge() {
         loadBadges();
     }
+    
+    private void loadInstructors() {
+        instructorList.clear();
+        instructorList.addAll(providerController.getAll());
+        
+        // Count pending instructors
+        long pendingCount = instructorList.stream()
+                .filter(p -> !p.isVerified())
+                .count();
+        instructorCountLabel.setText(String.valueOf(pendingCount));
+        
+        filterInstructors();
+    }
+
+    @FXML
+    private void handleRefreshInstructors() {
+        loadInstructors();
+    }
+    
+    private void handleViewInstructor(ClassProvider provider) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Instructor Details");
+        alert.setHeaderText(provider.getUsername() + " - Instructor Application");
+        
+        VBox content = new VBox(12);
+        content.setPadding(new Insets(15));
+        content.setStyle("-fx-background-color: white;");
+        
+        content.getChildren().addAll(
+            createDetailRow("ID:", String.valueOf(provider.getProviderId())),
+            createDetailRow("Username:", provider.getUsername()),
+            createDetailRow("Email:", provider.getEmail()),
+            createDetailRow("Company/Studio:", provider.getCompanyName()),
+            createDetailRow("Expertise:", provider.getExpertise()),
+            createDetailRow("Rating:", String.format("⭐ %.1f", provider.getRating())),
+            createDetailRow("Status:", provider.isVerified() ? "✅ Verified" : "⏳ Pending Verification")
+        );
+        
+        alert.getDialogPane().setContent(content);
+        alert.showAndWait();
+    }
+    
+    private void handleVerifyInstructor(ClassProvider provider) {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Verify Instructor");
+        confirmation.setHeaderText("Verify this instructor application?");
+        confirmation.setContentText("Username: " + provider.getUsername() + "\nCompany: " + provider.getCompanyName());
+        
+        Optional<ButtonType> result = confirmation.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean success = providerController.verifyProvider(provider.getProviderId(), true);
+            if (success) {
+                showStyledAlert("Success", "Instructor verified successfully!", Alert.AlertType.INFORMATION);
+                loadInstructors();
+            } else {
+                showError("Failed to verify instructor");
+            }
+        }
+    }
+    
+    private void handleRejectInstructor(ClassProvider provider) {
+        Alert confirmation = new Alert(Alert.AlertType.WARNING);
+        confirmation.setTitle("Reject Instructor");
+        confirmation.setHeaderText("Reject this instructor application?");
+        confirmation.setContentText("Username: " + provider.getUsername() + "\nCompany: " + provider.getCompanyName() + 
+                                   "\n\nThis will remove their instructor status.");
+        
+        Optional<ButtonType> result = confirmation.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean success = providerController.delete(provider.getProviderId());
+            if (success) {
+                showStyledAlert("Success", "Instructor application rejected and removed!", Alert.AlertType.INFORMATION);
+                loadInstructors();
+            } else {
+                showError("Failed to reject instructor");
+            }
+        }
+    }
 
     // ============= SEARCH FUNCTIONALITY =============
     
@@ -470,6 +669,9 @@ public class AdminDashboardController implements Initializable {
         
         // Badge search listener
         badgeSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterBadges());
+        
+        // Instructor search listener
+        instructorSearchField.textProperty().addListener((observable, oldValue, newValue) -> filterInstructors());
     }
     
     private void filterUsers() {
@@ -531,6 +733,42 @@ public class AdminDashboardController implements Initializable {
             );
             badgeTable.setItems(filteredBadgeList);
         }
+    }
+    
+    private void filterInstructors() {
+        String searchText = instructorSearchField.getText().toLowerCase().trim();
+        
+        if (searchText.isEmpty()) {
+            instructorTable.setItems(instructorList);
+        } else {
+            filteredInstructorList.clear();
+            filteredInstructorList.addAll(instructorList.stream()
+                .filter(provider -> 
+                    provider.getUsername().toLowerCase().contains(searchText) ||
+                    provider.getEmail().toLowerCase().contains(searchText) ||
+                    provider.getCompanyName().toLowerCase().contains(searchText) ||
+                    provider.getExpertise().toLowerCase().contains(searchText) ||
+                    String.valueOf(provider.getProviderId()).contains(searchText)
+                )
+                .collect(Collectors.toList())
+            );
+            instructorTable.setItems(filteredInstructorList);
+        }
+    }
+    
+    private HBox createDetailRow(String label, String value) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        
+        Label labelNode = new Label(label);
+        labelNode.setStyle("-fx-font-weight: bold; -fx-text-fill: #667eea; -fx-min-width: 120;");
+        
+        Label valueNode = new Label(value);
+        valueNode.setStyle("-fx-text-fill: #1c1e21; -fx-font-size: 13;");
+        valueNode.setWrapText(true);
+        
+        row.getChildren().addAll(labelNode, valueNode);
+        return row;
     }
     
     // ============= PDF EXPORT FUNCTIONALITY =============
@@ -1183,40 +1421,136 @@ public class AdminDashboardController implements Initializable {
     
     @FXML
     private void handleAddBadge() {
-        Stage dialog = createBeautifulModal("Add Badge", "🏆");
-        VBox modalContent = createModalContent("Create Badge", "Award a new badge", "🏆");
+        Stage dialog = createBeautifulModal("Award Badge", "🏆");
+        VBox modalContent = createModalContent("Award Badge", "Give recognition to a user", "🏆");
         
-        GridPane grid = new GridPane();
-        grid.setHgap(15);
-        grid.setVgap(15);
-        grid.setPadding(new Insets(10, 0, 20, 0));
-
-        TextField userIdField = createStyledTextField("User ID");
+        // Main container
+        VBox mainBox = new VBox(20);
+        mainBox.setPadding(new Insets(10, 0, 20, 0));
+        
+        // Section 1: User Selection
+        VBox userSection = new VBox(10);
+        Label userLabel = createFieldLabel("Select User");
+        
+        HBox userSelectionBox = new HBox(10);
+        TextField userSearchField = createStyledTextField("Search by username or email...");
+        userSearchField.setPrefWidth(250);
+        
+        ComboBox<String> userComboBox = new ComboBox<>();
+        userComboBox.setPromptText("Select User");
+        userComboBox.setPrefWidth(250);
+        userComboBox.setStyle("-fx-background-color: white; -fx-border-color: #e4e6eb; " +
+                "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 10; -fx-font-size: 13;");
+        
+        // Populate users
+        ObservableList<String> userOptions = FXCollections.observableArrayList();
+        for (User user : userList) {
+            userOptions.add(user.getUserId() + " - " + user.getUsername() + " (" + user.getEmail() + ")");
+        }
+        userComboBox.setItems(userOptions);
+        
+        // Search functionality
+        userSearchField.textProperty().addListener((obs, old, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                userComboBox.setItems(userOptions);
+            } else {
+                ObservableList<String> filtered = FXCollections.observableArrayList(
+                    userOptions.stream()
+                        .filter(u -> u.toLowerCase().contains(newVal.toLowerCase()))
+                        .collect(Collectors.toList())
+                );
+                userComboBox.setItems(filtered);
+            }
+        });
+        
+        userSelectionBox.getChildren().addAll(userSearchField, userComboBox);
+        userSection.getChildren().addAll(userLabel, userSelectionBox);
+        
+        // Section 2: Badge Templates
+        VBox templateSection = new VBox(10);
+        Label templateLabel = createFieldLabel("Badge Template (Optional)");
+        
+        ComboBox<String> templateComboBox = new ComboBox<>();
+        templateComboBox.setPromptText("Select a template or create custom");
+        templateComboBox.setPrefWidth(520);
+        templateComboBox.setStyle("-fx-background-color: white; -fx-border-color: #e4e6eb; " +
+                "-fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 10; -fx-font-size: 13;");
+        
+        // Predefined badge templates
+        ObservableList<String> templates = FXCollections.observableArrayList(
+            "🥇 First Friend - Made their first friend on Ghrami",
+            "🎉 Welcome Aboard - Successfully registered on Ghrami",
+            "💬 Social Butterfly - Created 10+ connections",
+            "📝 Content Creator - Posted 50+ times",
+            "👑 VIP Member - Premium subscriber",
+            "🌟 Rising Star - Highly engaged user",
+            "🔥 On Fire - 7 day login streak",
+            "🎯 Goal Achiever - Completed personal goals",
+            "🤝 Friend Connector - Helped connect 20+ people",
+            "💎 Diamond Member - 1 year anniversary",
+            "🎨 Creative Mind - Shared unique content",
+            "🏆 Champion - Won community challenge",
+            "⭐ Super Supporter - Helped community members",
+            "🚀 Early Adopter - Beta tester badge",
+            "--- Custom Badge ---"
+        );
+        templateComboBox.setItems(templates);
+        templateSection.getChildren().addAll(templateLabel, templateComboBox);
+        
+        // Section 3: Badge Details
+        VBox detailsSection = new VBox(10);
         TextField nameField = createStyledTextField("Badge Name");
         TextArea descArea = createStyledTextArea("Description");
+        nameField.setPrefWidth(520);
+        descArea.setPrefWidth(520);
+        
+        // Auto-fill from template
+        templateComboBox.setOnAction(e -> {
+            String selected = templateComboBox.getValue();
+            if (selected != null && !selected.equals("--- Custom Badge ---")) {
+                String[] parts = selected.split(" - ", 2);
+                nameField.setText(parts[0]);
+                if (parts.length > 1) {
+                    descArea.setText(parts[1]);
+                }
+            } else {
+                nameField.clear();
+                descArea.clear();
+            }
+        });
+        
+        detailsSection.getChildren().addAll(
+            createFieldLabel("Badge Name"),
+            nameField,
+            createFieldLabel("Description"),
+            descArea
+        );
 
-        grid.add(createFieldLabel("User ID"), 0, 0);
-        grid.add(userIdField, 1, 0);
-        grid.add(createFieldLabel("Badge Name"), 0, 1);
-        grid.add(nameField, 1, 1);
-        grid.add(createFieldLabel("Description"), 0, 2);
-        grid.add(descArea, 1, 2);
-
-        Button createBtn = new Button("✨ Create Badge");
+        mainBox.getChildren().addAll(userSection, templateSection, detailsSection);
+        
+        Button createBtn = new Button("✨ Award Badge");
         Button cancelBtn = new Button("Cancel");
         
         cancelBtn.setOnAction(e -> dialog.close());
         createBtn.setOnAction(e -> {
             try {
-                Long userId = Long.parseLong(userIdField.getText().trim());
+                if (userComboBox.getValue() == null) {
+                    showStyledAlert("❌ Error", "Please select a user", Alert.AlertType.ERROR);
+                    return;
+                }
+                
+                // Extract user ID
+                String userSelection = userComboBox.getValue();
+                Long userId = Long.parseLong(userSelection.split(" - ")[0]);
                 
                 if (nameField.getText().trim().isEmpty()) {
                     showStyledAlert("❌ Error", "Badge name is required", Alert.AlertType.ERROR);
                     return;
                 }
 
-                if (!userController.findById(userId).isPresent()) {
-                    showStyledAlert("❌ Error", "User with ID " + userId + " does not exist", Alert.AlertType.ERROR);
+                // Check if user already has this badge
+                if (badgeController.userHasBadge(userId, nameField.getText().trim())) {
+                    showStyledAlert("❌ Error", "User already has this badge!", Alert.AlertType.WARNING);
                     return;
                 }
 
@@ -1225,21 +1559,34 @@ public class AdminDashboardController implements Initializable {
                 badge.setName(nameField.getText().trim());
                 badge.setDescription(descArea.getText().trim());
                 
-                badgeController.create(badge);
-                loadBadges();
-                dialog.close();
-                showStyledAlert("✅ Success", "Badge created successfully!", Alert.AlertType.INFORMATION);
-            } catch (NumberFormatException ex) {
-                showStyledAlert("❌ Error", "Invalid user ID. Please enter a number", Alert.AlertType.ERROR);
+                Badge created = badgeController.create(badge);
+                if (created != null) {
+                    String username = userController.findById(userId).get().getUsername();
+                    loadBadges();
+                    dialog.close();
+                    
+                    // Show beautiful notification
+                    BadgeNotificationUtil.showBadgeAwardNotification(created, username);
+                    
+                    // Also show a success message
+                    showStyledAlert("✅ Success", 
+                        "Badge '" + badge.getName() + "' awarded to " + username + "!", 
+                        Alert.AlertType.INFORMATION);
+                } else {
+                    showStyledAlert("❌ Error", "Failed to create badge", Alert.AlertType.ERROR);
+                }
+            } catch (Exception ex) {
+                showStyledAlert("❌ Error", "Error awarding badge: " + ex.getMessage(), Alert.AlertType.ERROR);
+                ex.printStackTrace();
             }
         });
 
         HBox buttonBox = createModalButtons(createBtn, cancelBtn);
-        modalContent.getChildren().addAll(grid, buttonBox);
+        modalContent.getChildren().addAll(mainBox, buttonBox);
         
         StackPane root = new StackPane(modalContent);
         root.setStyle("-fx-background-color: transparent;");
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 600, 700);
         scene.setFill(Color.TRANSPARENT);
         dialog.setScene(scene);
         dialog.showAndWait();
@@ -1479,21 +1826,6 @@ public class AdminDashboardController implements Initializable {
         scene.setFill(Color.TRANSPARENT);
         dialog.setScene(scene);
         dialog.showAndWait();
-    }
-    
-    private HBox createDetailRow(String label, String value) {
-        HBox row = new HBox(10);
-        row.setAlignment(Pos.CENTER_LEFT);
-        
-        Label labelNode = new Label(label);
-        labelNode.setStyle("-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 13; -fx-min-width: 120;");
-        
-        Label valueNode = new Label(value);
-        valueNode.setStyle("-fx-text-fill: #65676b; -fx-font-size: 13; -fx-wrap-text: true;");
-        valueNode.setMaxWidth(350);
-        
-        row.getChildren().addAll(labelNode, valueNode);
-        return row;
     }
     
     // ============= BEAUTIFUL UI HELPER METHODS =============

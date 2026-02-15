@@ -233,6 +233,7 @@ public class FriendsViewController implements Initializable {
             btn.setStyle("-fx-background-color: #fff3cd; -fx-text-fill: #856404; " +
                     "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
                     "-fx-font-weight: bold; -fx-cursor: hand;");
+            btn.setOnAction(e -> handleCancelRequest(friendship));
             updateCounts();
         } else {
             showAlert("Erreur", "Impossible d'envoyer la demande", Alert.AlertType.ERROR);
@@ -329,7 +330,21 @@ public class FriendsViewController implements Initializable {
         
         // Avatar
         Circle avatar = new Circle(35);
-        avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+        if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+            try {
+                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + user.getProfilePicture());
+                if (Files.exists(imagePath)) {
+                    javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+                    avatar.setFill(new ImagePattern(image));
+                } else {
+                    avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+                }
+            } catch (Exception e) {
+                avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+            }
+        } else {
+            avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+        }
         
         // User Info
         VBox userInfo = new VBox(5);
@@ -433,7 +448,21 @@ public class FriendsViewController implements Initializable {
         
         // Avatar
         Circle avatar = new Circle(35);
-        avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+        if (friend.getProfilePicture() != null && !friend.getProfilePicture().isEmpty()) {
+            try {
+                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + friend.getProfilePicture());
+                if (Files.exists(imagePath)) {
+                    javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+                    avatar.setFill(new ImagePattern(image));
+                } else {
+                    avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+                }
+            } catch (Exception e) {
+                avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+            }
+        } else {
+            avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea, #764ba2);");
+        }
         
         // Friend Info
         VBox friendInfo = new VBox(5);
@@ -508,12 +537,19 @@ public class FriendsViewController implements Initializable {
     @FXML
     private void handleBackToFeed() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/UserFeed.fxml"));
-            Scene scene = new Scene(loader.load(), 1400, 900);
-            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
             Stage stage = (Stage) browseUsersContainer.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/UserFeed.fxml"));
+            Scene scene = new Scene(loader.load(), width, height);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Ghrami - Feed");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger le feed: " + e.getMessage(), Alert.AlertType.ERROR);

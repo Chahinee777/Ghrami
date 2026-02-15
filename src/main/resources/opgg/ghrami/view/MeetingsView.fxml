@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="opgg.ghrami.view.MeetingsViewController"
+            fitToWidth="true" fitToHeight="true" style="-fx-background-color: #f0f2f5;">
+    
+    <VBox spacing="0" style="-fx-background-color: #f0f2f5;">
+        
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: white; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="💫" style="-fx-font-size: 40;"/>
+                    <VBox spacing="2">
+                        <Label text="Mise en Correspondance" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                        <Label text="Découvrez des personnes qui partagent vos intérêts" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Button fx:id="backButton" text="← Retour au Feed" onAction="#handleBack" 
+                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12 28; -fx-background-radius: 25; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
+        </HBox>
+        
+        <!-- Statistics Cards -->
+        <HBox spacing="20" alignment="CENTER" style="-fx-padding: 30 40;">
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 270;">
+                <Label text="🤝" style="-fx-font-size: 40;"/>
+                <Label fx:id="totalConnectionsLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                <Label text="Connexions Actives" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 270;">
+                <Label text="📅" style="-fx-font-size: 40;"/>
+                <Label fx:id="upcomingMeetingsLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                <Label text="Rendez-vous À Venir" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 270;">
+                <Label text="⏳" style="-fx-font-size: 40;"/>
+                <Label fx:id="pendingRequestsLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #FF9800;"/>
+                <Label text="Demandes en Attente" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-pref-width: 270;">
+                <Label text="✨" style="-fx-font-size: 40;"/>
+                <Label fx:id="potentialMatchesLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+                <Label text="Nouveaux Matchs" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Main Content Tabs -->
+        <VBox spacing="25" style="-fx-padding: 0 40 40 40;">
+            <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 10); -fx-padding: 5;">
+                
+                <!-- Discovery Tab -->
+                <Tab text="🔍 Découvrir">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                        
+                        <!-- Search and Filter Bar -->
+                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f2f5; -fx-padding: 15; -fx-background-radius: 15;">
+                            <TextField fx:id="searchField" promptText="🔎 Rechercher par compétences, intérêts..." 
+                                       style="-fx-pref-width: 350; -fx-padding: 10; -fx-background-color: white; -fx-background-radius: 20; -fx-border-color: transparent;"/>
+                            <ComboBox fx:id="skillFilterCombo" promptText="Compétence" style="-fx-pref-width: 180; -fx-background-color: white; -fx-background-radius: 20;"/>
+                            <ComboBox fx:id="locationFilterCombo" promptText="Localisation" style="-fx-pref-width: 180; -fx-background-color: white; -fx-background-radius: 20;"/>
+                            <Button text="🎯 Match Intelligent" onAction="#handleSmartMatch" 
+                                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-size: 13; -fx-padding: 10 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 8, 0, 0, 2);"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button text="🔄" onAction="#handleRefreshDiscovery" 
+                                    style="-fx-background-color: rgba(102,126,234,0.1); -fx-text-fill: #667eea; -fx-font-size: 16; -fx-padding: 10 15; -fx-background-radius: 50; -fx-cursor: hand;"/>
+                        </HBox>
+                        
+                        <!-- Discovery Grid -->
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;">
+                            <GridPane fx:id="discoveryGrid" hgap="20" vgap="20" style="-fx-padding: 10;"/>
+                        </ScrollPane>
+                    </VBox>
+                </Tab>
+            
+                <!-- Connections Tab -->
+                <Tab text="🤝 Connexions">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f2f5; -fx-padding: 15; -fx-background-radius: 15;">
+                            <Label text="🔍 Filtre :" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <ComboBox fx:id="connectionFilterCombo" promptText="Toutes les Connexions" onAction="#filterConnections" style="-fx-pref-width: 200; -fx-background-color: white; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="connectionsCountLabel" text="0 connexions" style="-fx-font-size: 13; -fx-text-fill: #65676b; -fx-font-weight: 600;"/>
+                        </HBox>
+                        
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="connectionsContainer" spacing="15"/>
+                        </ScrollPane>
+                    </VBox>
+                </Tab>
+            
+                <!-- Meetings Tab -->
+                <Tab text="📅 Rendez-vous">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f2f5; -fx-padding: 15; -fx-background-radius: 15;">
+                            <Label text="🔍 Filtre :" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <ComboBox fx:id="meetingFilterCombo" promptText="Tous les Rendez-vous" onAction="#filterMeetings" style="-fx-pref-width: 200; -fx-background-color: white; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+                        </HBox>
+                        
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="meetingsContainer" spacing="15"/>
+                        </ScrollPane>
+                    </VBox>
+                </Tab>
+            
+                <!-- Pending Requests Tab -->
+                <Tab text="⏳ Demandes">
+                    <VBox spacing="20" style="-fx-padding: 25;">
+                        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f2f5; -fx-padding: 20; -fx-background-radius: 15;">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="Demandes de Match" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                <Label text="Examinez les demandes de connexion" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                            </VBox>
+                            <Label fx:id="pendingCountLabel" text="0 en attente" style="-fx-font-size: 13; -fx-text-fill: #FF9800; -fx-font-weight: 600; -fx-background-color: rgba(255,152,0,0.1); -fx-background-radius: 20; -fx-padding: 8 16;"/>
+                        </HBox>
+                        
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="pendingRequestsContainer" spacing="15"/>
+                        </ScrollPane>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </VBox>
+</ScrollPane>

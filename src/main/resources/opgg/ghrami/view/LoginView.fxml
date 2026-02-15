@@ -46,7 +46,11 @@
             </VBox>
 
             <VBox spacing="10">
-                <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;"/>
+                <HBox alignment="CENTER_LEFT" spacing="0">
+                    <Label text="Mot de passe" style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 14;" HBox.hgrow="ALWAYS"/>
+                    <Hyperlink fx:id="forgotPasswordLink" text="Mot de passe oublié?" onAction="#handleForgotPassword" 
+                              style="-fx-text-fill: #667eea; -fx-font-size: 12; -fx-underline: false; -fx-font-weight: 600;"/>
+                </HBox>
                 <PasswordField fx:id="passwordField" promptText="••••••••" 
                               styleClass="modern-input" 
                               style="-fx-font-size: 15; -fx-padding: 16; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #e4e6eb; -fx-border-width: 2;"/>

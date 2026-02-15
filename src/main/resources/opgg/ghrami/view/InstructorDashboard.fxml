@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx" 
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="opgg.ghrami.view.InstructorDashboardController"
+           styleClass="root" fitToWidth="true" prefWidth="1400" prefHeight="900">
+    
+    <VBox spacing="0" style="-fx-background-color: #f0f2f5;">
+        
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: white; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 8, 0, 0, 2);">
+            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Label text="👨‍🏫" style="-fx-font-size: 40;"/>
+                    <VBox spacing="2">
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <Label text="Tableau de Bord Instructeur" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                            <Label fx:id="ratingLabel" text="⭐ 0.0" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #f39c12;"/>
+                        </HBox>
+                        <Label fx:id="instructorNameLabel" text="Bienvenue, Instructeur" style="-fx-font-size: 14; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+            
+            <Button text="← Retour au Marché" onAction="#handleBack" 
+                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
+        </HBox>
+        
+        <!-- Stats Section -->
+        <HBox spacing="20" alignment="CENTER" style="-fx-padding: 30 40;">
+            <!-- Active Classes -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                <Label text="📚" style="-fx-font-size: 40;"/>
+                <Label fx:id="activeClassesLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                <Label text="Cours Actifs" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <!-- Total Students -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                <Label text="👥" style="-fx-font-size: 40;"/>
+                <Label fx:id="totalStudentsLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #9b59b6;"/>
+                <Label text="Total Étudiants" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <!-- Total Revenue -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 250;">
+                <Label text="💰" style="-fx-font-size: 40;"/>
+                <Label fx:id="totalRevenueLabel" text="0.00 TND" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+                <Label text="Revenu Total" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+            
+            <!-- Pending Bookings -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25 40; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                <Label text="📅" style="-fx-font-size: 40;"/>
+                <Label fx:id="pendingBookingsLabel" text="0" style="-fx-font-size: 36; -fx-font-weight: bold; -fx-text-fill: #FF9800;"/>
+                <Label text="Réservations en Attente" style="-fx-font-size: 14; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            </VBox>
+        </HBox>
+        
+        <!-- Main Content Area -->
+        <VBox spacing="25" style="-fx-padding: 0 40 40 40;">
+            
+            <!-- Tab Pane -->
+            <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" 
+                     style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 10); -fx-padding: 5;">
+                
+                <!-- My Classes Tab -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="📚" style="-fx-font-size: 18;"/>
+                            <Label text="Mes Cours" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <!-- Action Bar -->
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <Button text="➕ Créer Nouveau Cours" onAction="#handleCreateClass"
+                                        style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 24; -fx-background-radius: 25; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(76,175,80,0.4), 10, 0, 0, 3);"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="🔄 Actualiser" onAction="#loadMyClasses"
+                                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 24; -fx-background-radius: 25; -fx-cursor: hand;"/>
+                            </HBox>
+                            
+                            <!-- Classes List -->
+                            <VBox fx:id="classesContainer" spacing="15"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+                
+                <!-- Bookings Tab -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="📋" style="-fx-font-size: 18;"/>
+                            <Label text="Réservations" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <!-- Filter Bar -->
+                            <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-background-color: #f0f2f5; -fx-background-radius: 15; -fx-padding: 15 20;">
+                                <Label text="Filtrer par statut :" style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #65676b;"/>
+                                <ComboBox fx:id="bookingStatusCombo" prefWidth="180"
+                                          style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 8 15;"/>
+                                <Button text="Appliquer" onAction="#filterBookings"
+                                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="🔄 Actualiser" onAction="#loadAllBookings"
+                                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                            </HBox>
+                            
+                            <!-- Bookings List -->
+                            <VBox fx:id="bookingsContainer" spacing="15"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+                
+                <!-- Revenue Tab -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="💰" style="-fx-font-size: 18;"/>
+                            <Label text="Revenus" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="25" style="-fx-padding: 25;">
+                            
+                            <!-- Revenue Summary Cards -->
+                            <HBox spacing="30" alignment="CENTER">
+                                <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #e8f5e9; -fx-background-radius: 20; -fx-padding: 30 50; -fx-effect: dropshadow(gaussian, rgba(76,175,80,0.3), 15, 0, 0, 5);">
+                                    <Label text="💵" style="-fx-font-size: 36;"/>
+                                    <Label text="Gains Totaux" style="-fx-font-size: 14; -fx-text-fill: #2e7d32; -fx-font-weight: bold;"/>
+                                    <Label fx:id="totalEarningsLabel" text="0.00 TND" style="-fx-font-size: 40; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+                                </VBox>
+                                
+                                <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #fff3e0; -fx-background-radius: 20; -fx-padding: 30 50; -fx-effect: dropshadow(gaussian, rgba(255,152,0,0.3), 15, 0, 0, 5);">
+                                    <Label text="⏳" style="-fx-font-size: 36;"/>
+                                    <Label text="Paiements en Attente" style="-fx-font-size: 14; -fx-text-fill: #e65100; -fx-font-weight: bold;"/>
+                                    <Label fx:id="pendingRevenueLabel" text="0.00 TND" style="-fx-font-size: 40; -fx-font-weight: bold; -fx-text-fill: #f39c12;"/>
+                                </VBox>
+                            </HBox>
+                            
+                            <!-- Revenue Breakdown Section -->
+                            <VBox spacing="15" style="-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0, 0, 3);">
+                                <Label text="📊 Revenus par Cours" style="-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                <VBox fx:id="revenueBreakdownContainer" spacing="12"/>
+                            </VBox>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </VBox>
+</ScrollPane>

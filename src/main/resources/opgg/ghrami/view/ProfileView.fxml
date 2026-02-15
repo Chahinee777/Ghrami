@@ -55,8 +55,8 @@
                 <Insets top="60" right="40" bottom="30" left="40"/>
             </padding>
             
-            <Label fx:id="fullNameLabel" text="Full Name" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
-            <Label fx:id="usernameLabel" text="@username" style="-fx-font-size: 18; -fx-text-fill: #65676b;"/>
+            <Label fx:id="fullNameLabel" text="Nom Complet" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+            <Label fx:id="usernameLabel" text="@nomutilisateur" style="-fx-font-size: 18; -fx-text-fill: #65676b;"/>
             
             <!-- Online Status Section -->
             <HBox spacing="15" alignment="CENTER">
