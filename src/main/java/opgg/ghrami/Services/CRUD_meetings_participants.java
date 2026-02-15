@@ -1,7 +1,7 @@
 package opgg.ghrami.Services;
 
 import opgg.ghrami.Entites.meetings_participants;
-import opgg.ghrami.util.DatabaseConnection;
+import opgg.ghrami.util.myDB;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.List;
 
 public class CRUD_meetings_participants implements InterfaceCRUD<meetings_participants> {
 
-    private Connection conn = DatabaseConnection.getInstance().getConnection();
+    private Connection conn = myDB.getInstance().getConnection();
 
     @Override
     public void ajouter(meetings_participants p) {

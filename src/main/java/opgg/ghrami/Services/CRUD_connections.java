@@ -1,7 +1,7 @@
 package opgg.ghrami.Services;
 
 import opgg.ghrami.Entites.connections;
-import opgg.ghrami.util.DatabaseConnection;
+import opgg.ghrami.util.myDB;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.List;
 
 public class CRUD_connections implements InterfaceCRUD<connections> {
 
-    private Connection conn = DatabaseConnection.getInstance().getConnection();
+    private Connection conn = myDB.getInstance().getConnection();
 
     @Override
     public void ajouter(connections c) {
@@ -56,9 +56,7 @@ public class CRUD_connections implements InterfaceCRUD<connections> {
             pst.setString(1, id);
             pst.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Erreur lors de la suppression : " + e.getMessage());
-        }
-    }
+            System.err.println("Erreur lors de la suppression : " + e.getMessage());}}
 
     @Override
     public List<connections> afficher() {
@@ -75,9 +73,7 @@ public class CRUD_connections implements InterfaceCRUD<connections> {
                         rs.getString(4),
                         rs.getString(5),
                         rs.getString(6),
-                        rs.getString(7)
-                ));
-            }
+                        rs.getString(7)));}
         } catch (SQLException e) {
             System.err.println("Erreur lors de l'affichage : " + e.getMessage());
         }

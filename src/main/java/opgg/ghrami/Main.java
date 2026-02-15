@@ -3,7 +3,7 @@ package opgg.ghrami;
 import opgg.ghrami.Entites.connections;
 import opgg.ghrami.Services.CRUD_connections;
 import opgg.ghrami.Services.InterfaceCRUD;
-import opgg.ghrami.util.DatabaseConnection;
+import opgg.ghrami.util.myDB;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -14,7 +14,7 @@ public class Main {
     public static void main(String[] args) {
 
 
-        Connection conn = DatabaseConnection.getInstance().getConnection();
+        Connection conn = myDB.getInstance().getConnection();
         try {
             if (conn != null && !conn.isClosed()) {
                 System.out.println("OK");
