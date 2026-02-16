@@ -18,6 +18,7 @@ public class Main {
         System.out.println("🚀 Ghrami User Management Demo");
         System.out.println("========================================\n");
 
+
         // Initialize Controllers
         UserController userController = new UserController();
         FriendshipController friendshipController = new FriendshipController();
