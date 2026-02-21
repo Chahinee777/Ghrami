@@ -523,28 +523,51 @@ public class ProfileViewController implements Initializable {
         }
     }
     
-    private void loadProfileImage() {
-        // Try to load profile picture from profilePicture field
-        if (currentUser.getProfilePicture() != null && !currentUser.getProfilePicture().isEmpty()) {
-            try {
-                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + currentUser.getProfilePicture());
-                if (Files.exists(imagePath)) {
-                    javafx.scene.image.Image image = new javafx.scene.image.Image(
-                        imagePath.toUri().toString()
-                    );
-                    profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image));
-                    return;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        
-        // Default gradient if no image
-        profileImageCircle.setFill(
-            javafx.scene.paint.Color.web("#667eea")
-        );
+  // METHOD 2 - UserFeedController (profileImageCircle)
+private void loadProfileImage() {
+    if (currentUser.getProfilePicture() == null || currentUser.getProfilePicture().isEmpty()) {
+        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+        return;
     }
+
+    try {
+        String pic = currentUser.getProfilePicture();
+
+        if (pic.startsWith("http://") || pic.startsWith("https://")) {
+            javafx.scene.image.Image image = new javafx.scene.image.Image(pic, true);
+
+            image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 1.0 && !image.isError()) {
+                    javafx.application.Platform.runLater(() ->
+                        profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image))
+                    );
+                }
+            });
+
+            image.errorProperty().addListener((obs, oldVal, hasError) -> {
+                if (hasError) {
+                    javafx.application.Platform.runLater(() ->
+                        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"))
+                    );
+                }
+            });
+
+        } else {
+            Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + pic);
+            if (!Files.exists(imagePath)) {
+                profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+                return;
+            }
+
+            javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+            profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+    }
+}
     
     @FXML
     private void handleRefreshBadges() {

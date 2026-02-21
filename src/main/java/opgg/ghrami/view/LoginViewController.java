@@ -1,5 +1,7 @@
 package opgg.ghrami.view;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -9,10 +11,12 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import opgg.ghrami.controller.PasswordResetController;
 import opgg.ghrami.controller.UserController;
+import opgg.ghrami.model.GoogleUserInfo;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.GoogleAuthService;
 import opgg.ghrami.util.JWTUtil;
-import opgg.ghrami.util.PasswordUtil;
 import opgg.ghrami.util.SessionManager;
+import opgg.ghrami.util.PasswordUtil;
 
 import java.util.Optional;
 
@@ -22,6 +26,7 @@ public class LoginViewController {
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
     @FXML private Button loginButton;
+    @FXML private Button googleLoginButton;
     @FXML private Hyperlink registerLink;
     @FXML private Hyperlink forgotPasswordLink;
 
@@ -304,6 +309,94 @@ public class LoginViewController {
                 errorAlert.showAndWait();
             }
         }
+    }
+
+    @FXML
+    private void handleGoogleLogin() {
+        // Disable buttons during auth flow
+        loginButton.setDisable(true);
+        googleLoginButton.setDisable(true);
+        googleLoginButton.setText("⏳  Authentification en cours...");
+        errorLabel.setVisible(false);
+
+        Task<GoogleUserInfo> task = new Task<>() {
+            @Override
+            protected GoogleUserInfo call() throws Exception {
+                return new GoogleAuthService().authenticate();
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            GoogleUserInfo info = task.getValue();
+            if (info == null) {
+                restoreGoogleButton();
+                showError("Authentification Google annulée");
+                return;
+            }
+
+            // Find or create user
+            Optional<User> userOpt = userController.findByGoogleId(info.getId());
+            User user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else {
+                // Check if email already registered with local account
+                Optional<User> byEmail = userController.findByEmail(info.getEmail());
+                if (byEmail.isPresent()) {
+                    // Link Google ID to existing account
+                    user = byEmail.get();
+                    user.setGoogleId(info.getId());
+                    user.setAuthProvider("google");
+                    userController.update(user);
+                } else {
+                    user = userController.createGoogleUser(
+                            info.getId(), info.getEmail(), info.getName(), info.getPicture());
+                }
+            }
+
+            if (user == null) {
+                restoreGoogleButton();
+                showError("Impossible de créer ou trouver votre compte");
+                return;
+            }
+
+            // Create session
+            boolean isAdmin = user.getUserId() == 0;
+            String token = JWTUtil.generateToken(user.getUserId(), user.getUsername(), user.getEmail(), isAdmin);
+            SessionManager.getInstance().login(token);
+            user.setOnline(true);
+            userController.update(user);
+
+            try {
+                Stage stage = (Stage) loginButton.getScene().getWindow();
+                if (isAdmin) {
+                    openAdminDashboard(stage);
+                } else {
+                    openUserDashboard(stage);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                restoreGoogleButton();
+                showError("Erreur lors de l'ouverture du tableau de bord");
+            }
+        });
+
+        task.setOnFailed(event -> {
+            restoreGoogleButton();
+            showError("Erreur Google: " + task.getException().getMessage());
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void restoreGoogleButton() {
+        Platform.runLater(() -> {
+            loginButton.setDisable(false);
+            googleLoginButton.setDisable(false);
+            googleLoginButton.setText("🔵  Se connecter avec Google");
+        });
     }
 
     private void showError(String message) {

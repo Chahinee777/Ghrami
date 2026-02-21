@@ -17,13 +17,17 @@ import javafx.stage.Modality;
 import javafx.stage.FileChooser;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import opgg.ghrami.controller.FriendshipController;
 import opgg.ghrami.controller.HobbyController;
+import opgg.ghrami.controller.MessageController;
+import opgg.ghrami.controller.NotificationController;
 import opgg.ghrami.controller.PostController;
 import opgg.ghrami.controller.CommentController;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.Hobby;
+import opgg.ghrami.model.Notification;
 import opgg.ghrami.model.Post;
 import opgg.ghrami.model.Comment;
 import opgg.ghrami.model.User;
@@ -48,6 +52,8 @@ public class UserFeedController implements Initializable {
     @FXML private Label postsCountLabel;
     @FXML private Label friendsCountLabel;
     @FXML private Label hobbiesCountLabel;
+    @FXML private Label notificationsBadge;
+    @FXML private Label messagesBadge;
     
     // Post Creation
     @FXML private TextField postTextField;
@@ -59,6 +65,8 @@ public class UserFeedController implements Initializable {
     private PostController postController;
     private CommentController commentController;
     private HobbyController hobbyController;
+    private MessageController messageController;
+    private NotificationController notificationController;
     private String selectedImagePath = null;
 
     @Override
@@ -69,8 +77,11 @@ public class UserFeedController implements Initializable {
         postController = PostController.getInstance();
         commentController = CommentController.getInstance();
         hobbyController = new HobbyController();
+        messageController = MessageController.getInstance();
+        notificationController = NotificationController.getInstance();
         loadUserInfo();
         loadFeed();
+        refreshNavBadges();
     }
     
     private void loadUserInfo() {
@@ -110,30 +121,52 @@ public class UserFeedController implements Initializable {
         }
     }
     
-    private void loadProfileImage() {
-        try {
-            long userId = sessionManager.getUserId();
-            if (userId == 0) {
-                return;
-            }
-            
-            User currentUser = userController.findById((int) userId);
-            if (currentUser != null && currentUser.getProfilePicture() != null && !currentUser.getProfilePicture().isEmpty()) {
-                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + currentUser.getProfilePicture());
-                if (Files.exists(imagePath)) {
-                    javafx.scene.image.Image image = new javafx.scene.image.Image(
-                        imagePath.toUri().toString()
-                    );
-                    ImagePattern pattern = new ImagePattern(image);
-                    menuProfileCircle.setFill(pattern);
-                    sidebarProfileCircle.setFill(pattern);
+    // METHOD 1 - UserFeedController (menuProfileCircle + sidebarProfileCircle)
+private void loadProfileImage() {
+    try {
+        long userId = sessionManager.getUserId();
+        if (userId == 0) return;
+
+        User currentUser = userController.findById((int) userId);
+        if (currentUser == null) return;
+        String pic = currentUser.getProfilePicture();
+        if (pic == null || pic.isEmpty()) return;
+
+        if (pic.startsWith("http://") || pic.startsWith("https://")) {
+            javafx.scene.image.Image image = new javafx.scene.image.Image(pic, true);
+
+            image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 1.0 && !image.isError()) {
+                    javafx.application.Platform.runLater(() -> {
+                        ImagePattern pattern = new ImagePattern(image);
+                        menuProfileCircle.setFill(pattern);
+                        sidebarProfileCircle.setFill(pattern);
+                    });
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Error loading profile image: " + e.getMessage());
+            });
+
+            // Handle error
+            image.errorProperty().addListener((obs, oldVal, hasError) -> {
+                if (hasError) {
+                    System.err.println("Failed to load remote profile image: " + pic);
+                }
+            });
+
+        } else {
+            Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + pic);
+            if (!Files.exists(imagePath)) return;
+
+            javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+            ImagePattern pattern = new ImagePattern(image);
+            menuProfileCircle.setFill(pattern);
+            sidebarProfileCircle.setFill(pattern);
         }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        System.err.println("Error loading profile image: " + e.getMessage());
     }
+}
     
     private void loadFeed() {
         try {
@@ -555,14 +588,127 @@ public class UserFeedController implements Initializable {
         }
     }
     
+    private void refreshNavBadges() {
+        try {
+            long userId = sessionManager.getUserId();
+            int unreadNotifs = notificationController.countUnread(userId);
+            int unreadMsgs = messageController.countUnread(userId);
+            if (notificationsBadge != null) {
+                notificationsBadge.setText(unreadNotifs > 9 ? "9+" : String.valueOf(unreadNotifs));
+                notificationsBadge.setVisible(unreadNotifs > 0);
+            }
+            if (messagesBadge != null) {
+                messagesBadge.setText(unreadMsgs > 9 ? "9+" : String.valueOf(unreadMsgs));
+                messagesBadge.setVisible(unreadMsgs > 0);
+            }
+        } catch (Exception ignored) {}
+    }
+
     @FXML
     private void handleNotifications() {
-        System.out.println("Notifications clicked");
+        long userId = sessionManager.getUserId();
+        java.util.List<Notification> notifications = notificationController.getForUser(userId);
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Notifications");
+
+        javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(0);
+        content.setPrefWidth(440);
+
+        // Header
+        javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(10);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        header.setStyle("-fx-padding: 16 20 12 20; -fx-background-color: white; -fx-border-color: #e4e6eb; -fx-border-width: 0 0 1 0;");
+        Label titleLbl = new Label("🔔  Notifications");
+        titleLbl.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1c1e21;");
+        Region spacer = new Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+        Button markAllBtn = new Button("Tout marquer comme lu");
+        markAllBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-size: 12; -fx-cursor: hand; -fx-border-width: 0;");
+        markAllBtn.setOnAction(e -> {
+            notificationController.markAllRead(userId);
+            dialog.close();
+            refreshNavBadges();
+        });
+        header.getChildren().addAll(titleLbl, spacer, markAllBtn);
+        content.getChildren().add(header);
+
+        // List
+        javafx.scene.control.ScrollPane sp = new javafx.scene.control.ScrollPane();
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(380);
+        sp.setStyle("-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;");
+        javafx.scene.layout.VBox list = new javafx.scene.layout.VBox(4);
+        list.setStyle("-fx-padding: 12;");
+
+        if (notifications.isEmpty()) {
+            Label empty = new Label("Aucune notification pour le moment");
+            empty.setStyle("-fx-text-fill: #65676b; -fx-font-size: 13; -fx-padding: 30;");
+            list.getChildren().add(empty);
+        } else {
+            for (Notification n : notifications) {
+                javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(12);
+                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                row.setPadding(new javafx.geometry.Insets(12, 16, 12, 16));
+                row.setStyle("-fx-background-color: " + (n.isRead() ? "white" : "rgba(102,126,234,0.08)")
+                        + "; -fx-background-radius: 12; -fx-cursor: hand;");
+
+                Label icon = new Label(n.getIcon());
+                icon.setStyle("-fx-font-size: 22;");
+
+                javafx.scene.layout.VBox txt = new javafx.scene.layout.VBox(3);
+                javafx.scene.layout.HBox.setHgrow(txt, javafx.scene.layout.Priority.ALWAYS);
+                Label msg = new Label(n.getContent());
+                msg.setWrapText(true);
+                msg.setStyle("-fx-font-size: 13; -fx-text-fill: " + (n.isRead() ? "#65676b" : "#1c1e21") + "; -fx-font-weight: " + (n.isRead() ? "normal" : "bold") + ";");
+                String timeStr = n.getCreatedAt().toLocalDate().equals(java.time.LocalDate.now())
+                        ? n.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+                        : n.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+                Label time = new Label(timeStr);
+                time.setStyle("-fx-font-size: 11; -fx-text-fill: #adb5bd;");
+                txt.getChildren().addAll(msg, time);
+
+                if (!n.isRead()) {
+                    Label dot = new Label("●");
+                    dot.setStyle("-fx-text-fill: #667eea; -fx-font-size: 10;");
+                    row.getChildren().addAll(icon, txt, dot);
+                } else {
+                    row.getChildren().addAll(icon, txt);
+                }
+
+                row.setOnMouseClicked(e -> {
+                    notificationController.markRead(n.getNotificationId());
+                    refreshNavBadges();
+                });
+                list.getChildren().add(row);
+            }
+        }
+        sp.setContent(list);
+        content.getChildren().add(sp);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+        refreshNavBadges();
     }
-    
+
     @FXML
     private void handleMessages() {
-        System.out.println("Messages clicked");
+        try {
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/MessagesView.fxml"));
+            Scene scene = new Scene(loader.load(), width, height);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Messages");
+            if (wasMaximized) stage.setMaximized(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir les messages: " + e.getMessage());
+        }
     }
     
     @FXML

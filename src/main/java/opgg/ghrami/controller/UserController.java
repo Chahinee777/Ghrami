@@ -16,8 +16,8 @@ public class UserController {
             return createAdminUser(user);
         }
         
-        String sql = "INSERT INTO users (username, full_name, email, password, profile_picture, bio, location, is_online, created_at, last_login) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, full_name, email, password, google_id, auth_provider, profile_picture, bio, location, is_online, created_at, last_login) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -25,12 +25,14 @@ public class UserController {
             stmt.setString(2, user.getFullName());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPassword());
-            stmt.setString(5, user.getProfilePicture());
-            stmt.setString(6, user.getBio());
-            stmt.setString(7, user.getLocation());
-            stmt.setBoolean(8, user.isOnline());
-            stmt.setTimestamp(9, Timestamp.valueOf(user.getCreatedAt()));
-            stmt.setTimestamp(10, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
+            stmt.setString(5, user.getGoogleId());
+            stmt.setString(6, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
+            stmt.setString(7, user.getProfilePicture());
+            stmt.setString(8, user.getBio());
+            stmt.setString(9, user.getLocation());
+            stmt.setBoolean(10, user.isOnline());
+            stmt.setTimestamp(11, Timestamp.valueOf(user.getCreatedAt()));
+            stmt.setTimestamp(12, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
 
             int affectedRows = stmt.executeUpdate();
 
@@ -159,7 +161,8 @@ public class UserController {
     }
 
     public User update(User user) {
-        String sql = "UPDATE users SET username = ?, full_name = ?, email = ?, password = ?, profile_picture = ?, " +
+        String sql = "UPDATE users SET username = ?, full_name = ?, email = ?, password = ?, " +
+                "google_id = ?, auth_provider = ?, profile_picture = ?, " +
                 "bio = ?, location = ?, is_online = ?, last_login = ? WHERE user_id = ?";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -168,12 +171,14 @@ public class UserController {
             stmt.setString(2, user.getFullName());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPassword());
-            stmt.setString(5, user.getProfilePicture());
-            stmt.setString(6, user.getBio());
-            stmt.setString(7, user.getLocation());
-            stmt.setBoolean(8, user.isOnline());
-            stmt.setTimestamp(9, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
-            stmt.setLong(10, user.getUserId());
+            stmt.setString(5, user.getGoogleId());
+            stmt.setString(6, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
+            stmt.setString(7, user.getProfilePicture());
+            stmt.setString(8, user.getBio());
+            stmt.setString(9, user.getLocation());
+            stmt.setBoolean(10, user.isOnline());
+            stmt.setTimestamp(11, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
+            stmt.setLong(12, user.getUserId());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -225,6 +230,57 @@ public class UserController {
         return Optional.empty();
     }
 
+    public Optional<User> findByGoogleId(String googleId) {
+        String sql = "SELECT * FROM users WHERE google_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, googleId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error finding user by Google ID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public User createGoogleUser(String googleId, String email, String fullName, String profilePictureUrl) {
+        // Generate unique username from email
+        String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "_");
+        String username = baseUsername;
+        int suffix = 1;
+        while (usernameExists(username)) {
+            username = baseUsername + suffix++;
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setFullName(fullName);
+        user.setEmail(email);
+        user.setPassword(null);
+        user.setGoogleId(googleId);
+        user.setAuthProvider("google");
+        user.setProfilePicture(profilePictureUrl);
+        user.setOnline(true);
+
+        return create(user);
+    }
+
+    private boolean usernameExists(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getLong("user_id"));
@@ -232,6 +288,8 @@ public class UserController {
         user.setFullName(rs.getString("full_name"));
         user.setEmail(rs.getString("email"));
         user.setPassword(rs.getString("password"));
+        user.setGoogleId(rs.getString("google_id"));
+        user.setAuthProvider(rs.getString("auth_provider"));
         user.setProfilePicture(rs.getString("profile_picture"));
         user.setBio(rs.getString("bio"));
         user.setLocation(rs.getString("location"));

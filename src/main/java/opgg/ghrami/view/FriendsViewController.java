@@ -13,6 +13,7 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import opgg.ghrami.controller.FriendshipController;
+import opgg.ghrami.controller.NotificationController;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.FriendshipStatus;
@@ -46,6 +47,7 @@ public class FriendsViewController implements Initializable {
     private SessionManager sessionManager;
     private UserController userController;
     private FriendshipController friendshipController;
+    private NotificationController notificationController;
     private User currentUser;
     
     private List<User> allUsers;
@@ -57,6 +59,7 @@ public class FriendsViewController implements Initializable {
         sessionManager = SessionManager.getInstance();
         userController = new UserController();
         friendshipController = new FriendshipController();
+        notificationController = NotificationController.getInstance();
         
         loadCurrentUser();
         setupSearchListeners();
@@ -229,6 +232,8 @@ public class FriendsViewController implements Initializable {
         
         if (friendship != null) {
             showAlert("Succès", "Demande d'amitié envoyée à " + user.getUsername(), Alert.AlertType.INFORMATION);
+            String senderName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUsername();
+            notificationController.notifyFriendRequest(user.getUserId(), senderName, currentUser.getUserId());
             btn.setText("⏳ En attente");
             btn.setStyle("-fx-background-color: #fff3cd; -fx-text-fill: #856404; " +
                     "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
@@ -286,6 +291,8 @@ public class FriendsViewController implements Initializable {
             if (result.get() == acceptBtn) {
                 if (friendshipController.acceptFriendRequest(friendship.getFriendshipId())) {
                     showAlert("Succès", "Vous êtes maintenant ami avec " + user.getUsername(), Alert.AlertType.INFORMATION);
+                    String myName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUsername();
+                    notificationController.notifyFriendAccepted(user.getUserId(), myName, currentUser.getUserId());
                     loadAllData();
                 }
             } else if (result.get() == rejectBtn) {
@@ -371,6 +378,8 @@ public class FriendsViewController implements Initializable {
         acceptBtn.setOnAction(e -> {
             if (friendshipController.acceptFriendRequest(friendship.getFriendshipId())) {
                 showAlert("Succès", "Vous êtes maintenant ami avec " + user.getUsername(), Alert.AlertType.INFORMATION);
+                String myName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUsername();
+                notificationController.notifyFriendAccepted(user.getUserId(), myName, currentUser.getUserId());
                 loadAllData();
             }
         });

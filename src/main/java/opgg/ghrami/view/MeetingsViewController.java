@@ -830,17 +830,12 @@ public class MeetingsViewController {
             actions.getChildren().add(scheduleMeetingBtn);
         }
         
-        Button viewMeetingsBtn = new Button("Voir Rendez-vous");
-        viewMeetingsBtn.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; " +
-                                "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
-        viewMeetingsBtn.setOnAction(e -> viewConnectionMeetings(connection));
-        
         Button deleteBtn = new Button("Supprimer");
         deleteBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
                           "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
         deleteBtn.setOnAction(e -> handleDeleteConnection(connection));
         
-        actions.getChildren().addAll(viewMeetingsBtn, deleteBtn);
+        actions.getChildren().add(deleteBtn);
         
         card.getChildren().addAll(header, skillsBox, actions);
         return card;
@@ -1036,8 +1031,13 @@ public class MeetingsViewController {
                 }
             });
             
+            Button editBtn = new Button("✏️ Modifier");
+            editBtn.setStyle("-fx-background-color: #2196F3; -fx-text-fill: white; " +
+                            "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
+            editBtn.setOnAction(e -> handleEditMeeting(meeting));
+            
             Button cancelBtn = new Button("✗ Annuler");
-            cancelBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; " +
+            cancelBtn.setStyle("-fx-background-color: #FF9800; -fx-text-fill: white; " +
                               "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
             cancelBtn.setOnAction(e -> {
                 if (meetingController.cancelMeeting(meeting.getMeetingId())) {
@@ -1046,15 +1046,20 @@ public class MeetingsViewController {
                 }
             });
             
-            actions.getChildren().addAll(completeBtn, cancelBtn);
+            actions.getChildren().addAll(completeBtn, editBtn, cancelBtn);
         }
         
-        Button viewParticipantsBtn = new Button("Voir Participants");
+        Button viewParticipantsBtn = new Button("👥 Participants");
         viewParticipantsBtn.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; " +
                                     "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
         viewParticipantsBtn.setOnAction(e -> viewMeetingParticipants(meeting));
         
-        actions.getChildren().add(viewParticipantsBtn);
+        Button deleteBtn = new Button("🗑️ Supprimer");
+        deleteBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; " +
+                          "-fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
+        deleteBtn.setOnAction(e -> handleDeleteMeeting(meeting));
+        
+        actions.getChildren().addAll(viewParticipantsBtn, deleteBtn);
         
         card.getChildren().addAll(header, details, actions);
         return card;
@@ -1329,6 +1334,154 @@ public class MeetingsViewController {
                 showAlert("Erreur", "Échec de la planification du rendez-vous");
             }
         });
+    }
+    
+    private void handleEditMeeting(Meeting meeting) {
+        Dialog<Meeting> dialog = new Dialog<>();
+        dialog.setTitle("Modifier le Rendez-vous");
+        dialog.setHeaderText("Modifier les détails du rendez-vous");
+        
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20));
+        
+        ComboBox<String> typeCombo = new ComboBox<>();
+        typeCombo.getItems().addAll("physical", "virtual");
+        typeCombo.setValue(meeting.getMeetingType());
+        
+        TextField locationField = new TextField(meeting.getLocation());
+        locationField.setPromptText("Location or URL");
+        
+        DatePicker datePicker = new DatePicker();
+        if (meeting.getScheduledAt() != null) {
+            datePicker.setValue(meeting.getScheduledAt().toLocalDate());
+        }
+        
+        TextField timeField = new TextField();
+        if (meeting.getScheduledAt() != null) {
+            timeField.setText(String.format("%02d:%02d", 
+                meeting.getScheduledAt().getHour(), 
+                meeting.getScheduledAt().getMinute()));
+        }
+        timeField.setPromptText("Heure (HH:MM)");
+        
+        TextField durationField = new TextField(String.valueOf(meeting.getDuration()));
+        durationField.setPromptText("Durée (minutes)");
+        
+        grid.add(new Label("Type :"), 0, 0);
+        grid.add(typeCombo, 1, 0);
+        grid.add(new Label("Lieu :"), 0, 1);
+        grid.add(locationField, 1, 1);
+        grid.add(new Label("Date :"), 0, 2);
+        grid.add(datePicker, 1, 2);
+        grid.add(new Label("Heure :"), 0, 3);
+        grid.add(timeField, 1, 3);
+        grid.add(new Label("Durée :"), 0, 4);
+        grid.add(durationField, 1, 4);
+        
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == ButtonType.OK) {
+                try {
+                    // Validation 1: Meeting type is required
+                    if (typeCombo.getValue() == null || typeCombo.getValue().trim().isEmpty()) {
+                        showAlert("Erreur de Validation", "Le type de réunion est obligatoire.");
+                        return null;
+                    }
+                    
+                    // Validation 2: Location is required
+                    String location = locationField.getText().trim();
+                    if (location.isEmpty()) {
+                        showAlert("Erreur de Validation", "Le lieu est obligatoire.");
+                        return null;
+                    }
+                    
+                    // Validation 3: Date is required
+                    if (datePicker.getValue() == null) {
+                        showAlert("Erreur de Validation", "La date est obligatoire.");
+                        return null;
+                    }
+                    
+                    // Validation 4: Time format validation
+                    String timeText = timeField.getText().trim();
+                    if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+                        showAlert("Erreur de Validation", "Format d'heure invalide. Utilisez HH:MM (ex: 14:30).");
+                        return null;
+                    }
+                    
+                    String[] timeParts = timeText.split(":");
+                    LocalDateTime scheduledAt = datePicker.getValue().atTime(
+                        Integer.parseInt(timeParts[0]),
+                        Integer.parseInt(timeParts[1])
+                    );
+                    
+                    // Validation 5: Date must be in the future (only for scheduled meetings)
+                    if ("scheduled".equalsIgnoreCase(meeting.getStatus()) && scheduledAt.isBefore(LocalDateTime.now())) {
+                        showAlert("Erreur de Validation", "La date/heure doit être dans le futur.");
+                        return null;
+                    }
+                    
+                    // Validation 6: Duration must be positive
+                    String durationText = durationField.getText().trim();
+                    if (durationText.isEmpty() || !durationText.matches("^\\d+$")) {
+                        showAlert("Erreur de Validation", "La durée doit être un nombre positif.");
+                        return null;
+                    }
+                    int duration = Integer.parseInt(durationText);
+                    if (duration <= 0 || duration > 1440) {
+                        showAlert("Erreur de Validation", "La durée doit être entre 1 et 1440 minutes (24h).");
+                        return null;
+                    }
+                    
+                    // Update meeting object
+                    meeting.setMeetingType(typeCombo.getValue());
+                    meeting.setLocation(location);
+                    meeting.setScheduledAt(scheduledAt);
+                    meeting.setDuration(duration);
+                    
+                    return meeting;
+                } catch (Exception e) {
+                    showAlert("Erreur de Validation", "Saisie invalide: " + e.getMessage());
+                    return null;
+                }
+            }
+            return null;
+        });
+        
+        Optional<Meeting> result = dialog.showAndWait();
+        result.ifPresent(updatedMeeting -> {
+            Meeting updated = meetingController.update(updatedMeeting);
+            if (updated != null) {
+                showAlert("Succès", "Rendez-vous modifié avec succès!");
+                loadDashboardData();
+            } else {
+                showAlert("Erreur", "Échec de la modification du rendez-vous");
+            }
+        });
+    }
+    
+    private void handleDeleteMeeting(Meeting meeting) {
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirmer la Suppression");
+        confirmDialog.setHeaderText("Supprimer le Rendez-vous");
+        confirmDialog.setContentText("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?\n" +
+                                    "Date: " + (meeting.getScheduledAt() != null ? 
+                                    meeting.getScheduledAt().format(DATETIME_FORMATTER) : "TBD") + "\n" +
+                                    "Lieu: " + meeting.getLocation() + "\n\n" +
+                                    "Cette action est irréversible!");
+        
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (meetingController.delete(meeting.getMeetingId())) {
+                showAlert("Succès", "Rendez-vous supprimé avec succès!");
+                loadDashboardData();
+            } else {
+                showAlert("Erreur", "Échec de la suppression du rendez-vous");
+            }
+        }
     }
     
     private void handleScheduleMeetingForConnection(Connection connection) {

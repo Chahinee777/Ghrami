@@ -5,6 +5,10 @@ module opgg.ghrami {
     requires jbcrypt;
     requires jjwt.api;
     requires java.mail;
+    requires java.net.http;
+    requires jdk.httpserver;
+    requires java.desktop;
+    requires com.fasterxml.jackson.databind;
     
     // iText PDF library
     requires kernel;
@@ -16,7 +20,7 @@ module opgg.ghrami {
 
     opens opgg.ghrami to javafx.fxml;
     opens opgg.ghrami.view to javafx.fxml;
-    opens opgg.ghrami.model to javafx.base;
+    opens opgg.ghrami.model to javafx.base, com.fasterxml.jackson.databind;
     opens opgg.ghrami.util;
     opens opgg.ghrami.controller;
     

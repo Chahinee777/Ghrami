@@ -1865,49 +1865,50 @@ public class AdminDashboardController implements Initializable {
     }
     
     
-    private Image loadProfileImage(String picUrl) {
-        if (picUrl == null || picUrl.trim().isEmpty()) {
-            return null;
-        }
-        
-        try {
-            // Case 1: If it's a full URL (http/https), load directly
-            if (picUrl.startsWith("http://") || picUrl.startsWith("https://")) {
-                return new Image(picUrl, 50, 50, true, true, true);
-            }
-            
-            // Case 2: If it's a file path starting with file://
-            if (picUrl.startsWith("file://")) {
-                return new Image(picUrl, 50, 50, true, true, true);
-            }
-            
-            // Case 3: Try to load from resources folder (images/profile_pictures/)
-            String resourcePath = "/images/profile_pictures/" + picUrl;
-            URL resourceUrl = getClass().getResource(resourcePath);
-            if (resourceUrl != null) {
-                return new Image(resourceUrl.toExternalForm(), 50, 50, true, true, true);
-            }
-            
-            // Case 4: Try just /images/
-            resourcePath = "/images/" + picUrl;
-            resourceUrl = getClass().getResource(resourcePath);
-            if (resourceUrl != null) {
-                return new Image(resourceUrl.toExternalForm(), 50, 50, true, true, true);
-            }
-            
-            // Case 5: Try as absolute file path
-            java.io.File file = new java.io.File(picUrl);
-            if (file.exists()) {
-                return new Image(file.toURI().toString(), 50, 50, true, true, true);
-            }
-            
-            // If nothing works, return null (will show default avatar)
-            return null;
-        } catch (Exception e) {
-            System.err.println("Failed to load profile image: " + picUrl + " - " + e.getMessage());
-            return null;
-        }
+   // METHOD 3 - Helper that returns an Image (load synchronously — false as last arg)
+private Image loadProfileImage(String picUrl) {
+    if (picUrl == null || picUrl.trim().isEmpty()) {
+        return null;
     }
+
+    try {
+        // Case 1: Full HTTP/HTTPS URL
+        if (picUrl.startsWith("http://") || picUrl.startsWith("https://")) {
+            return new Image(picUrl, 50, 50, true, true, false);
+        }
+
+        // Case 2: file:// URI
+        if (picUrl.startsWith("file://")) {
+            return new Image(picUrl, 50, 50, true, true, false);
+        }
+
+        // Case 3: Resource path — images/profile_pictures/
+        String resourcePath = "/images/profile_pictures/" + picUrl;
+        URL resourceUrl = getClass().getResource(resourcePath);
+        if (resourceUrl != null) {
+            return new Image(resourceUrl.toExternalForm(), 50, 50, true, true, false);
+        }
+
+        // Case 4: Resource path — /images/
+        resourcePath = "/images/" + picUrl;
+        resourceUrl = getClass().getResource(resourcePath);
+        if (resourceUrl != null) {
+            return new Image(resourceUrl.toExternalForm(), 50, 50, true, true, false);
+        }
+
+        // Case 5: Absolute file path on disk
+        java.io.File file = new java.io.File(picUrl);
+        if (file.exists()) {
+            return new Image(file.toURI().toString(), 50, 50, true, true, false);
+        }
+
+        return null;
+
+    } catch (Exception e) {
+        System.err.println("Failed to load profile image: " + picUrl + " - " + e.getMessage());
+        return null;
+    }
+}
     
     private StackPane createDefaultAvatar() {
         StackPane avatar = new StackPane();

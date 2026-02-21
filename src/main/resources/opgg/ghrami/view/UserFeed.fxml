@@ -44,12 +44,26 @@
                 <Button text="👥" styleClass="icon-btn" onAction="#handleFriends" minWidth="50" minHeight="50">
                     <tooltip><Tooltip text="Amis"/></tooltip>
                 </Button>
-                <Button text="🔔" styleClass="icon-btn" onAction="#handleNotifications" minWidth="50" minHeight="50">
-                    <tooltip><Tooltip text="Notifications"/></tooltip>
-                </Button>
-                <Button text="💬" styleClass="icon-btn" onAction="#handleMessages" minWidth="50" minHeight="50">
-                    <tooltip><Tooltip text="Messages"/></tooltip>
-                </Button>
+
+                <!-- Notifications Button with Badge -->
+                <StackPane maxWidth="50" maxHeight="50" minWidth="50" minHeight="50">
+                    <Button text="🔔" fx:id="notificationsButton" styleClass="icon-btn" onAction="#handleNotifications" minWidth="50" minHeight="50">
+                        <tooltip><Tooltip text="Notifications"/></tooltip>
+                    </Button>
+                    <Label fx:id="notificationsBadge" text="" visible="false"
+                           style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 9; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 1 5;"
+                           StackPane.alignment="TOP_RIGHT" translateX="4" translateY="-4"/>
+                </StackPane>
+
+                <!-- Messages Button with Badge -->
+                <StackPane maxWidth="50" maxHeight="50" minWidth="50" minHeight="50">
+                    <Button text="💬" fx:id="messagesButton" styleClass="icon-btn" onAction="#handleMessages" minWidth="50" minHeight="50">
+                        <tooltip><Tooltip text="Messages"/></tooltip>
+                    </Button>
+                    <Label fx:id="messagesBadge" text="" visible="false"
+                           style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-size: 9; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 1 5;"
+                           StackPane.alignment="TOP_RIGHT" translateX="4" translateY="-4"/>
+                </StackPane>
                 
                 <!-- Profile Menu -->
                 <MenuButton styleClass="profile-menu-btn" minWidth="50" minHeight="50">

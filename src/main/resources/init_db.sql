@@ -431,7 +431,9 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   `full_name` varchar(100) DEFAULT NULL,
   `email` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
+  `password` varchar(255) NULL,
+  `google_id` varchar(50) UNIQUE DEFAULT NULL,
+  `auth_provider` varchar(20) DEFAULT 'local',
   `profile_picture` varchar(500) DEFAULT NULL,
   `bio` text DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
@@ -755,6 +757,46 @@ ALTER TABLE `posts`
 --
 ALTER TABLE `progress`
   ADD CONSTRAINT `progress_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
+
+-- --------------------------------------------------------
+-- Table structure for table `messages`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `messages` (
+  `message_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `sender_id` bigint(20) NOT NULL,
+  `receiver_id` bigint(20) NOT NULL,
+  `content` text NOT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`message_id`),
+  KEY `idx_sender` (`sender_id`),
+  KEY `idx_receiver` (`receiver_id`),
+  KEY `idx_sent_at` (`sent_at`),
+  CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `notifications`
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `notifications` (
+  `notification_id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `content` varchar(500) NOT NULL,
+  `related_user_id` bigint(20) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`notification_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_is_read` (`is_read`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`related_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -8,6 +8,8 @@ public class User {
     private String fullName;
     private String email;
     private String password;
+    private String googleId;
+    private String authProvider;
     private String profilePicture;
     private String bio;
     private String location;
@@ -19,6 +21,7 @@ public class User {
     public User() {
         this.createdAt = LocalDateTime.now();
         this.isOnline = false;
+        this.authProvider = "local";
     }
 
     public User(String username, String email, String password) {
@@ -28,6 +31,7 @@ public class User {
         this.password = password;
     }
 
+    // Legacy constructor: (username, email, password, profilePicture, bio, location)
     public User(String username, String email, String password, String profilePicture, String bio, String location) {
         this();
         this.username = username;
@@ -36,6 +40,42 @@ public class User {
         this.profilePicture = profilePicture;
         this.bio = bio;
         this.location = location;
+    }
+
+    public User(String username, String email, String password, String googleId, String authProvider) {
+        this();
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.googleId = googleId;
+        this.authProvider = authProvider;
+    }
+
+    public User(String username, String email, String password, String googleId, String authProvider, String profilePicture, String bio, String location) {
+        this();
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.googleId = googleId;
+        this.authProvider = authProvider;
+        this.profilePicture = profilePicture;
+        this.bio = bio;
+        this.location = location;
+    }
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
     }
 
     // Getters and Setters
