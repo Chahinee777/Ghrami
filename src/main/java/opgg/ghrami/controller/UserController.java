@@ -163,7 +163,7 @@ public class UserController {
     public User update(User user) {
         String sql = "UPDATE users SET username = ?, full_name = ?, email = ?, password = ?, " +
                 "google_id = ?, auth_provider = ?, profile_picture = ?, " +
-                "bio = ?, location = ?, is_online = ?, last_login = ? WHERE user_id = ?";
+                "bio = ?, location = ?, is_online = ?, is_banned = ?, last_login = ? WHERE user_id = ?";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -177,8 +177,9 @@ public class UserController {
             stmt.setString(8, user.getBio());
             stmt.setString(9, user.getLocation());
             stmt.setBoolean(10, user.isOnline());
-            stmt.setTimestamp(11, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
-            stmt.setLong(12, user.getUserId());
+            stmt.setBoolean(11, user.isBanned());
+            stmt.setTimestamp(12, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
+            stmt.setLong(13, user.getUserId());
 
             int affectedRows = stmt.executeUpdate();
 
@@ -191,6 +192,28 @@ public class UserController {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Ban or unban a user by their ID.
+     * Uses a dedicated query so it works even if the update() method is not called.
+     */
+    public boolean setBanned(Long userId, boolean banned) {
+        String sql = "UPDATE users SET is_banned = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, banned);
+            stmt.setLong(2, userId);
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                System.out.println("User " + userId + " is_banned set to " + banned);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error setting ban status: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean delete(Long userId) {
@@ -294,6 +317,7 @@ public class UserController {
         user.setBio(rs.getString("bio"));
         user.setLocation(rs.getString("location"));
         user.setOnline(rs.getBoolean("is_online"));
+        try { user.setBanned(rs.getBoolean("is_banned")); } catch (SQLException ignored) {}
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {

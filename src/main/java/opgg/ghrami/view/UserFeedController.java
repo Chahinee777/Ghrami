@@ -18,18 +18,24 @@ import javafx.stage.FileChooser;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.animation.PauseTransition;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import opgg.ghrami.controller.FriendshipController;
 import opgg.ghrami.controller.HobbyController;
 import opgg.ghrami.controller.MessageController;
 import opgg.ghrami.controller.NotificationController;
 import opgg.ghrami.controller.PostController;
 import opgg.ghrami.controller.CommentController;
+import opgg.ghrami.controller.StoryController;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.Hobby;
 import opgg.ghrami.model.Notification;
 import opgg.ghrami.model.Post;
 import opgg.ghrami.model.Comment;
+import opgg.ghrami.model.Story;
 import opgg.ghrami.model.User;
 import opgg.ghrami.util.SessionManager;
 
@@ -58,6 +64,7 @@ public class UserFeedController implements Initializable {
     // Post Creation
     @FXML private TextField postTextField;
     @FXML private VBox feedContainer;
+    @FXML private HBox storiesContainer;
     
     private SessionManager sessionManager;
     private UserController userController;
@@ -67,6 +74,7 @@ public class UserFeedController implements Initializable {
     private HobbyController hobbyController;
     private MessageController messageController;
     private NotificationController notificationController;
+    private StoryController storyController;
     private String selectedImagePath = null;
 
     @Override
@@ -79,8 +87,11 @@ public class UserFeedController implements Initializable {
         hobbyController = new HobbyController();
         messageController = MessageController.getInstance();
         notificationController = NotificationController.getInstance();
+        storyController = StoryController.getInstance();
+        storyController.purgeExpired();
         loadUserInfo();
         loadFeed();
+        loadStories();
         refreshNavBadges();
     }
     
@@ -91,29 +102,23 @@ public class UserFeedController implements Initializable {
                 return;
             }
             
-            // Load counts
             long userId = sessionManager.getUserId();
             
-            // Load user details
             User currentUser = userController.findById((int) userId);
             if (currentUser != null) {
                 userNameLabel.setText(currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUsername());
                 userEmailLabel.setText(currentUser.getEmail());
             }
             
-            // Posts count
             int postsCount = postController.countPostsByUser(userId);
             postsCountLabel.setText(String.valueOf(postsCount));
             
-            // Friends count
             List<Friendship> acceptedFriendships = friendshipController.getAcceptedFriendships(userId);
             friendsCountLabel.setText(String.valueOf(acceptedFriendships.size()));
             
-            // Hobbies count
             List<Hobby> hobbies = hobbyController.findByUserId(userId);
             hobbiesCountLabel.setText(String.valueOf(hobbies.size()));
             
-            // Load profile image
             loadProfileImage();
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,53 +126,264 @@ public class UserFeedController implements Initializable {
         }
     }
     
-    // METHOD 1 - UserFeedController (menuProfileCircle + sidebarProfileCircle)
-private void loadProfileImage() {
-    try {
-        long userId = sessionManager.getUserId();
-        if (userId == 0) return;
+    private void loadProfileImage() {
+        try {
+            long userId = sessionManager.getUserId();
+            if (userId == 0) return;
 
-        User currentUser = userController.findById((int) userId);
-        if (currentUser == null) return;
-        String pic = currentUser.getProfilePicture();
-        if (pic == null || pic.isEmpty()) return;
+            User currentUser = userController.findById((int) userId);
+            if (currentUser == null) return;
+            String pic = currentUser.getProfilePicture();
+            if (pic == null || pic.isEmpty()) return;
 
-        if (pic.startsWith("http://") || pic.startsWith("https://")) {
-            javafx.scene.image.Image image = new javafx.scene.image.Image(pic, true);
+            if (pic.startsWith("http://") || pic.startsWith("https://")) {
+                javafx.scene.image.Image image = new javafx.scene.image.Image(pic, true);
 
-            image.progressProperty().addListener((obs, oldVal, newVal) -> {
-                if (newVal.doubleValue() >= 1.0 && !image.isError()) {
-                    javafx.application.Platform.runLater(() -> {
-                        ImagePattern pattern = new ImagePattern(image);
-                        menuProfileCircle.setFill(pattern);
-                        sidebarProfileCircle.setFill(pattern);
-                    });
-                }
-            });
+                image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal.doubleValue() >= 1.0 && !image.isError()) {
+                        javafx.application.Platform.runLater(() -> {
+                            ImagePattern pattern = new ImagePattern(image);
+                            menuProfileCircle.setFill(pattern);
+                            sidebarProfileCircle.setFill(pattern);
+                        });
+                    }
+                });
 
-            // Handle error
-            image.errorProperty().addListener((obs, oldVal, hasError) -> {
-                if (hasError) {
-                    System.err.println("Failed to load remote profile image: " + pic);
-                }
-            });
+                image.errorProperty().addListener((obs, oldVal, hasError) -> {
+                    if (hasError) {
+                        System.err.println("Failed to load remote profile image: " + pic);
+                    }
+                });
 
+            } else {
+                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + pic);
+                if (!Files.exists(imagePath)) return;
+
+                javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+                ImagePattern pattern = new ImagePattern(image);
+                menuProfileCircle.setFill(pattern);
+                sidebarProfileCircle.setFill(pattern);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error loading profile image: " + e.getMessage());
+        }
+    }
+    
+    private void loadStories() {
+        if (storiesContainer == null) return;
+        storiesContainer.getChildren().clear();
+        long currentUserId = sessionManager.getUserId();
+
+        boolean myHasStory = storyController.hasActiveStory(currentUserId);
+        VBox addStory = buildStoryCard(currentUserId, "Ma Story", null, myHasStory, true);
+        addStory.setOnMouseClicked(e -> handleCreateStory());
+        storiesContainer.getChildren().add(addStory);
+
+        List<Story> stories = storyController.getActiveStoriesForFeed(currentUserId);
+        for (Story story : stories) {
+            if (story.getUserId() == currentUserId) continue;
+            String name = story.getAuthorName() != null ? story.getAuthorName() : "?";
+            String firstName = name.split(" ")[0];
+            VBox card = buildStoryCard(story.getUserId(), firstName, story.getAuthorProfilePicture(), true, false);
+            card.setOnMouseClicked(e -> showStoryViewer(story, name));
+            storiesContainer.getChildren().add(card);
+        }
+    }
+
+    private VBox buildStoryCard(long userId, String label, String profilePicture, boolean hasStory, boolean showPlus) {
+        VBox card = new VBox(8);
+        card.setAlignment(Pos.CENTER);
+        card.setMinWidth(110); card.setMaxWidth(110);
+        card.setStyle("-fx-cursor: hand;");
+
+        javafx.scene.layout.StackPane stack = new javafx.scene.layout.StackPane();
+
+        Circle ring = new Circle(44);
+        if (hasStory) {
+            ring.setStyle("-fx-fill: transparent; -fx-stroke: #667eea; -fx-stroke-width: 3;");
         } else {
-            Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + pic);
-            if (!Files.exists(imagePath)) return;
-
-            javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
-            ImagePattern pattern = new ImagePattern(image);
-            menuProfileCircle.setFill(pattern);
-            sidebarProfileCircle.setFill(pattern);
+            ring.setStyle("-fx-fill: transparent; -fx-stroke: #d0d0d0; -fx-stroke-width: 2;");
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        System.err.println("Error loading profile image: " + e.getMessage());
+        Circle avatar = new Circle(36);
+        avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            try {
+                if (profilePicture.startsWith("http")) {
+                    avatar.setFill(new ImagePattern(new Image(profilePicture, true)));
+                } else {
+                    Path pp = Paths.get("src/main/resources/images/profile_pictures/" + profilePicture);
+                    if (Files.exists(pp)) avatar.setFill(new ImagePattern(new Image(pp.toUri().toString())));
+                }
+            } catch (Exception ignored) {}
+        }
+
+        stack.getChildren().addAll(ring, avatar);
+
+        if (showPlus) {
+            javafx.scene.layout.StackPane plusBadge = new javafx.scene.layout.StackPane();
+            plusBadge.setStyle("-fx-background-color: #667eea; -fx-background-radius: 10;");
+            plusBadge.setMinSize(20, 20); plusBadge.setMaxSize(20, 20);
+            Label plusLbl = new Label("+");
+            plusLbl.setStyle("-fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: bold;");
+            plusBadge.getChildren().add(plusLbl);
+            javafx.scene.layout.StackPane.setAlignment(plusBadge, Pos.BOTTOM_RIGHT);
+            stack.getChildren().add(plusBadge);
+        }
+
+        String displayLabel = label.length() > 12 ? label.substring(0, 12) : label;
+        Label nameLbl = new Label(displayLabel);
+        nameLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #1c1e21;");
+
+        card.getChildren().addAll(stack, nameLbl);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-cursor: hand; -fx-opacity: 0.8;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-cursor: hand; -fx-opacity: 1;"));
+        return card;
     }
-}
-    
+
+    private void handleCreateStory() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Créer une Story");
+
+        VBox content = new VBox(15);
+        content.setPrefWidth(400);
+        content.setPadding(new Insets(20));
+        content.setStyle("-fx-background-color: white;");
+
+        Label title = new Label("📸 Nouvelle Story");
+        title.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1c1e21;");
+
+        Label sub = new Label("Votre story sera visible pendant 24 heures.");
+        sub.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b;");
+
+        TextArea captionArea = new TextArea();
+        captionArea.setPromptText("Que voulez-vous partager? 📝");
+        captionArea.setPrefHeight(100);
+        captionArea.setWrapText(true);
+        captionArea.setStyle("-fx-background-radius: 10; -fx-border-radius: 10; -fx-font-size: 13;");
+
+        final String[] imagePath = {null};
+        Button pickImg = new Button("🖼️ Ajouter une image (optionnel)");
+        pickImg.setStyle("-fx-background-color: #f0f2f5; -fx-text-fill: #667eea; -fx-font-size: 12; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
+        pickImg.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Élire une image");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+            File f = fc.showOpenDialog(null);
+            if (f != null) {
+                imagePath[0] = f.getAbsolutePath();
+                pickImg.setText("✅ " + f.getName());
+            }
+        });
+
+        content.getChildren().addAll(title, sub, captionArea, pickImg);
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType publishBtn = new ButtonType("Publier la Story", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(publishBtn, ButtonType.CANCEL);
+
+        dialog.getDialogPane().lookupButton(publishBtn).setStyle(
+            "-fx-background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;"
+        );
+
+        dialog.setResultConverter(btn -> btn == publishBtn ? captionArea.getText().trim() : null);
+
+        dialog.showAndWait().ifPresent(caption -> {
+            if (caption.isEmpty() && imagePath[0] == null) {
+                showAlert("Attention", "Ajoutez un texte ou une image pour créer une story.");
+                return;
+            }
+            String savedImage = null;
+            if (imagePath[0] != null) {
+                try {
+                    File src = new File(imagePath[0]);
+                    String ext = imagePath[0].substring(imagePath[0].lastIndexOf('.'));
+                    String fname = sessionManager.getUserId() + "_story_" + System.currentTimeMillis() + ext;
+                    Path dest = Paths.get("src/main/resources/images/posts/" + fname);
+                    Files.copy(src.toPath(), dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    savedImage = fname;
+                } catch (Exception ex) { ex.printStackTrace(); }
+            }
+            Story story = new Story(sessionManager.getUserId(), caption.isEmpty() ? null : caption, savedImage);
+            if (storyController.create(story) != null) {
+                loadStories();
+            } else {
+                showAlert("Erreur", "Impossible de publier la story.");
+            }
+        });
+    }
+
+    private void showStoryViewer(Story story, String authorName) {
+        Stage stageRef = (Stage) searchField.getScene().getWindow();
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.initOwner(stageRef);
+        dialog.setTitle(authorName + " • Story");
+
+        VBox root = new VBox(0);
+        root.setAlignment(Pos.CENTER);
+        root.setPrefWidth(460);
+        root.setStyle("-fx-background-color: #1a1a2e;");
+
+        HBox header = new HBox(12);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(14, 16, 14, 16));
+        header.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
+
+        Circle ava = new Circle(22);
+        ava.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+        if (story.getAuthorProfilePicture() != null && !story.getAuthorProfilePicture().isEmpty()) {
+            try {
+                String pic = story.getAuthorProfilePicture();
+                if (pic.startsWith("http")) {
+                    ava.setFill(new ImagePattern(new Image(pic, true)));
+                } else {
+                    Path pp = Paths.get("src/main/resources/images/profile_pictures/" + pic);
+                    if (Files.exists(pp)) ava.setFill(new ImagePattern(new Image(pp.toUri().toString())));
+                }
+            } catch (Exception ignored) {}
+        }
+
+        VBox info = new VBox(2);
+        Label nameLbl = new Label(authorName);
+        nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14; -fx-text-fill: white;");
+
+        long minutesLeft = java.time.Duration.between(java.time.LocalDateTime.now(), story.getExpiresAt()).toMinutes();
+        String timeLeft = minutesLeft > 60 ? (minutesLeft / 60) + "h restantes" : minutesLeft + " min restantes";
+        Label timeLbl = new Label("⏳ " + timeLeft);
+        timeLbl.setStyle("-fx-font-size: 11; -fx-text-fill: #adb5bd;");
+        info.getChildren().addAll(nameLbl, timeLbl);
+        header.getChildren().addAll(ava, info);
+        root.getChildren().add(header);
+
+        if (story.getImageUrl() != null && !story.getImageUrl().isEmpty()) {
+            try {
+                Path imgPath = Paths.get("src/main/resources/images/posts/" + story.getImageUrl());
+                if (Files.exists(imgPath)) {
+                    ImageView iv = new ImageView(new Image(imgPath.toUri().toString()));
+                    iv.setFitWidth(460);
+                    iv.setFitHeight(360);
+                    iv.setPreserveRatio(true);
+                    root.getChildren().add(iv);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (story.getCaption() != null && !story.getCaption().isEmpty()) {
+            Label captionLbl = new Label(story.getCaption());
+            captionLbl.setWrapText(true);
+            captionLbl.setStyle("-fx-font-size: 15; -fx-text-fill: white; -fx-padding: 20 20 20 20;");
+            root.getChildren().add(captionLbl);
+        }
+
+        dialog.getDialogPane().setContent(root);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setStyle("-fx-background-color: #1a1a2e; -fx-padding: 0;");
+        dialog.showAndWait();
+    }
+
     private void loadFeed() {
         try {
             if (feedContainer == null) {
@@ -181,14 +397,12 @@ private void loadProfileImage() {
             List<Post> posts = postController.getFeedForUser(userId);
             
             if (posts.isEmpty()) {
-                // Show empty state
                 Label emptyLabel = new Label("Aucun post pour le moment. Créez votre premier post ! 📝");
                 emptyLabel.setStyle("-fx-font-size: 16; -fx-text-fill: #65676b; -fx-padding: 40;");
                 feedContainer.getChildren().add(emptyLabel);
                 return;
             }
             
-            // Display posts
             for (Post post : posts) {
                 VBox postCard = createPostCard(post);
                 feedContainer.getChildren().add(postCard);
@@ -211,7 +425,6 @@ private void loadProfileImage() {
         header.setAlignment(Pos.CENTER_LEFT);
         
         Circle avatar = new Circle(20);
-        // Load author profile picture if available
         if (post.getAuthorProfilePicture() != null && !post.getAuthorProfilePicture().isEmpty()) {
             try {
                 Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + post.getAuthorProfilePicture());
@@ -238,7 +451,6 @@ private void loadProfileImage() {
         authorInfo.getChildren().addAll(authorName, postTime);
         header.getChildren().addAll(avatar, authorInfo);
         
-        // Add edit/delete buttons if current user is post owner
         long currentUserId = sessionManager.getUserId();
         if (post.getUserId() == currentUserId) {
             HBox postActions = new HBox(5);
@@ -266,22 +478,58 @@ private void loadProfileImage() {
         HBox actions = new HBox(20);
         actions.setAlignment(Pos.CENTER_LEFT);
         actions.setStyle("-fx-padding: 10 0 0 0; -fx-border-color: #e4e6eb; -fx-border-width: 1 0 0 0;");
-        
-        Button likeBtn = new Button("❤️ J'aime");
-        styleActionButton(likeBtn);
-        
+
+        boolean alreadyLiked = postController.isLikedByUser(currentUserId, post.getPostId());
+        post.setLikedByMe(alreadyLiked);
+        int[] likesRef = { postController.countLikes(post.getPostId()) };
+
+        Button likeBtn = new Button(alreadyLiked ? "❤️ J'aime (" + likesRef[0] + ")" : "🤍 J'aime (" + likesRef[0] + ")");
+        if (alreadyLiked) {
+            likeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 15;");
+        } else {
+            styleActionButton(likeBtn);
+        }
+        likeBtn.setOnAction(e -> {
+            boolean nowLiked = postController.toggleLike(currentUserId, post.getPostId());
+            likesRef[0] = postController.countLikes(post.getPostId());
+            if (nowLiked) {
+                likeBtn.setText("❤️ J'aime (" + likesRef[0] + ")");
+                likeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #e74c3c; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 15;");
+            } else {
+                likeBtn.setText("🤍 J'aime (" + likesRef[0] + ")");
+                styleActionButton(likeBtn);
+            }
+        });
+
         Button commentBtn = new Button("💬 Commenter (" + post.getCommentsCount() + ")");
         styleActionButton(commentBtn);
         commentBtn.setOnAction(e -> handleViewComments(post));
-        
-        Button shareBtn = new Button("🔄 Partager");
+
+        // ── SHARE BUTTON with live count tracking ──────────────────────────
+        // sharesCount is tracked locally and persisted via postController if supported
+        int[] sharesRef = { 0 };
+        try {
+            // If your PostController exposes getSharesCount, use it here:
+            // sharesRef[0] = postController.getSharesCount(post.getPostId());
+        } catch (Exception ignored) {}
+
+        Button shareBtn = new Button("↗️ Partager (" + sharesRef[0] + ")");
         styleActionButton(shareBtn);
-        
+        shareBtn.setOnAction(e -> {
+            boolean shared = showShareDialog(post);
+            if (shared) {
+                sharesRef[0]++;
+                shareBtn.setText("↗️ Partager (" + sharesRef[0] + ")");
+                // Persist if backend supports it:
+                // postController.incrementShareCount(post.getPostId());
+            }
+        });
+        // ───────────────────────────────────────────────────────────────────
+
         actions.getChildren().addAll(likeBtn, commentBtn, shareBtn);
         
         card.getChildren().addAll(header, contentLabel);
         
-        // Add image if exists
         if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
             try {
                 Path imagePath = Paths.get("src/main/resources/images/posts/" + post.getImageUrl());
@@ -308,6 +556,241 @@ private void loadProfileImage() {
         
         return card;
     }
+
+    // ── IMPROVED SHARE DIALOG ─────────────────────────────────────────────────
+    /**
+     * Shows the Facebook share dialog.
+     *
+     * How it works: Facebook's sharer API only accepts a public URL — it cannot
+     * accept raw text from a desktop app. So we copy the edited text to the
+     * clipboard automatically, open Facebook's new-post composer, and show a
+     * prominent "Press Ctrl+V" instruction so the user just pastes.
+     *
+     * @return true if the user clicked "Ouvrir Facebook", false if they cancelled.
+     */
+    private boolean showShareDialog(Post post) {
+        final boolean[] didShare = { false };
+        final int MAX_CHARS = 500;
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Partager sur Facebook");
+
+        VBox root = new VBox(0);
+        root.setPrefWidth(430);
+
+        // ── Blue Facebook header ──────────────────────────────────────────
+        HBox header = new HBox(12);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(16, 20, 16, 20));
+        header.setStyle("-fx-background-color: #1877F2;");
+        try {
+            java.net.URL logoUrl = getClass().getResource("/images/assets/facebook-logo.png");
+            if (logoUrl != null) {
+                ImageView logo = new ImageView(new Image(logoUrl.toExternalForm()));
+                logo.setFitWidth(28); logo.setFitHeight(28); logo.setPreserveRatio(true);
+                header.getChildren().add(logo);
+            }
+        } catch (Exception ignored) {}
+        Label fbTitle = new Label("Partager sur Facebook");
+        fbTitle.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: white;");
+        header.getChildren().add(fbTitle);
+        root.getChildren().add(header);
+
+        // ── Body ─────────────────────────────────────────────────────────
+        VBox body = new VBox(14);
+        body.setPadding(new Insets(18));
+        body.setStyle("-fx-background-color: #f0f2f5;");
+
+        // ── 1. Image thumbnail ────────────────────────────────────────────
+        if (post.getImageUrl() != null && !post.getImageUrl().isEmpty()) {
+            try {
+                Path imgPath = Paths.get("src/main/resources/images/posts/" + post.getImageUrl());
+                if (Files.exists(imgPath)) {
+                    ImageView thumb = new ImageView(new Image(imgPath.toUri().toString()));
+                    thumb.setFitWidth(390);
+                    thumb.setFitHeight(200);
+                    thumb.setPreserveRatio(true);
+                    VBox thumbBox = new VBox(thumb);
+                    thumbBox.setAlignment(Pos.CENTER);
+                    thumbBox.setStyle(
+                        "-fx-background-color: white; -fx-background-radius: 10; " +
+                        "-fx-padding: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6, 0, 0, 2);"
+                    );
+                    body.getChildren().add(thumbBox);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        // ── 2. Editable text area ─────────────────────────────────────────
+        Label editLabel = new Label("✏️  Personnalisez votre message :");
+        editLabel.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #65676b;");
+
+        TextArea editArea = new TextArea(post.getContent());
+        editArea.setWrapText(true);
+        editArea.setPrefHeight(110);
+        editArea.setStyle(
+            "-fx-background-color: white; -fx-background-radius: 10; " +
+            "-fx-border-radius: 10; -fx-font-size: 13; -fx-padding: 10;"
+        );
+
+        // ── 3. Character counter ──────────────────────────────────────────
+        Label charCounter = new Label(post.getContent().length() + " / " + MAX_CHARS);
+        charCounter.setStyle("-fx-font-size: 11; -fx-text-fill: #65676b;");
+        HBox counterRow = new HBox(charCounter);
+        counterRow.setAlignment(Pos.CENTER_RIGHT);
+
+        editArea.textProperty().addListener((obs, oldVal, newVal) -> {
+            int len = newVal.length();
+            charCounter.setText(len + " / " + MAX_CHARS);
+            if (len > MAX_CHARS) {
+                charCounter.setStyle("-fx-font-size: 11; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                editArea.setStyle(
+                    "-fx-background-color: white; -fx-background-radius: 10; " +
+                    "-fx-border-color: #e74c3c; -fx-border-width: 1.5; " +
+                    "-fx-border-radius: 10; -fx-font-size: 13; -fx-padding: 10;"
+                );
+            } else {
+                charCounter.setStyle("-fx-font-size: 11; -fx-text-fill: #65676b;");
+                editArea.setStyle(
+                    "-fx-background-color: white; -fx-background-radius: 10; " +
+                    "-fx-border-radius: 10; -fx-font-size: 13; -fx-padding: 10;"
+                );
+            }
+        });
+
+        // ── 4. "How to share" instruction banner ─────────────────────────
+        // Facebook's web API doesn't allow desktop apps to pre-fill post text,
+        // so we copy it automatically and guide the user to paste.
+        HBox howTo = new HBox(10);
+        howTo.setAlignment(Pos.CENTER_LEFT);
+        howTo.setPadding(new Insets(12, 14, 12, 14));
+        howTo.setStyle(
+            "-fx-background-color: #e7f3ff; -fx-background-radius: 10; " +
+            "-fx-border-color: #1877F2; -fx-border-width: 0 0 0 4; -fx-border-radius: 10;"
+        );
+        Label clipIcon = new Label("📋");
+        clipIcon.setStyle("-fx-font-size: 18;");
+        VBox howToText = new VBox(3);
+        Label howToMain = new Label("Votre texte sera copié automatiquement");
+        howToMain.setStyle("-fx-font-weight: bold; -fx-font-size: 12; -fx-text-fill: #1877F2;");
+        Label howToSub = new Label("Le texte sera pré-rempli si possible. Le presse-papiers est aussi copié — utilisez Ctrl+V si le champ est vide.");
+        howToSub.setWrapText(true);
+        howToSub.setStyle("-fx-font-size: 11; -fx-text-fill: #4b6584;");
+        howToText.getChildren().addAll(howToMain, howToSub);
+        howTo.getChildren().addAll(clipIcon, howToText);
+
+        // ── 5. Open Facebook button ───────────────────────────────────────
+        Button openFbBtn = new Button("  Ouvrir Facebook et coller");
+        openFbBtn.setMaxWidth(Double.MAX_VALUE);
+        openFbBtn.setStyle(
+            "-fx-background-color: #1877F2; -fx-text-fill: white; " +
+            "-fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12; " +
+            "-fx-background-radius: 8; -fx-cursor: hand;"
+        );
+        openFbBtn.setOnMouseEntered(e -> openFbBtn.setStyle(
+            "-fx-background-color: #145db2; -fx-text-fill: white; " +
+            "-fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12; " +
+            "-fx-background-radius: 8; -fx-cursor: hand;"
+        ));
+        openFbBtn.setOnMouseExited(e -> openFbBtn.setStyle(
+            "-fx-background-color: #1877F2; -fx-text-fill: white; " +
+            "-fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12; " +
+            "-fx-background-radius: 8; -fx-cursor: hand;"
+        ));
+        try {
+            java.net.URL logoUrl = getClass().getResource("/images/assets/facebook-logo.png");
+            if (logoUrl != null) {
+                ImageView btnLogo = new ImageView(new Image(logoUrl.toExternalForm()));
+                btnLogo.setFitWidth(18); btnLogo.setFitHeight(18);
+                openFbBtn.setGraphic(btnLogo);
+            }
+        } catch (Exception ignored) {}
+
+        openFbBtn.setOnAction(e -> {
+            if (editArea.getText().length() > MAX_CHARS) {
+                showAlert("Attention",
+                    "Le texte dépasse " + MAX_CHARS + " caractères.\nVeuillez le raccourcir avant de partager.");
+                return;
+            }
+            // 1. Copy the (possibly edited) text to clipboard
+            javafx.scene.input.Clipboard cb = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+            cc.putString(editArea.getText().trim());
+            cb.setContent(cc);
+
+            // 2. Open Facebook's sharer with the text pre-filled (best effort).
+            //    The clipboard copy above acts as guaranteed fallback if Facebook
+            //    doesn't pick up the quote parameter.
+            try {
+                String encoded = java.net.URLEncoder.encode(editArea.getText().trim(), "UTF-8");
+                java.awt.Desktop.getDesktop().browse(
+                    new java.net.URI("https://www.facebook.com/sharer/sharer.php?quote=" + encoded)
+                );
+                didShare[0] = true;
+                dialog.close();
+                PauseTransition delay = new PauseTransition(Duration.millis(400));
+                delay.setOnFinished(ev -> showToast("Facebook ouvert ! Si le texte est vide, appuyez sur Ctrl+V 📋"));
+                delay.play();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showAlert("Erreur", "Impossible d'ouvrir le navigateur : " + ex.getMessage());
+            }
+        });
+
+        body.getChildren().addAll(editLabel, editArea, counterRow, howTo, openFbBtn);
+        root.getChildren().add(body);
+
+        dialog.getDialogPane().setContent(root);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+
+        return didShare[0];
+    }
+
+    /**
+     * Shows a non-blocking toast notification at the bottom of the main window.
+     * Auto-dismisses after 3 seconds with a fade-out animation.
+     */
+    private void showToast(String message) {
+        Stage mainStage = (Stage) searchField.getScene().getWindow();
+
+        Stage toastStage = new Stage();
+        toastStage.initOwner(mainStage);
+        toastStage.setResizable(false);
+        toastStage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        toastStage.initModality(Modality.NONE); // non-blocking
+
+        Label toastLabel = new Label(message);
+        toastLabel.setStyle(
+            "-fx-background-color: rgba(28,30,33,0.90); -fx-text-fill: white; " +
+            "-fx-padding: 14 28; -fx-background-radius: 30; " +
+            "-fx-font-size: 13; -fx-font-weight: bold;"
+        );
+
+        StackPane toastRoot = new StackPane(toastLabel);
+        toastRoot.setStyle("-fx-background-color: transparent;");
+
+        Scene toastScene = new Scene(toastRoot);
+        toastScene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        toastStage.setScene(toastScene);
+
+        // Position: bottom-centre of the main window
+        toastStage.setOnShown(ev -> {
+            toastStage.setX(mainStage.getX() + (mainStage.getWidth()  - toastStage.getWidth())  / 2);
+            toastStage.setY(mainStage.getY() +  mainStage.getHeight() - toastStage.getHeight() - 60);
+        });
+
+        toastStage.show();
+
+        // Fade out then close
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(600), toastRoot);
+        fadeOut.setFromValue(1.0);
+        fadeOut.setToValue(0.0);
+        fadeOut.setDelay(Duration.seconds(2.4));
+        fadeOut.setOnFinished(ev -> toastStage.close());
+        fadeOut.play();
+    }
+    // ── END SHARE IMPROVEMENTS ────────────────────────────────────────────────
     
     private void styleActionButton(Button button) {
         button.setStyle("-fx-background-color: transparent; -fx-text-fill: #65676b; " +
@@ -347,7 +830,6 @@ private void loadProfileImage() {
             container.setPadding(new Insets(20));
             container.setStyle("-fx-background-color: #f0f2f5;");
             
-            // Post info
             Label postAuthor = new Label("Post de: " + post.getAuthorName());
             postAuthor.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
             
@@ -356,7 +838,6 @@ private void loadProfileImage() {
             postContent.setStyle("-fx-font-size: 13; -fx-padding: 10; -fx-background-color: white; " +
                                 "-fx-background-radius: 10;");
             
-            // Comments list
             ScrollPane commentsScroll = new ScrollPane();
             commentsScroll.setFitToWidth(true);
             commentsScroll.setPrefHeight(300);
@@ -380,7 +861,6 @@ private void loadProfileImage() {
             
             commentsScroll.setContent(commentsContainer);
             
-            // Add comment area
             HBox addCommentBox = new HBox(10);
             addCommentBox.setAlignment(Pos.CENTER_LEFT);
             
@@ -403,10 +883,8 @@ private void loadProfileImage() {
                     Comment created = commentController.create(newComment);
                     if (created != null) {
                         commentField.clear();
-                        // Refresh comments
                         dialog.close();
                         handleViewComments(post);
-                        // Reload feed to update comment count
                         loadFeed();
                         loadUserInfo();
                     }
@@ -442,7 +920,6 @@ private void loadProfileImage() {
         
         headerBox.getChildren().add(authorLabel);
         
-        // Add edit/delete buttons if current user is comment owner OR post owner
         long currentUserId = sessionManager.getUserId();
         if (comment.getUserId() == currentUserId || post.getUserId() == currentUserId) {
             HBox commentActions = new HBox(5);
@@ -615,7 +1092,6 @@ private void loadProfileImage() {
         javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(0);
         content.setPrefWidth(440);
 
-        // Header
         javafx.scene.layout.HBox header = new javafx.scene.layout.HBox(10);
         header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         header.setStyle("-fx-padding: 16 20 12 20; -fx-background-color: white; -fx-border-color: #e4e6eb; -fx-border-width: 0 0 1 0;");
@@ -633,7 +1109,6 @@ private void loadProfileImage() {
         header.getChildren().addAll(titleLbl, spacer, markAllBtn);
         content.getChildren().add(header);
 
-        // List
         javafx.scene.control.ScrollPane sp = new javafx.scene.control.ScrollPane();
         sp.setFitToWidth(true);
         sp.setPrefHeight(380);
@@ -742,7 +1217,6 @@ private void loadProfileImage() {
     @FXML
     private void handleLogout() {
         try {
-            // Set user offline before logout
             long userId = sessionManager.getUserId();
             User user = userController.findById((int) userId);
             if (user != null) {
@@ -930,17 +1404,14 @@ private void loadProfileImage() {
             File selectedFile = fileChooser.showOpenDialog(postTextField.getScene().getWindow());
             
             if (selectedFile != null) {
-                // Create posts directory if it doesn't exist
                 Path postsDir = Paths.get("src/main/resources/images/posts/");
                 if (!Files.exists(postsDir)) {
                     Files.createDirectories(postsDir);
                 }
                 
-                // Generate unique filename
                 String fileName = sessionManager.getUserId() + "_" + System.currentTimeMillis() + "_" + selectedFile.getName();
                 Path destinationPath = postsDir.resolve(fileName);
                 
-                // Copy file to resources directory
                 Files.copy(selectedFile.toPath(), destinationPath);
                 
                 selectedImagePath = fileName;
@@ -976,7 +1447,6 @@ private void loadProfileImage() {
                 return;
             }
             
-            // Create and save post
             long userId = sessionManager.getUserId();
             Post newPost;
             if (selectedImagePath != null && !selectedImagePath.isEmpty()) {
@@ -989,9 +1459,9 @@ private void loadProfileImage() {
             
             if (created != null) {
                 postTextField.clear();
-                selectedImagePath = null; // Reset selected image
-                loadFeed(); // Reload feed to show new post
-                loadUserInfo(); // Update post count
+                selectedImagePath = null;
+                loadFeed();
+                loadUserInfo();
                 showAlert("Succès", "Post publié avec succès! 🎉");
             } else {
                 showAlert("Erreur", "Impossible de publier le post");

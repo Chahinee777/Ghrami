@@ -20,6 +20,7 @@ import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.Message;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.ChatClient;
 import opgg.ghrami.util.SessionManager;
 
 import java.net.URL;
@@ -84,6 +85,30 @@ public class MessagesViewController implements Initializable {
 
         // Update unread badge
         refreshUnreadBadge();
+
+        // ── Connect to real-time chat server ──
+        ChatClient chatClient = ChatClient.getInstance();
+        chatClient.connect(currentUser.getUserId());
+        chatClient.setMessageListener((fromId, content) -> Platform.runLater(() -> {
+            // Refresh the conversation list so unread counts & previews update
+            loadFriendsAndConversations();
+            refreshUnreadBadge();
+
+            // If the active chat is with the sender, append the bubble live
+            if (selectedFriend != null && selectedFriend.getUserId().equals(fromId)) {
+                // Build a transient Message object for the bubble (not re-fetched from DB)
+                Message incoming = new Message();
+                incoming.setSenderId(fromId);
+                incoming.setReceiverId(currentUser.getUserId());
+                incoming.setContent(content);
+                incoming.setSentAt(java.time.LocalDateTime.now());
+                incoming.setRead(false);
+                messagesContainer.getChildren().add(buildMessageBubble(incoming));
+                messagesScrollPane.setVvalue(1.0);
+                // Mark as read since the chat is open
+                messageController.markAsRead(fromId, currentUser.getUserId());
+            }
+        }));
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -350,6 +375,9 @@ public class MessagesViewController implements Initializable {
             // Create notification for recipient
             String senderName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUsername();
             notificationController.notifyNewMessage(selectedFriend.getUserId(), senderName, currentUser.getUserId());
+
+            // Relay message to recipient in real-time via socket
+            ChatClient.getInstance().send(selectedFriend.getUserId(), text);
 
             // Append bubble immediately without full reload
             messagesContainer.getChildren().add(buildMessageBubble(sent));

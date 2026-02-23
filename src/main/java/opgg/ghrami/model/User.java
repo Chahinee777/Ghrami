@@ -14,6 +14,7 @@ public class User {
     private String bio;
     private String location;
     private boolean isOnline;
+    private boolean isBanned;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
 
@@ -149,6 +150,14 @@ public class User {
 
     public void setOnline(boolean online) {
         isOnline = online;
+    }
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(boolean banned) {
+        isBanned = banned;
     }
 
     public LocalDateTime getCreatedAt() {

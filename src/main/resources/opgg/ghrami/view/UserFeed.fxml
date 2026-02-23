@@ -207,36 +207,11 @@
                     <padding>
                         <Insets top="15" right="15" bottom="15" left="15"/>
                     </padding>
-                    <ScrollPane fitToHeight="true" hbarPolicy="NEVER" minHeight="200" prefHeight="200" maxHeight="200" style="-fx-background-color: transparent; -fx-background: transparent;">
-                        <HBox spacing="15" styleClass="stories-container">
+                    <ScrollPane fx:id="storiesScrollPane" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" minHeight="200" prefHeight="200" maxHeight="200" style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <HBox fx:id="storiesContainer" spacing="15" styleClass="stories-container">
                             <padding>
                                 <Insets top="10" right="10" bottom="10" left="10"/>
                             </padding>
-                            
-                            <!-- Add Story -->
-                            <VBox styleClass="story-card add-story" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-add" style="-fx-stroke-width: 3; -fx-stroke: #667eea;"/>
-                                <Label text="➕" style="-fx-font-size: 24;"/>
-                                <Label text="Créer Story" styleClass="story-name"/>
-                            </VBox>
-                            
-                            <!-- Story Items -->
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Amine" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Salma" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Youssef" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Lina" styleClass="story-name"/>
-                            </VBox>
                         </HBox>
                     </ScrollPane>
                 </VBox>

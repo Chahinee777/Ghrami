@@ -67,6 +67,12 @@ public class LoginViewController {
             return;
         }
 
+        // Check if user is banned
+        if (user.isBanned()) {
+            showError("Votre compte a été suspendu. Veuillez contacter l'administrateur.");
+            return;
+        }
+
         // Generate JWT token
         boolean isAdmin = user.getUserId() == 0;
         String token = JWTUtil.generateToken(user.getUserId(), user.getUsername(), user.getEmail(), isAdmin);

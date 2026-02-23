@@ -256,51 +256,80 @@ public class AdminDashboardController implements Initializable {
             }
         });
         
-        // Enhanced Action Buttons with VIEW
+        // Enhanced Action Buttons with VIEW + BAN
         userActionsCol.setCellFactory(param -> new TableCell<>() {
-            private final Button viewBtn = new Button("👁️");
-            private final Button editBtn = new Button("✏️");
+            private final Button viewBtn   = new Button("👁️");
+            private final Button editBtn   = new Button("✏️");
+            private final Button banBtn    = new Button("🚫");
             private final Button deleteBtn = new Button("🗑️");
-            private final HBox pane = new HBox(6, viewBtn, editBtn, deleteBtn);
-            
+            private final HBox pane = new HBox(5, viewBtn, editBtn, banBtn, deleteBtn);
+
             {
                 pane.setAlignment(Pos.CENTER);
-                
+
                 viewBtn.setStyle("-fx-background-color: #2196F3; " +
-                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
-                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
                         "-fx-effect: dropshadow(gaussian, rgba(33,150,243,0.3), 8, 0, 0, 2);");
-                
+
                 editBtn.setStyle("-fx-background-color: #FF9800; " +
-                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
-                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
                         "-fx-effect: dropshadow(gaussian, rgba(255,152,0,0.3), 8, 0, 0, 2);");
-                
+
+                banBtn.setStyle("-fx-background-color: #9C27B0; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(156,39,176,0.3), 8, 0, 0, 2);");
+
                 deleteBtn.setStyle("-fx-background-color: #f44336; " +
-                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 12; " +
-                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13; " +
+                        "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                        "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12; " +
                         "-fx-effect: dropshadow(gaussian, rgba(244,67,54,0.3), 8, 0, 0, 2);");
-                
+
                 viewBtn.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     handleViewUser(user);
                 });
-                
+
                 editBtn.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     handleEditUser(user);
                 });
-                
+
+                banBtn.setOnAction(event -> {
+                    User user = getTableView().getItems().get(getIndex());
+                    handleToggleBan(user);
+                });
+
                 deleteBtn.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     handleDeleteUserInline(user);
                 });
             }
-            
+
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                setGraphic(empty ? null : pane);
+                if (empty) {
+                    setGraphic(null);
+                    return;
+                }
+                User user = getTableView().getItems().get(getIndex());
+                if (user != null && user.isBanned()) {
+                    banBtn.setText("✅");
+                    banBtn.setTooltip(new Tooltip("Unban user"));
+                    banBtn.setStyle("-fx-background-color: #4CAF50; " +
+                            "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                            "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12;");
+                } else {
+                    banBtn.setText("🚫");
+                    banBtn.setTooltip(new Tooltip("Ban user"));
+                    banBtn.setStyle("-fx-background-color: #9C27B0; " +
+                            "-fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 10; " +
+                            "-fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 12;");
+                }
+                setGraphic(pane);
             }
         });
         
@@ -1273,6 +1302,30 @@ public class AdminDashboardController implements Initializable {
                 userController.delete(user.getUserId());
                 loadUsers();
                 showStyledAlert("✅ Success", "User deleted successfully!", Alert.AlertType.INFORMATION);
+            });
+    }
+
+    private void handleToggleBan(User user) {
+        boolean currentlyBanned = user.isBanned();
+        String action = currentlyBanned ? "unban" : "ban";
+        String emoji  = currentlyBanned ? "✅" : "🚫";
+
+        showStyledConfirmation(emoji + " " + (currentlyBanned ? "Unban" : "Ban") + " User",
+            "Are you sure you want to " + action + " user: " + user.getUsername() + "?",
+            currentlyBanned
+                ? "The user will be able to log in again."
+                : "The user will be prevented from logging in.",
+            () -> {
+                boolean success = userController.setBanned(user.getUserId(), !currentlyBanned);
+                if (success) {
+                    user.setBanned(!currentlyBanned);
+                    loadUsers();
+                    showStyledAlert("✅ Done",
+                        "User " + user.getUsername() + " has been " + action + "ned.",
+                        Alert.AlertType.INFORMATION);
+                } else {
+                    showStyledAlert("❌ Error", "Could not update ban status.", Alert.AlertType.ERROR);
+                }
             });
     }
 

@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.ChatClient;
+import opgg.ghrami.util.ChatServer;
 import opgg.ghrami.util.PasswordUtil;
 
 import java.time.LocalDateTime;
@@ -16,16 +18,30 @@ public class GhramiApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Initialize admin user on startup
         initializeAdmin();
-        
+
+        // Start the real-time chat server (daemon thread)
+        ChatServer.getInstance().start();
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
         Scene scene = new Scene(loader.load());
         scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
-        
+
         primaryStage.setTitle("Ghrami - Connexion");
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
         primaryStage.setMaximized(true);
-        
+
+        // --- Set application icon ---
+        // JavaFX does not support SVG icons directly. Use PNG as fallback for app icon.
+        // If you want to use SVG, you need to convert it to PNG first.
+        // Place ghrami.png in the same assets folder if you want a real icon.
+        try {
+            javafx.scene.image.Image icon = new javafx.scene.image.Image(getClass().getResourceAsStream("/images/assets/ghrami-logo.png"));
+            primaryStage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.err.println("App icon (ghrami.png) not found or failed to load. SVG is not supported as icon in JavaFX.");
+        }
+
         // Set user offline when closing application window
         primaryStage.setOnCloseRequest(event -> {
             opgg.ghrami.util.SessionManager session = opgg.ghrami.util.SessionManager.getInstance();
@@ -42,9 +58,11 @@ public class GhramiApplication extends Application {
                 } catch (Exception e) {
                     System.err.println("Error setting user offline on close: " + e.getMessage());
                 }
+                // Disconnect chat client
+                ChatClient.getInstance().disconnect();
             }
         });
-        
+
         primaryStage.show();
     }
 

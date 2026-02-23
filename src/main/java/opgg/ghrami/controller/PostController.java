@@ -56,7 +56,8 @@ public class PostController {
     // Find post by ID with author details
     public Optional<Post> findById(Long postId) {
         String sql = "SELECT p.*, u.full_name, u.profile_picture, " +
-                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count " +
+                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count, " +
+                     "(SELECT COUNT(*) FROM post_likes WHERE post_id = p.post_id) as likes_count " +
                      "FROM posts p " +
                      "JOIN users u ON p.user_id = u.user_id " +
                      "WHERE p.post_id = ?";
@@ -83,7 +84,8 @@ public class PostController {
     public List<Post> findAll() {
         List<Post> posts = new ArrayList<>();
         String sql = "SELECT p.*, u.full_name, u.profile_picture, " +
-                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count " +
+                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count, " +
+                     "(SELECT COUNT(*) FROM post_likes WHERE post_id = p.post_id) as likes_count " +
                      "FROM posts p " +
                      "JOIN users u ON p.user_id = u.user_id " +
                      "ORDER BY p.created_at DESC";
@@ -108,7 +110,8 @@ public class PostController {
     public List<Post> findByUserId(Long userId) {
         List<Post> posts = new ArrayList<>();
         String sql = "SELECT p.*, u.full_name, u.profile_picture, " +
-                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count " +
+                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count, " +
+                     "(SELECT COUNT(*) FROM post_likes WHERE post_id = p.post_id) as likes_count " +
                      "FROM posts p " +
                      "JOIN users u ON p.user_id = u.user_id " +
                      "WHERE p.user_id = ? " +
@@ -136,7 +139,8 @@ public class PostController {
     public List<Post> getFeedForUser(Long userId) {
         List<Post> posts = new ArrayList<>();
         String sql = "SELECT p.*, u.full_name, u.profile_picture, " +
-                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count " +
+                     "(SELECT COUNT(*) FROM comments WHERE post_id = p.post_id) as comments_count, " +
+                     "(SELECT COUNT(*) FROM post_likes WHERE post_id = p.post_id) as likes_count " +
                      "FROM posts p " +
                      "JOIN users u ON p.user_id = u.user_id " +
                      "WHERE p.user_id = ? " +
@@ -256,17 +260,64 @@ public class PostController {
         post.setUserId(rs.getLong("user_id"));
         post.setContent(rs.getString("content"));
         post.setImageUrl(rs.getString("image_url"));
-        
+
         Timestamp timestamp = rs.getTimestamp("created_at");
         if (timestamp != null) {
             post.setCreatedAt(timestamp.toLocalDateTime());
         }
-        
+
         // Set transient fields from JOIN
         post.setAuthorName(rs.getString("full_name"));
         post.setAuthorProfilePicture(rs.getString("profile_picture"));
         post.setCommentsCount(rs.getInt("comments_count"));
-        
+        try { post.setLikesCount(rs.getInt("likes_count")); } catch (SQLException ignored) {}
+
         return post;
+    }
+
+    // Toggle like: returns true if now liked, false if unliked
+    public boolean toggleLike(Long userId, Long postId) {
+        if (isLikedByUser(userId, postId)) {
+            String sql = "DELETE FROM post_likes WHERE user_id = ? AND post_id = ?";
+            try (Connection conn = DatabaseConnection.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setLong(1, userId);
+                stmt.setLong(2, postId);
+                stmt.executeUpdate();
+            } catch (SQLException e) { e.printStackTrace(); }
+            return false;
+        } else {
+            String sql = "INSERT INTO post_likes (user_id, post_id) VALUES (?, ?)";
+            try (Connection conn = DatabaseConnection.getInstance().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setLong(1, userId);
+                stmt.setLong(2, postId);
+                stmt.executeUpdate();
+            } catch (SQLException e) { e.printStackTrace(); }
+            return true;
+        }
+    }
+
+    public boolean isLikedByUser(Long userId, Long postId) {
+        String sql = "SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            stmt.setLong(2, postId);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public int countLikes(Long postId) {
+        String sql = "SELECT COUNT(*) FROM post_likes WHERE post_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, postId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
     }
 }

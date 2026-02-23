@@ -13,6 +13,8 @@ public class Post {
     private String authorName;
     private String authorProfilePicture;
     private int commentsCount;
+    private int likesCount;
+    private boolean likedByMe;
     
     // Constructors
     public Post() {
@@ -94,7 +96,23 @@ public class Post {
     public void setCommentsCount(int commentsCount) {
         this.commentsCount = commentsCount;
     }
-    
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public boolean isLikedByMe() {
+        return likedByMe;
+    }
+
+    public void setLikedByMe(boolean likedByMe) {
+        this.likedByMe = likedByMe;
+    }
+
     @Override
     public String toString() {
         return "Post{" +
