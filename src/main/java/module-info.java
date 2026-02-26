@@ -1,6 +1,8 @@
 module opgg.ghrami {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
+    requires javafx.media;
     requires java.sql;
     requires jbcrypt;
     requires jjwt.api;
@@ -17,6 +19,10 @@ module opgg.ghrami {
     // JUnit 5 for testing
     requires org.junit.jupiter.api;
     requires org.mockito;
+
+    // Stripe + Gson (auto-modules from classpath JARs)
+    requires stripe.java;
+    requires com.google.gson;
 
     opens opgg.ghrami to javafx.fxml;
     opens opgg.ghrami.view to javafx.fxml;
