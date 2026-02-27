@@ -352,4 +352,38 @@ public class ClassProviderController {
         
         return provider;
     }
-}
+     /**
+     * Recalculates the average rating for a provider from all rated bookings
+     * and writes it back to class_providers.rating.
+     * Called after every new student rating submission.
+     */
+     public boolean recalculateAndUpdateRating(Long providerId) {
+         String calcSql = """
+            SELECT AVG(b.rating) AS avg_rating
+            FROM bookings b
+            JOIN classes c ON b.class_id = c.class_id
+            WHERE c.provider_id = ? AND b.rating IS NOT NULL
+            """;
+         String updateSql = "UPDATE class_providers SET rating = ? WHERE provider_id = ?";
+         try (Connection conn = DatabaseConnection.getInstance().getConnection();  // ✅ fixed
+              PreparedStatement calc = conn.prepareStatement(calcSql)) {
+             calc.setLong(1, providerId);
+             ResultSet rs = calc.executeQuery();
+             if (rs.next()) {
+                 double avg = rs.getDouble("avg_rating");
+                 try (PreparedStatement upd = conn.prepareStatement(updateSql)) {
+                     upd.setDouble(1, Math.round(avg * 10.0) / 10.0);
+                     upd.setLong(2, providerId);
+                     upd.executeUpdate();
+                 }
+             }
+             return true;
+         } catch (SQLException e) {
+             System.err.println("recalculateAndUpdateRating error: " + e.getMessage());
+             return false;
+         }
+     }
+
+}   // ← class closing brace only, no */ after it
+
+
