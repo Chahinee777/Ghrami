@@ -35,7 +35,8 @@ public class InstructorDashboardController {
     @FXML private VBox revenueBreakdownContainer;
     @FXML private ComboBox<String> bookingStatusCombo;
     @FXML private TabPane mainTabPane;
-    
+
+
     private final ClassProviderController providerController = ClassProviderController.getInstance();
     private final ClassController classController = ClassController.getInstance();
     private final BookingController bookingController = BookingController.getInstance();
