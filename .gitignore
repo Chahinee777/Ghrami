@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### Sensitive Configuration Files ###
+ai_config.properties
+db.properties
+google_oauth.properties
