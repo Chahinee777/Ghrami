@@ -1,6 +1,7 @@
 module opgg.ghrami {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
     requires java.sql;
     requires jbcrypt;
     requires jjwt.api;

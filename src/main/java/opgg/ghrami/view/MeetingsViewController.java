@@ -1,5 +1,8 @@
 package opgg.ghrami.view;
 
+import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -9,16 +12,39 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import opgg.ghrami.controller.*;
 import opgg.ghrami.model.*;
 import opgg.ghrami.util.SessionManager;
 
+import com.sun.net.httpserver.HttpServer;
+import java.awt.Desktop;
 import java.io.File;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MeetingsViewController {
@@ -57,10 +83,20 @@ public class MeetingsViewController {
     private Long currentUserId;
     private List<User> allUsers;
     private List<MatchScore> potentialMatches;
+    /** Cached Google Calendar access token – survives for the lifetime of this controller instance. */
+    private String calendarAccessToken = null;
     
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+
+    // ── Google OAuth2 config – fill in your CLIENT_ID from Google Cloud Console ──
+    // Steps: console.cloud.google.com → New Project → Enable "Google Calendar API"
+    //        → OAuth 2.0 Credentials → Desktop App → copy Client ID below
+    private static final String GOOGLE_CLIENT_ID     = "1074465622889-blplqio1k0dggnpffqc9v0oe4p8n5te0.apps.googleusercontent.com";
+    private static final String GOOGLE_CLIENT_SECRET = "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";
+    private static final String GOOGLE_REDIRECT_URI  = "http://localhost:8765/callback";
+    private static final String GOOGLE_SCOPE         = "https://www.googleapis.com/auth/calendar.events";
     
     // Data class for match scoring
     private static class MatchScore {
@@ -1002,10 +1038,50 @@ public class MeetingsViewController {
         header.getChildren().addAll(dateLabel, statusBadge, typeBadge, spacer);
         
         // Details
-        VBox details = new VBox(5);
-        
-        Label locationLabel = new Label("📍 " + meeting.getLocation());
-        locationLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #34495e;");
+        VBox details = new VBox(6);
+
+        // For virtual meetings show the Meet link prominently with a join button
+        if ("virtual".equalsIgnoreCase(meeting.getMeetingType()) && meeting.getLocation() != null
+                && meeting.getLocation().startsWith("http")) {
+            HBox meetRow = new HBox(10);
+            meetRow.setAlignment(Pos.CENTER_LEFT);
+            Label meetIcon = new Label("🎥");
+            meetIcon.setStyle("-fx-font-size: 14px;");
+            Label meetLink = new Label(meeting.getLocation());
+            meetLink.setStyle("-fx-font-size: 12px; -fx-text-fill: #1a73e8; -fx-underline: true; -fx-cursor: hand;");
+            meetLink.setMaxWidth(260);
+            meetLink.setEllipsisString("…");
+            meetLink.setWrapText(false);
+            Button joinBtn = new Button("🚀 Rejoindre");
+            joinBtn.setStyle("-fx-background-color: linear-gradient(to right,#667eea,#764ba2); -fx-text-fill: white; " +
+                            "-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 16; " +
+                            "-fx-background-radius: 20; -fx-cursor: hand;");
+            joinBtn.setOnAction(e -> {
+                try { java.awt.Desktop.getDesktop().browse(new java.net.URI(meeting.getLocation())); }
+                catch (Exception ex) { showAlert("Erreur", "Impossible d'ouvrir le lien : " + ex.getMessage()); }
+            });
+            // Copy link button
+            Button copyBtn = new Button("📋");
+            copyBtn.setStyle("-fx-background-color: #f0f2ff; -fx-text-fill: #667eea; " +
+                            "-fx-padding: 6 10; -fx-background-radius: 20; -fx-cursor: hand;");
+            copyBtn.setTooltip(new Tooltip("Copier le lien"));
+            copyBtn.setOnAction(e -> {
+                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                content.putString(meeting.getLocation());
+                javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+                copyBtn.setText("✅");
+                new Thread(() -> {
+                    try { Thread.sleep(1500); } catch (Exception ignored) {}
+                    javafx.application.Platform.runLater(() -> copyBtn.setText("📋"));
+                }).start();
+            });
+            meetRow.getChildren().addAll(meetIcon, meetLink, joinBtn, copyBtn);
+            details.getChildren().add(meetRow);
+        } else {
+            Label locationLabel = new Label("📍 " + meeting.getLocation());
+            locationLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #34495e;");
+            details.getChildren().add(locationLabel);
+        }
         
         Label durationLabel = new Label("⏱ Durée : " + meeting.getDuration() + " minutes");
         durationLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #34495e;");
@@ -1014,7 +1090,7 @@ public class MeetingsViewController {
         Label participantsLabel = new Label("👥 Participants : " + participantCount);
         participantsLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #34495e;");
         
-        details.getChildren().addAll(locationLabel, durationLabel, participantsLabel);
+        details.getChildren().addAll(durationLabel, participantsLabel);
         
         // Actions
         HBox actions = new HBox(10);
@@ -1186,281 +1262,179 @@ public class MeetingsViewController {
     
     @FXML
     private void handleCreateMeeting() {
-        Dialog<Meeting> dialog = new Dialog<>();
-        dialog.setTitle("Planifier Nouveau Rendez-vous");
-        dialog.setHeaderText("Créer un rendez-vous avec une de vos connexions");
-        
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-        
-        TextField connectionIdField = new TextField();
-        connectionIdField.setPromptText("ID Connexion");
-        
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("physical", "virtual");
-        typeCombo.setValue("physical");
-        
-        TextField locationField = new TextField();
-        locationField.setPromptText("Location or URL");
-        
-        DatePicker datePicker = new DatePicker();
-        datePicker.setPromptText("Date");
-        
-        TextField timeField = new TextField();
-        timeField.setPromptText("Heure (HH:MM)");
-        
-        TextField durationField = new TextField();
-        durationField.setPromptText("Durée (minutes)");
-        durationField.setText("60");
-        
-        grid.add(new Label("ID Connexion :"), 0, 0);
-        grid.add(connectionIdField, 1, 0);
-        grid.add(new Label("Type :"), 0, 1);
-        grid.add(typeCombo, 1, 1);
-        grid.add(new Label("Lieu :"), 0, 2);
-        grid.add(locationField, 1, 2);
-        grid.add(new Label("Date :"), 0, 3);
-        grid.add(datePicker, 1, 3);
-        grid.add(new Label("Heure :"), 0, 4);
-        grid.add(timeField, 1, 4);
-        grid.add(new Label("Durée :"), 0, 5);
-        grid.add(durationField, 1, 5);
-        
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK) {
-                try {
-                    // Validation 1: Connection ID is required
-                    String connectionId = connectionIdField.getText().trim();
-                    if (connectionId.isEmpty()) {
-                        showAlert("Erreur de Validation", "L'ID de connexion est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 2: Connection must exist and belong to user
-                    Optional<Connection> connOpt = connectionController.findById(connectionId);
-                    if (connOpt.isEmpty()) {
-                        showAlert("Erreur de Validation", "Connexion introuvable.");
-                        return null;
-                    }
-                    Connection conn = connOpt.get();
-                    if (!conn.getInitiatorId().equals(currentUserId) && !conn.getReceiverId().equals(currentUserId)) {
-                        showAlert("Erreur de Validation", "Vous ne faites pas partie de cette connexion.");
-                        return null;
-                    }
-                    
-                    // Validation 3: Meeting type is required
-                    if (typeCombo.getValue() == null || typeCombo.getValue().trim().isEmpty()) {
-                        showAlert("Erreur de Validation", "Le type de réunion est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 4: Location is required
-                    String location = locationField.getText().trim();
-                    if (location.isEmpty()) {
-                        showAlert("Erreur de Validation", "Le lieu est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 5: Date is required
-                    if (datePicker.getValue() == null) {
-                        showAlert("Erreur de Validation", "La date est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 6: Time format validation
-                    String timeText = timeField.getText().trim();
-                    if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
-                        showAlert("Erreur de Validation", "Format d'heure invalide. Utilisez HH:MM (ex: 14:30).");
-                        return null;
-                    }
-                    
-                    String[] timeParts = timeText.split(":");
-                    LocalDateTime scheduledAt = datePicker.getValue().atTime(
-                        Integer.parseInt(timeParts[0]),
-                        Integer.parseInt(timeParts[1])
-                    );
-                    
-                    // Validation 7: Date must be in the future
-                    if (scheduledAt.isBefore(LocalDateTime.now())) {
-                        showAlert("Erreur de Validation", "La date/heure doit être dans le futur.");
-                        return null;
-                    }
-                    
-                    // Validation 8: Duration must be positive
-                    String durationText = durationField.getText().trim();
-                    if (durationText.isEmpty() || !durationText.matches("^\\d+$")) {
-                        showAlert("Erreur de Validation", "La durée doit être un nombre positif.");
-                        return null;
-                    }
-                    int duration = Integer.parseInt(durationText);
-                    if (duration <= 0 || duration > 1440) {
-                        showAlert("Erreur de Validation", "La durée doit être entre 1 et 1440 minutes (24h).");
-                        return null;
-                    }
-                    
-                    Meeting meeting = new Meeting(
-                        connectionId,
-                        currentUserId,
-                        typeCombo.getValue(),
-                        location,
-                        scheduledAt,
-                        duration
-                    );
-                    return meeting;
-                } catch (Exception e) {
-                    showAlert("Erreur de Validation", "Saisie invalide: " + e.getMessage());
-                    return null;
-                }
-            }
-            return null;
-        });
-        
-        Optional<Meeting> result = dialog.showAndWait();
-        result.ifPresent(meeting -> {
-            Meeting created = meetingController.create(meeting);
-            if (created != null) {
-                // Add organizer as participant
-                MeetingParticipant participant = new MeetingParticipant(created.getMeetingId(), currentUserId);
-                participantController.create(participant);
-                
-                showAlert("Succès", "Rendez-vous planifié avec succès!");
-                loadDashboardData();
-            } else {
-                showAlert("Erreur", "Échec de la planification du rendez-vous");
-            }
-        });
+        Meeting created = showMeetingCreationDialog(null);
+        if (created != null) {
+            // Only the organizer is added here – no second party known at this point
+            participantController.create(new MeetingParticipant(created.getMeetingId(), currentUserId));
+            loadDashboardData();
+        }
     }
     
     private void handleEditMeeting(Meeting meeting) {
-        Dialog<Meeting> dialog = new Dialog<>();
-        dialog.setTitle("Modifier le Rendez-vous");
-        dialog.setHeaderText("Modifier les détails du rendez-vous");
-        
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-        
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("physical", "virtual");
-        typeCombo.setValue(meeting.getMeetingType());
-        
+        // ── State ──────────────────────────────────────────────────
+        ObjectProperty<LocalDate> selectedDate = new SimpleObjectProperty<>(
+                meeting.getScheduledAt() != null ? meeting.getScheduledAt().toLocalDate() : null);
+        Set<LocalDate> bookedDates = getBookedDates();
+        // exclude this meeting's own date from booked
+        if (meeting.getScheduledAt() != null) bookedDates.remove(meeting.getScheduledAt().toLocalDate());
+
+        // ── Root ───────────────────────────────────────────────────
+        VBox root = new VBox(14);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setPrefWidth(480);
+
+        // ── (1) Meeting type toggle ────────────────────────────────
+        Label typeLabel = new Label("Type de Rendez-vous");
+        typeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        ToggleGroup typeGroup = new ToggleGroup();
+        ToggleButton physicalBtn = new ToggleButton("📍 Présentiel");
+        ToggleButton virtualBtn  = new ToggleButton("💻 Virtuel");
+        physicalBtn.setToggleGroup(typeGroup);
+        virtualBtn.setToggleGroup(typeGroup);
+        boolean startsVirtual = "virtual".equalsIgnoreCase(meeting.getMeetingType());
+        physicalBtn.setSelected(!startsVirtual);
+        virtualBtn.setSelected(startsVirtual);
+        String btnBase = "-fx-padding: 8 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13;";
+        physicalBtn.setStyle(btnBase + (!startsVirtual
+                ? "-fx-background-color: #667eea; -fx-text-fill: white;"
+                : "-fx-background-color: #e9ecef; -fx-text-fill: #495057;"));
+        virtualBtn.setStyle(btnBase + (startsVirtual
+                ? "-fx-background-color: #667eea; -fx-text-fill: white;"
+                : "-fx-background-color: #e9ecef; -fx-text-fill: #495057;"));
+        HBox typeRow = new HBox(10, physicalBtn, virtualBtn);
+
+        // ── (2) Location ───────────────────────────────────────────
+        Label locationLabel = new Label(startsVirtual ? "Lien de réunion" : "Lieu");
+        locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+
         TextField locationField = new TextField(meeting.getLocation());
-        locationField.setPromptText("Location or URL");
-        
-        DatePicker datePicker = new DatePicker();
-        if (meeting.getScheduledAt() != null) {
-            datePicker.setValue(meeting.getScheduledAt().toLocalDate());
-        }
-        
-        TextField timeField = new TextField();
-        if (meeting.getScheduledAt() != null) {
-            timeField.setText(String.format("%02d:%02d", 
-                meeting.getScheduledAt().getHour(), 
-                meeting.getScheduledAt().getMinute()));
-        }
-        timeField.setPromptText("Heure (HH:MM)");
-        
+        locationField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        Button mapBtn = new Button("🗺 Choisir sur la carte");
+        mapBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 20; " +
+                        "-fx-padding: 7 16; -fx-cursor: hand;");
+        mapBtn.setOnAction(e -> {
+            String picked = showMapPickerDialog();
+            if (picked != null && !picked.isEmpty()) locationField.setText(picked);
+        });
+
+        // Virtual info box (shows current link for virtual meetings)
+        Label virtualInfoLabel = new Label(
+            "🎥  Le lien Google Meet existant sera conservé.\n    Modifiez-le manuellement si nécessaire.");
+        virtualInfoLabel.setWrapText(true);
+        virtualInfoLabel.setStyle(
+            "-fx-text-fill: #1a73e8; -fx-font-size: 12; -fx-padding: 8 12; " +
+            "-fx-background-color: #e8f0fe; -fx-background-radius: 8;");
+
+        VBox physicalBox = new VBox(6, locationField, mapBtn);
+        VBox virtualBox  = new VBox(8, virtualInfoLabel, locationField);
+        physicalBox.setVisible(!startsVirtual); physicalBox.setManaged(!startsVirtual);
+        virtualBox.setVisible(startsVirtual);   virtualBox.setManaged(startsVirtual);
+
+        physicalBtn.setOnAction(e -> {
+            physicalBtn.setStyle(btnBase + "-fx-background-color: #667eea; -fx-text-fill: white;");
+            virtualBtn.setStyle(btnBase  + "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+            physicalBox.setVisible(true); physicalBox.setManaged(true);
+            virtualBox.setVisible(false); virtualBox.setManaged(false);
+            locationLabel.setText("Lieu");
+            locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        });
+        virtualBtn.setOnAction(e -> {
+            virtualBtn.setStyle(btnBase  + "-fx-background-color: #667eea; -fx-text-fill: white;");
+            physicalBtn.setStyle(btnBase + "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+            physicalBox.setVisible(false); physicalBox.setManaged(false);
+            virtualBox.setVisible(true);   virtualBox.setManaged(true);
+            locationLabel.setText("Lien de réunion");
+            locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        });
+
+        // ── (3) Calendar ───────────────────────────────────────────
+        Label calLabel = new Label("Choisir une date");
+        calLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        VBox calBox = new VBox();
+        buildCalendarPanel(selectedDate, bookedDates, calBox, 
+                selectedDate.get() != null ? YearMonth.from(selectedDate.get()) : YearMonth.now());
+
+        // ── (4) Time & Duration ────────────────────────────────────
+        Label timeLabel = new Label("Heure (HH:MM)");
+        timeLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #212529;");
+        TextField timeField = new TextField(meeting.getScheduledAt() != null
+                ? String.format("%02d:%02d", meeting.getScheduledAt().getHour(), meeting.getScheduledAt().getMinute())
+                : "14:00");
+        timeField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        Label durLabel = new Label("Durée (minutes)");
+        durLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #212529;");
         TextField durationField = new TextField(String.valueOf(meeting.getDuration()));
-        durationField.setPromptText("Durée (minutes)");
-        
-        grid.add(new Label("Type :"), 0, 0);
-        grid.add(typeCombo, 1, 0);
-        grid.add(new Label("Lieu :"), 0, 1);
-        grid.add(locationField, 1, 1);
-        grid.add(new Label("Date :"), 0, 2);
-        grid.add(datePicker, 1, 2);
-        grid.add(new Label("Heure :"), 0, 3);
-        grid.add(timeField, 1, 3);
-        grid.add(new Label("Durée :"), 0, 4);
-        grid.add(durationField, 1, 4);
-        
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK) {
-                try {
-                    // Validation 1: Meeting type is required
-                    if (typeCombo.getValue() == null || typeCombo.getValue().trim().isEmpty()) {
-                        showAlert("Erreur de Validation", "Le type de réunion est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 2: Location is required
-                    String location = locationField.getText().trim();
-                    if (location.isEmpty()) {
-                        showAlert("Erreur de Validation", "Le lieu est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 3: Date is required
-                    if (datePicker.getValue() == null) {
-                        showAlert("Erreur de Validation", "La date est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 4: Time format validation
-                    String timeText = timeField.getText().trim();
-                    if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
-                        showAlert("Erreur de Validation", "Format d'heure invalide. Utilisez HH:MM (ex: 14:30).");
-                        return null;
-                    }
-                    
-                    String[] timeParts = timeText.split(":");
-                    LocalDateTime scheduledAt = datePicker.getValue().atTime(
-                        Integer.parseInt(timeParts[0]),
-                        Integer.parseInt(timeParts[1])
-                    );
-                    
-                    // Validation 5: Date must be in the future (only for scheduled meetings)
-                    if ("scheduled".equalsIgnoreCase(meeting.getStatus()) && scheduledAt.isBefore(LocalDateTime.now())) {
-                        showAlert("Erreur de Validation", "La date/heure doit être dans le futur.");
-                        return null;
-                    }
-                    
-                    // Validation 6: Duration must be positive
-                    String durationText = durationField.getText().trim();
-                    if (durationText.isEmpty() || !durationText.matches("^\\d+$")) {
-                        showAlert("Erreur de Validation", "La durée doit être un nombre positif.");
-                        return null;
-                    }
-                    int duration = Integer.parseInt(durationText);
-                    if (duration <= 0 || duration > 1440) {
-                        showAlert("Erreur de Validation", "La durée doit être entre 1 et 1440 minutes (24h).");
-                        return null;
-                    }
-                    
-                    // Update meeting object
-                    meeting.setMeetingType(typeCombo.getValue());
-                    meeting.setLocation(location);
-                    meeting.setScheduledAt(scheduledAt);
-                    meeting.setDuration(duration);
-                    
-                    return meeting;
-                } catch (Exception e) {
-                    showAlert("Erreur de Validation", "Saisie invalide: " + e.getMessage());
-                    return null;
-                }
-            }
-            return null;
-        });
-        
-        Optional<Meeting> result = dialog.showAndWait();
-        result.ifPresent(updatedMeeting -> {
-            Meeting updated = meetingController.update(updatedMeeting);
-            if (updated != null) {
-                showAlert("Succès", "Rendez-vous modifié avec succès!");
-                loadDashboardData();
-            } else {
-                showAlert("Erreur", "Échec de la modification du rendez-vous");
-            }
-        });
+        durationField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        GridPane bottomGrid = new GridPane();
+        bottomGrid.setHgap(16); bottomGrid.setVgap(6);
+        bottomGrid.add(timeLabel, 0, 0); bottomGrid.add(timeField, 0, 1);
+        bottomGrid.add(durLabel, 1, 0);  bottomGrid.add(durationField, 1, 1);
+        ColumnConstraints cc1 = new ColumnConstraints(); cc1.setPercentWidth(50);
+        ColumnConstraints cc2 = new ColumnConstraints(); cc2.setPercentWidth(50);
+        bottomGrid.getColumnConstraints().addAll(cc1, cc2);
+
+        // ── Assemble ───────────────────────────────────────────────
+        root.getChildren().addAll(
+            typeLabel, typeRow, new Separator(),
+            locationLabel, physicalBox, virtualBox, new Separator(),
+            calLabel, calBox,
+            bottomGrid
+        );
+
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        // ── Dialog ────────────────────────────────────────────────
+        ButtonType confirmType = new ButtonType("✅ Sauvegarder", ButtonBar.ButtonData.OK_DONE);
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Modifier le Rendez-vous");
+        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmType, ButtonType.CANCEL);
+        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setStyle("-fx-background-color: #f8f9fa;");
+
+        Optional<ButtonType> btn = dialog.showAndWait();
+        if (btn.isEmpty() || btn.get() != confirmType) return;
+
+        // ── Validate ───────────────────────────────────────────────
+        String location = locationField.getText().trim();
+        if (location.isEmpty()) { showAlert("Validation", "Le lieu est obligatoire."); return; }
+
+        if (selectedDate.get() == null) { showAlert("Validation", "Sélectionnez une date."); return; }
+
+        String timeText = timeField.getText().trim();
+        if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+            showAlert("Validation", "Format d'heure invalide. Utilisez HH:MM."); return;
+        }
+        String[] parts = timeText.split(":");
+        LocalDateTime scheduledAt = selectedDate.get().atTime(
+                Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+        if ("scheduled".equalsIgnoreCase(meeting.getStatus()) && scheduledAt.isBefore(LocalDateTime.now())) {
+            showAlert("Validation", "La date/heure doit être dans le futur."); return;
+        }
+
+        String durText = durationField.getText().trim();
+        if (!durText.matches("^\\d+$")) { showAlert("Validation", "Durée invalide."); return; }
+        int duration = Integer.parseInt(durText);
+        if (duration <= 0 || duration > 1440) { showAlert("Validation", "Durée entre 1 et 1440 minutes."); return; }
+
+        meeting.setMeetingType(virtualBtn.isSelected() ? "virtual" : "physical");
+        meeting.setLocation(location);
+        meeting.setScheduledAt(scheduledAt);
+        meeting.setDuration(duration);
+
+        Meeting updated = meetingController.update(meeting);
+        if (updated != null) {
+            showAlert("Succès", "Rendez-vous modifié avec succès !");
+            loadDashboardData();
+        } else {
+            showAlert("Erreur", "Échec de la modification du rendez-vous.");
+        }
     }
     
     private void handleDeleteMeeting(Meeting meeting) {
@@ -1485,127 +1459,15 @@ public class MeetingsViewController {
     }
     
     private void handleScheduleMeetingForConnection(Connection connection) {
-        // Pre-fill connection ID when scheduling from connection card
-        Dialog<Meeting> dialog = new Dialog<>();
-        dialog.setTitle("Planifier Rendez-vous");
-        dialog.setHeaderText("Planifier un rendez-vous pour cette connexion");
-        
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-        
-        ComboBox<String> typeCombo = new ComboBox<>();
-        typeCombo.getItems().addAll("physical", "virtual");
-        typeCombo.setValue("physical");
-        
-        TextField locationField = new TextField();
-        locationField.setPromptText("Lieu ou URL");
-        
-        DatePicker datePicker = new DatePicker();
-        TextField timeField = new TextField();
-        timeField.setPromptText("HH:MM");
-        timeField.setText("14:00");
-        
-        TextField durationField = new TextField();
-        durationField.setText("60");
-        
-        grid.add(new Label("Type :"), 0, 0);
-        grid.add(typeCombo, 1, 0);
-        grid.add(new Label("Lieu :"), 0, 1);
-        grid.add(locationField, 1, 1);
-        grid.add(new Label("Date :"), 0, 2);
-        grid.add(datePicker, 1, 2);
-        grid.add(new Label("Heure :"), 0, 3);
-        grid.add(timeField, 1, 3);
-        grid.add(new Label("Durée (min) :"), 0, 4);
-        grid.add(durationField, 1, 4);
-        
-        dialog.getDialogPane().setContent(grid);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK) {
-                try {
-                    // Validation 1: Meeting type is required
-                    if (typeCombo.getValue() == null || typeCombo.getValue().trim().isEmpty()) {
-                        showAlert("Erreur de Validation", "Le type de réunion est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 2: Location is required
-                    String location = locationField.getText().trim();
-                    if (location.isEmpty()) {
-                        showAlert("Erreur de Validation", "Le lieu est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 3: Date is required
-                    if (datePicker.getValue() == null) {
-                        showAlert("Erreur de Validation", "La date est obligatoire.");
-                        return null;
-                    }
-                    
-                    // Validation 4: Time format validation
-                    String timeText = timeField.getText().trim();
-                    if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
-                        showAlert("Erreur de Validation", "Format d'heure invalide. Utilisez HH:MM (ex: 14:30).");
-                        return null;
-                    }
-                    
-                    String[] time = timeText.split(":");
-                    LocalDateTime scheduledAt = datePicker.getValue().atTime(
-                        Integer.parseInt(time[0]), Integer.parseInt(time[1])
-                    );
-                    
-                    // Validation 5: Date must be in the future
-                    if (scheduledAt.isBefore(LocalDateTime.now())) {
-                        showAlert("Erreur de Validation", "La date/heure doit être dans le futur.");
-                        return null;
-                    }
-                    
-                    // Validation 6: Duration must be valid
-                    String durationText = durationField.getText().trim();
-                    if (durationText.isEmpty() || !durationText.matches("^\\d+$")) {
-                        showAlert("Erreur de Validation", "La durée doit être un nombre positif.");
-                        return null;
-                    }
-                    int duration = Integer.parseInt(durationText);
-                    if (duration <= 0 || duration > 1440) {
-                        showAlert("Erreur de Validation", "La durée doit être entre 1 et 1440 minutes (24h).");
-                        return null;
-                    }
-                    
-                    return new Meeting(
-                        connection.getConnectionId(),
-                        currentUserId,
-                        typeCombo.getValue(),
-                        location,
-                        scheduledAt,
-                        duration
-                    );
-                } catch (Exception e) {
-                    showAlert("Erreur de Validation", "Saisie invalide: " + e.getMessage());
-                    return null;
-                }
-            }
-            return null;
-        });
-        
-        Optional<Meeting> result = dialog.showAndWait();
-        result.ifPresent(meeting -> {
-            Meeting created = meetingController.create(meeting);
-            if (created != null) {
-                // Add both users as participants
-                participantController.create(new MeetingParticipant(created.getMeetingId(), currentUserId));
-                Long otherUserId = connection.getInitiatorId().equals(currentUserId) ? 
+        Meeting created = showMeetingCreationDialog(connection.getConnectionId());
+        if (created != null) {
+            // Add exactly 2 participants: organizer + the other person
+            participantController.create(new MeetingParticipant(created.getMeetingId(), currentUserId));
+            Long otherUserId = connection.getInitiatorId().equals(currentUserId) ?
                     connection.getReceiverId() : connection.getInitiatorId();
-                participantController.create(new MeetingParticipant(created.getMeetingId(), otherUserId));
-                
-                showAlert("Succès", "Rendez-vous planifié!");
-                loadDashboardData();
-            }
-        });
+            participantController.create(new MeetingParticipant(created.getMeetingId(), otherUserId));
+            loadDashboardData();
+        }
     }
     
     private void viewConnectionMeetings(Connection connection) {
@@ -1733,6 +1595,732 @@ public class MeetingsViewController {
         }
     }
     
+    // ══════════════════════════════════════════════════════════════
+    //  Shared meeting creation dialog (map, Meet link, calendar)
+    // ══════════════════════════════════════════════════════════════
+
+    /**
+     * Shows the full meeting creation dialog.
+     * @param prefilledConnectionId if not null, locks the connection ID field
+     * @return the created Meeting, or null if cancelled/failed
+     */
+    private Meeting showMeetingCreationDialog(String prefilledConnectionId) {
+        // ── gather booked dates for this user ──────────────────────
+        Set<LocalDate> bookedDates = getBookedDates();
+
+        // ── state ──────────────────────────────────────────────────
+        ObjectProperty<LocalDate> selectedDate = new SimpleObjectProperty<>(null);
+        String[] locationHolder = {""};       // mutable holder for map result
+
+        // ── top container ──────────────────────────────────────────
+        VBox root = new VBox(14);
+        root.setPadding(new Insets(20));
+        root.setStyle("-fx-background-color: #f8f9fa;");
+        root.setPrefWidth(480);
+
+        // ── (1) Connection ID ──────────────────────────────────────
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label connLabel = new Label("ID Connexion");
+        connLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        TextField connectionIdField = new TextField(prefilledConnectionId != null ? prefilledConnectionId : "");
+        connectionIdField.setPromptText("ID Connexion");
+        connectionIdField.setDisable(prefilledConnectionId != null);
+        connectionIdField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        // ── (2) Meeting type ───────────────────────────────────────
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label typeLabel = new Label("Type de Rendez-vous");
+        typeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        ToggleGroup typeGroup = new ToggleGroup();
+        ToggleButton physicalBtn = new ToggleButton("📍 Présentiel");
+        ToggleButton virtualBtn  = new ToggleButton("💻 Virtuel");
+        physicalBtn.setToggleGroup(typeGroup);
+        virtualBtn .setToggleGroup(typeGroup);
+        physicalBtn.setSelected(true);
+        String btnBase = "-fx-padding: 8 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13;";
+        physicalBtn.setStyle(btnBase + "-fx-background-color: #667eea; -fx-text-fill: white;");
+        virtualBtn .setStyle(btnBase + "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+        HBox typeRow = new HBox(10, physicalBtn, virtualBtn);
+
+        // ── (3) Location / link ────────────────────────────────────
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label locationLabel = new Label("Lieu");
+        locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        TextField locationField = new TextField();
+        locationField.setPromptText("Adresse ou lieu de rencontre");
+        locationField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        Button mapBtn = new Button("🗺 Choisir sur la carte");
+        mapBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-background-radius: 20; " +
+                        "-fx-padding: 7 16; -fx-cursor: hand;");
+        mapBtn.setOnAction(e -> {
+            String picked = showMapPickerDialog();
+            if (picked != null && !picked.isEmpty()) {
+                locationField.setText(picked);
+                locationHolder[0] = picked;
+            }
+        });
+
+        // Google Meet – real link is created via Google Calendar API at confirm time,
+        // so we have the actual scheduledAt + duration values available.
+        Label meetInfoLabel = new Label(
+            "🎥  Un lien Google Meet réel sera créé automatiquement\n" +
+            "    à la confirmation via votre compte Google connecté.");
+        meetInfoLabel.setWrapText(true);
+        meetInfoLabel.setStyle(
+            "-fx-text-fill: #1a73e8; -fx-font-size: 13; -fx-font-weight: 600; -fx-padding: 10 12; " +
+            "-fx-background-color: #e8f0fe; -fx-background-radius: 8;");
+        // This label shows the link after creation (populated just before success alert)
+        Label meetCreatedLinkLabel = new Label();
+        meetCreatedLinkLabel.setStyle("-fx-text-fill: #1a73e8; -fx-font-size: 12; -fx-padding: 2 0;");
+
+        VBox physicalBox = new VBox(6, locationField, mapBtn);
+        VBox virtualBox  = new VBox(8, meetInfoLabel, meetCreatedLinkLabel);
+        virtualBox.setVisible(false);
+        virtualBox.setManaged(false);
+
+        // Toggle type behaviour
+        physicalBtn.setOnAction(e -> {
+            physicalBtn.setStyle(btnBase + "-fx-background-color: #667eea; -fx-text-fill: white;");
+            virtualBtn .setStyle(btnBase + "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+            physicalBox.setVisible(true);  physicalBox.setManaged(true);
+            virtualBox .setVisible(false); virtualBox .setManaged(false);
+            // FIX: ensure label text color is preserved when text changes
+            locationLabel.setText("Lieu");
+            locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        });
+        virtualBtn.setOnAction(e -> {
+            virtualBtn .setStyle(btnBase + "-fx-background-color: #667eea; -fx-text-fill: white;");
+            physicalBtn.setStyle(btnBase + "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
+            physicalBox.setVisible(false); physicalBox.setManaged(false);
+            virtualBox .setVisible(true);  virtualBox .setManaged(true);
+            // FIX: ensure label text color is preserved when text changes
+            locationLabel.setText("Réunion virtuelle");
+            locationLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        });
+
+        // ── (4) Calendar picker ────────────────────────────────────
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label calLabel = new Label("Choisir une date");
+        calLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #212529;");
+        VBox calBox = new VBox();
+        buildCalendarPanel(selectedDate, bookedDates, calBox, YearMonth.now());
+
+        // ── (5) Time & Duration ────────────────────────────────────
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label timeLabel = new Label("Heure (HH:MM)");
+        timeLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #212529;");
+        TextField timeField = new TextField("14:00");
+        timeField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        // FIX: Added -fx-text-fill: #212529 to make label text visible
+        Label durLabel = new Label("Durée (minutes)");
+        durLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #212529;");
+        TextField durationField = new TextField("60");
+        durationField.setStyle("-fx-padding: 8; -fx-background-radius: 8;");
+
+        GridPane bottomGrid = new GridPane();
+        bottomGrid.setHgap(16);
+        bottomGrid.setVgap(6);
+        bottomGrid.add(timeLabel,    0, 0);
+        bottomGrid.add(timeField,    0, 1);
+        bottomGrid.add(durLabel,     1, 0);
+        bottomGrid.add(durationField,1, 1);
+        ColumnConstraints cc = new ColumnConstraints(); cc.setPercentWidth(50);
+        ColumnConstraints cc2 = new ColumnConstraints(); cc2.setPercentWidth(50);
+        bottomGrid.getColumnConstraints().addAll(cc, cc2);
+
+        // ── Assemble ───────────────────────────────────────────────
+        Separator sep1 = new Separator(); Separator sep2 = new Separator(); Separator sep3 = new Separator();
+        root.getChildren().addAll(
+            connLabel, connectionIdField, sep1,
+            typeLabel, typeRow, sep2,
+            locationLabel, physicalBox, virtualBox, sep3,
+            calLabel, calBox,
+            bottomGrid
+        );
+
+        ScrollPane scroll = new ScrollPane(root);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        // ── Dialog buttons ─────────────────────────────────────────
+        ButtonType confirmType = new ButtonType("✅ Confirmer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType  = ButtonType.CANCEL;
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Planifier un Rendez-vous");
+        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmType, cancelType);
+        dialog.getDialogPane().setPrefWidth(500);
+        dialog.getDialogPane().setStyle("-fx-background-color: #f8f9fa;");
+
+        Optional<ButtonType> btn = dialog.showAndWait();
+        if (btn.isEmpty() || btn.get() != confirmType) return null;
+
+        // ── Validate ───────────────────────────────────────────────
+        String connectionId = connectionIdField.getText().trim();
+        if (connectionId.isEmpty()) { showAlert("Validation", "L'ID de connexion est obligatoire."); return null; }
+
+        Optional<Connection> connOpt = connectionController.findById(connectionId);
+        if (connOpt.isEmpty()) { showAlert("Validation", "Connexion introuvable."); return null; }
+        Connection conn = connOpt.get();
+        if (!conn.getInitiatorId().equals(currentUserId) && !conn.getReceiverId().equals(currentUserId)) {
+            showAlert("Validation", "Vous ne faites pas partie de cette connexion."); return null;
+        }
+
+        boolean isVirtual = virtualBtn.isSelected();
+
+        // Validate physical location early (virtual location determined later via API)
+        if (!isVirtual) {
+            String loc = locationField.getText().trim();
+            if (loc.isEmpty()) { showAlert("Validation", "Le lieu est obligatoire."); return null; }
+        }
+
+        if (selectedDate.get() == null) { showAlert("Validation", "Sélectionnez une date dans le calendrier."); return null; }
+
+        // Double-booking check
+        if (bookedDates.contains(selectedDate.get())) {
+            showAlert("Date déjà réservée", "Vous avez déjà un rendez-vous le " +
+                    selectedDate.get().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) +
+                    ".\nVeuillez choisir une autre date."); return null;
+        }
+
+        String timeText = timeField.getText().trim();
+        if (!timeText.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]$")) {
+            showAlert("Validation", "Format d'heure invalide. Utilisez HH:MM."); return null;
+        }
+        String[] parts = timeText.split(":");
+        LocalDateTime scheduledAt = selectedDate.get().atTime(
+                Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+        if (scheduledAt.isBefore(LocalDateTime.now())) {
+            showAlert("Validation", "La date/heure doit être dans le futur."); return null;
+        }
+
+        String durText = durationField.getText().trim();
+        if (!durText.matches("^\\d+$")) { showAlert("Validation", "Durée invalide."); return null; }
+        int duration = Integer.parseInt(durText);
+        if (duration <= 0 || duration > 1440) { showAlert("Validation", "Durée entre 1 et 1440 minutes."); return null; }
+
+        // ── Determine location ─────────────────────────────────────────────────
+        String location;
+        if (isVirtual) {
+            // Create the REAL Google Meet room now that we have the actual time + duration
+            location = createRealGoogleMeetLink(scheduledAt, duration, "Rendez-vous Ghrami");
+            if (location == null) return null; // error alert already shown inside the method
+        } else {
+            location = locationField.getText().trim();
+        }
+
+        Meeting meeting = new Meeting(connectionId, currentUserId,
+                isVirtual ? "virtual" : "physical", location, scheduledAt, duration);
+        Meeting created = meetingController.create(meeting);
+        if (created == null) { showAlert("Erreur", "Échec de la planification du rendez-vous."); return null; }
+
+        // NOTE: participant creation is intentionally left to the CALLER
+        // so we never duplicate the currentUserId entry (bug fix).
+
+        StringBuilder successMsg = new StringBuilder("Rendez-vous planifié avec succès !\n\n");
+        successMsg.append("📅 Date : ").append(scheduledAt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))).append("\n");
+        if (isVirtual) successMsg.append("🔗 Google Meet : ").append(location).append("\n");
+        else           successMsg.append("📍 Lieu : ").append(location).append("\n");
+        showAlert("Succès", successMsg.toString());
+
+        return created;
+    }
+
+    // ── Build month calendar panel ─────────────────────────────────────────
+    private void buildCalendarPanel(ObjectProperty<LocalDate> selectedDate,
+                                     Set<LocalDate> bookedDates,
+                                     VBox container,
+                                     YearMonth yearMonth) {
+        container.getChildren().clear();
+        container.setSpacing(4);
+
+        // Header row: prev / month+year / next
+        Button prevBtn = new Button("◀");
+        Button nextBtn = new Button("▶");
+        prevBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 14;");
+        nextBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-font-size: 14;");
+        Label monthLabel = new Label(yearMonth.getMonth().getDisplayName(
+                java.time.format.TextStyle.FULL, java.util.Locale.FRENCH) + " " + yearMonth.getYear());
+        monthLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14; -fx-min-width: 160; -fx-alignment: center; -fx-text-fill: #212529;");
+        HBox header = new HBox(8, prevBtn, monthLabel, nextBtn);
+        header.setAlignment(Pos.CENTER);
+
+        prevBtn.setOnAction(e -> buildCalendarPanel(selectedDate, bookedDates, container, yearMonth.minusMonths(1)));
+        nextBtn.setOnAction(e -> buildCalendarPanel(selectedDate, bookedDates, container, yearMonth.plusMonths(1)));
+
+        // Weekday labels
+        String[] days = {"Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"};
+        GridPane grid = new GridPane();
+        grid.setHgap(4); grid.setVgap(4);
+        for (int i = 0; i < 7; i++) {
+            Label dl = new Label(days[i]);
+            dl.setMinWidth(40); dl.setAlignment(Pos.CENTER);
+            dl.setStyle("-fx-font-weight: bold; -fx-font-size: 11; -fx-text-fill: #6c757d;");
+            grid.add(dl, i, 0);
+        }
+
+        // Days of month
+        LocalDate first = yearMonth.atDay(1);
+        int startCol = first.getDayOfWeek().getValue() - 1; // Mon=0
+        int daysInMonth = yearMonth.lengthOfMonth();
+        LocalDate today = LocalDate.now();
+
+        for (int day = 1; day <= daysInMonth; day++) {
+            LocalDate date = yearMonth.atDay(day);
+            int col = (startCol + day - 1) % 7;
+            int row = (startCol + day - 1) / 7 + 1;
+
+            Button dayBtn = new Button(String.valueOf(day));
+            dayBtn.setMinWidth(40); dayBtn.setMinHeight(36);
+            dayBtn.setAlignment(Pos.CENTER);
+
+            boolean isPast   = date.isBefore(today);
+            boolean isBooked = bookedDates.contains(date);
+            boolean isSelected = date.equals(selectedDate.get());
+            boolean isToday  = date.equals(today);
+
+            String style;
+            if (isBooked) {
+                style = "-fx-background-color: #f8d7da; -fx-text-fill: #721c24; -fx-background-radius: 20; -fx-cursor: default;";
+                dayBtn.setDisable(true);
+                dayBtn.setTooltip(new Tooltip("Rendez-vous déjà prévu ce jour"));
+            } else if (isPast) {
+                style = "-fx-background-color: #e9ecef; -fx-text-fill: #adb5bd; -fx-background-radius: 20; -fx-cursor: default;";
+                dayBtn.setDisable(true);
+            } else if (isSelected) {
+                style = "-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-cursor: hand;";
+            } else if (isToday) {
+                style = "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-font-weight: bold; -fx-background-radius: 20; -fx-cursor: hand;";
+            } else {
+                style = "-fx-background-color: white; -fx-text-fill: #212529; -fx-background-radius: 20; -fx-cursor: hand; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4, 0, 0, 1);";
+            }
+            dayBtn.setStyle(style);
+
+            if (!isPast && !isBooked) {
+                final LocalDate d = date;
+                dayBtn.setOnAction(e -> {
+                    selectedDate.set(d);
+                    buildCalendarPanel(selectedDate, bookedDates, container, yearMonth); // redraw
+                });
+                // Hover effects
+                final String base = style;
+                if (!isSelected) {
+                    dayBtn.setOnMouseEntered(ev -> dayBtn.setStyle(
+                            "-fx-background-color: #e8e9ff; -fx-text-fill: #212529; -fx-background-radius: 20; -fx-cursor: hand;"));
+                    dayBtn.setOnMouseExited(ev -> dayBtn.setStyle(base));
+                }
+            }
+            grid.add(dayBtn, col, row);
+        }
+
+        // Legend
+        HBox legend = new HBox(12);
+        legend.setAlignment(Pos.CENTER);
+        legend.getChildren().addAll(
+            legendDot("#f8d7da", "#721c24", "Réservé"),
+            legendDot("#667eea", "white",   "Sélectionné"),
+            legendDot("#d4edda", "#155724", "Aujourd'hui"),
+            legendDot("white",   "#333",    "Disponible")
+        );
+
+        container.getChildren().addAll(header, grid, legend);
+    }
+
+    private HBox legendDot(String bg, String fg, String text) {
+        Label dot = new Label("●");
+        dot.setStyle("-fx-text-fill: " + bg + "; -fx-font-size: 16;");
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size: 11; -fx-text-fill: #495057;");
+        HBox h = new HBox(4, dot, lbl);
+        h.setAlignment(Pos.CENTER_LEFT);
+        return h;
+    }
+
+    // ── Booked dates for current user ──────────────────────────────────────
+    private Set<LocalDate> getBookedDates() {
+        Set<LocalDate> booked = new HashSet<>();
+        List<Meeting> myMeetings = meetingController.findByOrganizer(currentUserId);
+        for (Meeting m : myMeetings) {
+            if (m.getScheduledAt() != null &&
+                    !"cancelled".equalsIgnoreCase(m.getStatus()) &&
+                    !"completed".equalsIgnoreCase(m.getStatus())) {
+                booked.add(m.getScheduledAt().toLocalDate());
+            }
+        }
+        return booked;
+    }
+
+    // ── Map picker using WebView + OpenStreetMap / Leaflet ─────────────────
+    private String showMapPickerDialog() {
+        Stage mapStage = new Stage();
+        mapStage.initModality(Modality.APPLICATION_MODAL);
+        mapStage.setTitle("📍 Choisir un lieu sur la carte");
+
+        WebView webView = new WebView();
+        WebEngine engine = webView.getEngine();
+        webView.setPrefSize(700, 450);
+
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="utf-8"/>
+              <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+              <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+              <style>html,body,#map{height:100%;margin:0;padding:0;}</style>
+            </head>
+            <body>
+              <div id="map"></div>
+              <script>
+                window.selectedAddress = '';
+                var map = L.map('map').setView([36.8, 10.18], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  {attribution:'© OpenStreetMap contributors'}).addTo(map);
+                var marker = null;
+                map.on('click', function(e){
+                  var lat = e.latlng.lat.toFixed(6);
+                  var lng = e.latlng.lng.toFixed(6);
+                  if(marker) map.removeLayer(marker);
+                  marker = L.marker([lat, lng]).addTo(map);
+                  // Reverse geocode via Nominatim
+                  fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng)
+                    .then(r => r.json())
+                    .then(d => {
+                      window.selectedAddress = d.display_name || (lat+', '+lng);
+                      marker.bindPopup('<b>'+window.selectedAddress+'</b>').openPopup();
+                    })
+                    .catch(()=>{ window.selectedAddress = lat+', '+lng; });
+                });
+              </script>
+            </body>
+            </html>
+            """;
+
+        engine.loadContent(html);
+
+        Label hint = new Label("Cliquez sur la carte pour choisir l'emplacement");
+        hint.setStyle("-fx-font-size: 13; -fx-text-fill: #495057; -fx-padding: 6;");
+
+        TextField addrField = new TextField();
+        addrField.setPromptText("L'adresse s'affichera ici après avoir cliqué");
+        addrField.setEditable(false);
+        addrField.setStyle("-fx-padding: 8;");
+
+        Button confirmBtn = new Button("✅ Confirmer ce lieu");
+        confirmBtn.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; " +
+                "-fx-background-radius: 20; -fx-padding: 8 20; -fx-cursor: hand;");
+
+        // Poll for JS result every 500 ms so the address field stays up to date
+        javafx.animation.Timeline poller = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.millis(500), ae -> {
+                try {
+                    Object res = engine.executeScript("window.selectedAddress");
+                    if (res instanceof String s && !s.isEmpty()) addrField.setText(s);
+                } catch (Exception ignored) {}
+            })
+        );
+        poller.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        poller.play();
+
+        Button cancelBtn = new Button("Annuler");
+        cancelBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        String[] result = {null};
+        confirmBtn.setOnAction(e -> {
+            if (!addrField.getText().isEmpty()) {
+                result[0] = addrField.getText();
+                poller.stop();
+                mapStage.close();
+            }
+        });
+        cancelBtn.setOnAction(e -> { poller.stop(); mapStage.close(); });
+
+        HBox btnRow = new HBox(10, confirmBtn, cancelBtn);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+        btnRow.setPadding(new Insets(8));
+
+        VBox root = new VBox(4, hint, webView, addrField, btnRow);
+        mapStage.setScene(new Scene(root, 700, 560));
+        mapStage.showAndWait();
+        return result[0];
+    }
+
+    // ── Real Google Meet via OAuth2 PKCE + Google Calendar API ───────────────
+    /**
+     * Opens the user's browser for Google sign-in, then calls the Google Calendar API
+     * to create a real event with a Google Meet conference link.
+     *
+     * Prerequisites (one-time setup):
+     *  1. Go to https://console.cloud.google.com and create a project.
+     *  2. Enable the "Google Calendar API".
+     *  3. Create OAuth 2.0 credentials → Application type: "Desktop app".
+     *  4. Copy the Client ID into the GOOGLE_CLIENT_ID constant at the top of this file.
+     *
+     * @return the real hangoutLink (e.g. https://meet.google.com/abc-defg-hij) or null on failure
+     */
+    /**
+     * Creates a REAL Google Meet room via the Google Calendar API and returns the hangout link.
+     *
+     * Token priority:
+     *  1. Cached token from a previous call this session (calendarAccessToken field)
+     *  2. Full browser OAuth flow — opens once, then the token is cached for the rest of the session
+     *
+     * NOTE: Your Google Sign-In must request the extra scope:
+     *       https://www.googleapis.com/auth/calendar.events
+     *       If it currently only uses openid/email/profile you'll hit step 3 the first time.
+     */
+    private String createRealGoogleMeetLink(LocalDateTime scheduledAt, int durationMinutes, String meetingTitle) {
+        try {
+            // ── 1. Try cached token ──────────────────────────────────────────
+            String accessToken = calendarAccessToken;
+
+            // ── 2. Full PKCE browser OAuth flow (only if nothing is cached) ──
+            // The token is cached in calendarAccessToken after the first successful login,
+            // so the browser will only open once per app session.
+            if (accessToken == null || accessToken.isEmpty()) {
+                accessToken = doGoogleCalendarOAuthFlow();
+                if (accessToken == null) return null; // user cancelled or error
+            }
+
+            // ── Try calling the API; if 401 clear cache and retry once ───────
+            String link = callCalendarApiCreateMeet(accessToken, scheduledAt, durationMinutes, meetingTitle);
+            if (link == null && calendarAccessToken != null) {
+                // Token may be expired – clear and retry via OAuth
+                calendarAccessToken = null;
+                accessToken = doGoogleCalendarOAuthFlow();
+                if (accessToken == null) return null;
+                link = callCalendarApiCreateMeet(accessToken, scheduledAt, durationMinutes, meetingTitle);
+            }
+
+            // ── Cache the working token ──────────────────────────────────────
+            if (link != null) calendarAccessToken = accessToken;
+            return link;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur Google Meet", "Impossible de créer la réunion : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Performs the PKCE OAuth consent flow and returns the access token, or null on failure. */
+    private String doGoogleCalendarOAuthFlow() {
+        if (GOOGLE_CLIENT_ID.startsWith("YOUR_GOOGLE") || GOOGLE_CLIENT_SECRET.startsWith("YOUR_CLIENT_SECRET")) {
+            showAlert("Configuration requise",
+                "Renseignez votre Google Client ID dans la constante GOOGLE_CLIENT_ID.\n\n" +
+                "1. https://console.cloud.google.com → nouveau projet\n" +
+                "2. Activez « Google Calendar API »\n" +
+                "3. Créez un identifiant OAuth 2.0 (Application de bureau)\n" +
+                "4. Ajoutez le scope : calendar.events\n" +
+                "5. Copiez le Client ID dans le code source.");
+            return null;
+        }
+        try {
+            // PKCE code_verifier + code_challenge
+            byte[] verifierBytes = new byte[32];
+            new SecureRandom().nextBytes(verifierBytes);
+            String codeVerifier = Base64.getUrlEncoder().withoutPadding().encodeToString(verifierBytes);
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(
+                    codeVerifier.getBytes(StandardCharsets.UTF_8));
+            String codeChallenge = Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
+
+            // Local callback HTTP server
+            HttpServer callbackServer = HttpServer.create(new InetSocketAddress(8765), 0);
+            CompletableFuture<String> authCodeFuture = new CompletableFuture<>();
+            callbackServer.createContext("/callback", exchange -> {
+                String query = exchange.getRequestURI().getQuery();
+                String code = null;
+                if (query != null)
+                    for (String param : query.split("&"))
+                        if (param.startsWith("code=")) { code = param.substring(5); break; }
+                String html = "<!DOCTYPE html><html lang='fr'><head><meta charset='UTF-8'/>" +
+                    "<meta name='viewport' content='width=device-width,initial-scale=1'/>" +
+                    "<title>Ghrami – Connexion réussie</title>" +
+                    "<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' rel='stylesheet'/>" +
+                    "<style>" +
+                    "*{margin:0;padding:0;box-sizing:border-box;}" +
+                    "body{font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;" +
+                    "justify-content:center;background:linear-gradient(135deg,#5a3fb8 0%,#6b4fd1 45%,#7c5cff 100%);overflow:hidden;}" +
+                    ".blob{position:fixed;border-radius:50%;opacity:.13;pointer-events:none;}" +
+                    ".b1{width:700px;height:700px;background:white;top:-220px;left:-200px;}" +
+                    ".b2{width:500px;height:500px;background:white;bottom:-160px;right:-150px;}" +
+                    ".b3{width:280px;height:280px;background:white;top:42%;right:4%;}" +
+                    ".card{position:relative;background:white;border-radius:28px;padding:56px 52px 48px;" +
+                    "text-align:center;max-width:460px;width:calc(100% - 40px);" +
+                    "box-shadow:0 32px 80px rgba(90,63,184,.38),0 8px 24px rgba(90,63,184,.18);}" +
+                    ".logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:32px;}" +
+                    ".logo-box{width:48px;height:48px;border-radius:13px;" +
+                    "background:linear-gradient(135deg,#5a3fb8,#7c5cff);" +
+                    "display:flex;align-items:center;justify-content:center;" +
+                    "font-size:24px;color:white;font-weight:800;}" +
+                    ".logo-name{font-size:24px;font-weight:800;" +
+                    "background:linear-gradient(135deg,#5a3fb8,#7c5cff);" +
+                    "-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}" +
+                    ".ring{width:88px;height:88px;border-radius:50%;" +
+                    "background:linear-gradient(135deg,#5a3fb8,#7c5cff);" +
+                    "display:flex;align-items:center;justify-content:center;" +
+                    "margin:0 auto 26px;" +
+                    "box-shadow:0 12px 36px rgba(102,126,234,.55);" +
+                    "animation:pop .55s cubic-bezier(.34,1.56,.64,1) both;}" +
+                    "@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}" +
+                    "h1{font-size:1.7rem;font-weight:800;color:#1c1e21;margin-bottom:12px;}" +
+                    "p{font-size:.97rem;color:#65676b;line-height:1.65;margin-bottom:30px;}" +
+                    ".badge{display:inline-flex;align-items:center;gap:8px;" +
+                    "padding:10px 22px;border-radius:50px;" +
+                    "background:linear-gradient(135deg,rgba(90,63,184,.1),rgba(124,92,255,.1));" +
+                    "border:1.5px solid rgba(102,126,234,.25);margin-bottom:32px;}" +
+                    ".dot{width:8px;height:8px;border-radius:50%;background:#5a3fb8;" +
+                    "animation:pulse 1.6s ease-in-out infinite;}" +
+                    "@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}" +
+                    ".badge-text{font-size:.84rem;font-weight:700;color:#5a3fb8;}" +
+                    ".divider{height:1px;background:linear-gradient(to right,transparent,#e4e6eb,transparent);margin-bottom:22px;}" +
+                    ".hint{font-size:.78rem;color:#adb5bd;}" +
+                    ".brand{font-size:.72rem;color:#c0c4cc;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-top:18px;}" +
+                    "</style></head><body>" +
+                    "<div class='blob b1'></div><div class='blob b2'></div><div class='blob b3'></div>" +
+                    "<div class='card'>" +
+                    "<div class='logo'><div class='logo-box'>G</div><span class='logo-name'>Ghrami</span></div>" +
+                    "<div class='ring'><svg width='42' height='42' viewBox='0 0 42 42' fill='none'>" +
+                    "<path d='M7 21L17 31L35 11' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/>" +
+                    "</svg></div>" +
+                    "<h1>Connexion réussie\u00a0!</h1>" +
+                    "<p>Votre compte Google a été autorisé avec succès.<br/>Retournez à l'application — votre réunion est en cours de création.</p>" +
+                    "<div class='badge'><div class='dot'></div><span class='badge-text'>Google Meet activé</span></div>" +
+                    "<div class='divider'></div>" +
+                    "<p class='hint'>Vous pouvez fermer cet onglet</p>" +
+                    "<p class='brand'>by OPGG</p>" +
+                    "</div></body></html>";
+                exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+                exchange.sendResponseHeaders(200, html.getBytes(StandardCharsets.UTF_8).length);
+                try (OutputStream os = exchange.getResponseBody()) { os.write(html.getBytes(StandardCharsets.UTF_8)); }
+                authCodeFuture.complete(code);
+            });
+            callbackServer.setExecutor(null);
+            callbackServer.start();
+
+            // Open Google consent screen in browser
+            String authUrl = "https://accounts.google.com/o/oauth2/v2/auth"
+                + "?client_id="           + URLEncoder.encode(GOOGLE_CLIENT_ID, StandardCharsets.UTF_8)
+                + "&redirect_uri="        + URLEncoder.encode(GOOGLE_REDIRECT_URI, StandardCharsets.UTF_8)
+                + "&response_type=code"
+                + "&scope="              + URLEncoder.encode(GOOGLE_SCOPE, StandardCharsets.UTF_8)
+                + "&code_challenge="     + codeChallenge
+                + "&code_challenge_method=S256"
+                + "&access_type=offline"
+                + "&prompt=consent";
+
+            Alert info = new Alert(Alert.AlertType.INFORMATION);
+            info.setTitle("Connexion Google requise");
+            info.setHeaderText("Votre navigateur va s'ouvrir");
+            info.setContentText("Connectez-vous à Google pour autoriser la création de réunions Meet.\nRevenez ici – la fenêtre se fermera automatiquement.");
+            info.showAndWait();
+
+            Desktop.getDesktop().browse(new URI(authUrl));
+
+            // Wait for the auth code (2-minute timeout)
+            String authCode = authCodeFuture.get(120, TimeUnit.SECONDS);
+            callbackServer.stop(0);
+            if (authCode == null) { showAlert("Erreur", "Code d'autorisation non reçu."); return null; }
+
+            // Exchange auth code → access token
+            String tokenBody = "client_id="     + URLEncoder.encode(GOOGLE_CLIENT_ID, StandardCharsets.UTF_8)
+                + "&client_secret="             + URLEncoder.encode(GOOGLE_CLIENT_SECRET, StandardCharsets.UTF_8)
+                + "&code="                      + URLEncoder.encode(authCode, StandardCharsets.UTF_8)
+                + "&code_verifier="             + URLEncoder.encode(codeVerifier, StandardCharsets.UTF_8)
+                + "&grant_type=authorization_code"
+                + "&redirect_uri="              + URLEncoder.encode(GOOGLE_REDIRECT_URI, StandardCharsets.UTF_8);
+
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpRequest tokenRequest = HttpRequest.newBuilder()
+                .uri(new URI("https://oauth2.googleapis.com/token"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
+                .build();
+
+            HttpResponse<String> tokenResponse = httpClient.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+            String accessToken = extractJsonValue(tokenResponse.body(), "access_token");
+            if (accessToken == null) {
+                showAlert("Erreur Google", "Token d'accès non obtenu.\n" + tokenResponse.body());
+                return null;
+            }
+            return accessToken;
+
+        } catch (java.util.concurrent.TimeoutException e) {
+            showAlert("Délai dépassé", "L'authentification Google a expiré (2 min). Veuillez réessayer.");
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur OAuth", "Erreur d'authentification Google : " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Calls the Google Calendar API to create an event with a Meet conference and returns the hangoutLink. */
+    private String callCalendarApiCreateMeet(String accessToken,
+                                              LocalDateTime scheduledAt,
+                                              int durationMinutes,
+                                              String title) throws Exception {
+        String startIso = scheduledAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        String endIso   = scheduledAt.plusMinutes(durationMinutes)
+                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        String requestId = "ghrami-" + System.currentTimeMillis();
+
+        String eventJson = "{"
+            + "\"summary\": \"" + title.replace("\"", "'") + "\","
+            + "\"start\": {\"dateTime\": \"" + startIso + "\", \"timeZone\": \"Africa/Tunis\"},"
+            + "\"end\":   {\"dateTime\": \"" + endIso   + "\", \"timeZone\": \"Africa/Tunis\"},"
+            + "\"conferenceData\": {"
+            + "  \"createRequest\": {"
+            + "    \"requestId\": \"" + requestId + "\","
+            + "    \"conferenceSolutionKey\": {\"type\": \"hangoutsMeet\"}"
+            + "  }"
+            + "}"
+            + "}";
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+        HttpRequest eventRequest = HttpRequest.newBuilder()
+            .uri(new URI("https://www.googleapis.com/calendar/v3/calendars/primary/events"
+                         + "?conferenceDataVersion=1"))
+            .header("Authorization", "Bearer " + accessToken)
+            .header("Content-Type", "application/json; charset=UTF-8")
+            .POST(HttpRequest.BodyPublishers.ofString(eventJson, StandardCharsets.UTF_8))
+            .build();
+
+        HttpResponse<String> eventResponse = httpClient.send(eventRequest, HttpResponse.BodyHandlers.ofString());
+
+        // 401 = token expired → caller will retry with fresh token
+        if (eventResponse.statusCode() == 401) return null;
+
+        String hangoutLink = extractJsonValue(eventResponse.body(), "hangoutLink");
+        if (hangoutLink == null) {
+            showAlert("Erreur Google Calendar",
+                "Impossible de créer la réunion Meet.\nCode: " + eventResponse.statusCode() +
+                "\nRéponse: " + eventResponse.body().substring(0, Math.min(300, eventResponse.body().length())));
+        }
+        return hangoutLink;
+    }
+
+    /** Simple JSON string-field extractor (no external library needed). */
+    private String extractJsonValue(String json, String key) {
+        String search = "\"" + key + "\"";
+        int keyIdx = json.indexOf(search);
+        if (keyIdx < 0) return null;
+        int colon = json.indexOf(':', keyIdx + search.length());
+        if (colon < 0) return null;
+        // Find the opening quote
+        int start = json.indexOf('"', colon + 1);
+        if (start < 0) return null;
+        int end = start + 1;
+        while (end < json.length()) {
+            if (json.charAt(end) == '"' && json.charAt(end - 1) != '\\') break;
+            end++;
+        }
+        return json.substring(start + 1, end);
+    }
+
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
