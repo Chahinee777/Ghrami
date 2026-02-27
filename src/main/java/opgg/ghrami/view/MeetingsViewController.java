@@ -2096,6 +2096,7 @@ public class MeetingsViewController {
                 link = callCalendarApiCreateMeet(accessToken, scheduledAt, durationMinutes, meetingTitle);
             }
 
+
             // ── Cache the working token ──────────────────────────────────────
             if (link != null) calendarAccessToken = accessToken;
             return link;
