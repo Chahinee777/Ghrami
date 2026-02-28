@@ -3,9 +3,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### Sensitive Config ###
+### Sensitive Config — NEVER commit these files ###
 src/main/resources/google_oauth.properties
 src/main/resources/db.properties
+src/main/resources/ai_config.properties
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

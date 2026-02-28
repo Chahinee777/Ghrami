@@ -27,8 +27,8 @@ public class ClassController {
      * Create a new class
      */
     public boolean create(ClassEntity classEntity) {
-        String sql = "INSERT INTO classes (provider_id, title, description, category, price, duration, max_participants) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO classes (provider_id, title, description, category, price, duration, max_participants, video_path, image_path) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -40,6 +40,8 @@ public class ClassController {
             stmt.setDouble(5, classEntity.getPrice());
             stmt.setInt(6, classEntity.getDuration());
             stmt.setInt(7, classEntity.getMaxParticipants());
+            stmt.setString(8, classEntity.getVideoPath());
+            stmt.setString(9, classEntity.getImagePath());
             
             int affectedRows = stmt.executeUpdate();
             
@@ -238,7 +240,7 @@ public class ClassController {
      */
     public boolean update(ClassEntity classEntity) {
         String sql = "UPDATE classes SET title = ?, description = ?, category = ?, " +
-                    "price = ?, duration = ?, max_participants = ? WHERE class_id = ?";
+                    "price = ?, duration = ?, max_participants = ?, video_path = ?, image_path = ? WHERE class_id = ?";
         
         try (Connection conn = DatabaseConnection.getInstance().getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -249,7 +251,9 @@ public class ClassController {
             stmt.setDouble(4, classEntity.getPrice());
             stmt.setInt(5, classEntity.getDuration());
             stmt.setInt(6, classEntity.getMaxParticipants());
-            stmt.setLong(7, classEntity.getClassId());
+            stmt.setString(7, classEntity.getVideoPath());
+            stmt.setString(8, classEntity.getImagePath());
+            stmt.setLong(9, classEntity.getClassId());
             
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
@@ -344,6 +348,11 @@ public class ClassController {
         
         // Enrollment
         classEntity.setCurrentEnrollment(rs.getInt("current_enrollment"));
+        
+        // Video path
+        try { classEntity.setVideoPath(rs.getString("video_path")); } catch (SQLException ignored) {}
+        // Image / thumbnail path
+        try { classEntity.setImagePath(rs.getString("image_path")); } catch (SQLException ignored) {}
         
         return classEntity;
     }

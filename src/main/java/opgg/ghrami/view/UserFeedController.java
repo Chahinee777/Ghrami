@@ -8,38 +8,41 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.shape.Circle;
-import javafx.scene.paint.ImagePattern;
-import javafx.stage.Stage;
-import javafx.stage.Modality;
-import javafx.stage.FileChooser;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.animation.PauseTransition;
 import javafx.animation.FadeTransition;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+import opgg.ghrami.controller.CommentController;
 import opgg.ghrami.controller.FriendshipController;
 import opgg.ghrami.controller.HobbyController;
 import opgg.ghrami.controller.MessageController;
 import opgg.ghrami.controller.NotificationController;
 import opgg.ghrami.controller.PostController;
-import opgg.ghrami.controller.CommentController;
 import opgg.ghrami.controller.StoryController;
 import opgg.ghrami.controller.UserController;
+import opgg.ghrami.model.Comment;
 import opgg.ghrami.model.Friendship;
 import opgg.ghrami.model.Hobby;
 import opgg.ghrami.model.Notification;
 import opgg.ghrami.model.Post;
-import opgg.ghrami.model.Comment;
 import opgg.ghrami.model.Story;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.HuggingFaceService;
 import opgg.ghrami.util.SessionManager;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,9 +65,20 @@ public class UserFeedController implements Initializable {
     @FXML private Label messagesBadge;
     
     // Post Creation
-    @FXML private TextField postTextField;
+    @FXML private Circle postProfileCircle;
+    @FXML private TextArea postTextArea;
     @FXML private VBox feedContainer;
     @FXML private HBox storiesContainer;
+
+    // AI feature controls
+    @FXML private Label aiStatusLabel;
+    @FXML private javafx.scene.image.ImageView aiImagePreview;
+    @FXML private StackPane aiImageContainer;
+    @FXML private Button btnAiComplete;
+    @FXML private Button btnAiImage;
+
+    // AI state
+    private byte[] aiGeneratedImageBytes = null;
     
     private SessionManager sessionManager;
     private UserController userController;
@@ -145,6 +159,7 @@ public class UserFeedController implements Initializable {
                             ImagePattern pattern = new ImagePattern(image);
                             menuProfileCircle.setFill(pattern);
                             sidebarProfileCircle.setFill(pattern);
+                            postProfileCircle.setFill(pattern);
                         });
                     }
                 });
@@ -163,6 +178,7 @@ public class UserFeedController implements Initializable {
                 ImagePattern pattern = new ImagePattern(image);
                 menuProfileCircle.setFill(pattern);
                 sidebarProfileCircle.setFill(pattern);
+                postProfileCircle.setFill(pattern);
             }
 
         } catch (Exception e) {
@@ -176,8 +192,12 @@ public class UserFeedController implements Initializable {
         storiesContainer.getChildren().clear();
         long currentUserId = sessionManager.getUserId();
 
+        User currentUser = userController.findById((int) currentUserId);
+        String currentUserProfilePic = (currentUser != null && currentUser.getProfilePicture() != null) 
+                ? currentUser.getProfilePicture() : null;
+
         boolean myHasStory = storyController.hasActiveStory(currentUserId);
-        VBox addStory = buildStoryCard(currentUserId, "Ma Story", null, myHasStory, true);
+        VBox addStory = buildStoryCard(currentUserId, "Ma Story", currentUserProfilePic, myHasStory, true);
         addStory.setOnMouseClicked(e -> handleCreateStory());
         storiesContainer.getChildren().add(addStory);
 
@@ -1311,11 +1331,26 @@ public class UserFeedController implements Initializable {
             double width = stage.getWidth();
             double height = stage.getHeight();
             boolean wasMaximized = stage.isMaximized();
-            
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/BadgesView.fxml"));
-            Scene scene = new Scene(loader.load(), width, height);
+
+            // Read FXML bytes and strip UTF-8 BOM (EF BB BF) if present,
+            // which would otherwise cause "Content is not allowed in prolog" from the XML parser.
+            byte[] fxmlBytes;
+            try (InputStream raw = getClass().getResourceAsStream("/opgg/ghrami/view/BadgesView.fxml")) {
+                fxmlBytes = raw.readAllBytes();
+            }
+            int start = 0;
+            if (fxmlBytes.length >= 3
+                    && fxmlBytes[0] == (byte) 0xEF
+                    && fxmlBytes[1] == (byte) 0xBB
+                    && fxmlBytes[2] == (byte) 0xBF) {
+                start = 3;
+            }
+
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(getClass().getResource("/opgg/ghrami/view/BadgesView.fxml"));
+            Scene scene = new Scene(loader.load(new ByteArrayInputStream(fxmlBytes, start, fxmlBytes.length - start)), width, height);
             scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
-            
+
             stage.setScene(scene);
             stage.setTitle("Ghrami - Mes Badges");
             if (wasMaximized) {
@@ -1387,7 +1422,22 @@ public class UserFeedController implements Initializable {
     
     @FXML
     private void handleVRRooms() {
-        System.out.println("VR Rooms clicked");
+        try {
+            Stage stage = (Stage) searchField.getScene().getWindow();
+            double w = stage.getWidth();
+            double h = stage.getHeight();
+            boolean maximized = stage.isMaximized();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/VRRoomsView.fxml"));
+            Scene scene = new Scene(loader.load(), w, h);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("Ghrami — 🎮 Salles VR");
+            if (maximized) stage.setMaximized(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir les Salles VR : " + e.getMessage());
+        }
     }
     
     // Post Actions
@@ -1401,7 +1451,7 @@ public class UserFeedController implements Initializable {
                 new FileChooser.ExtensionFilter("Tous les fichiers", "*.*")
             );
             
-            File selectedFile = fileChooser.showOpenDialog(postTextField.getScene().getWindow());
+            File selectedFile = fileChooser.showOpenDialog(postTextArea.getScene().getWindow());
             
             if (selectedFile != null) {
                 Path postsDir = Paths.get("src/main/resources/images/posts/");
@@ -1415,7 +1465,39 @@ public class UserFeedController implements Initializable {
                 Files.copy(selectedFile.toPath(), destinationPath);
                 
                 selectedImagePath = fileName;
-                showAlert("Succès", "Image sélectionnée: " + selectedFile.getName());
+
+                // ── Auto-caption the uploaded image with AI ──────────────────────
+                showAiStatus("🤖 Analyse de l'image en cours...");
+                setAiButtonsDisabled(true);
+                final File finalFile = selectedFile;
+                Thread captionThread = new Thread(() -> {
+                    try {
+                        byte[] imageBytes = java.nio.file.Files.readAllBytes(finalFile.toPath());
+                        String caption = HuggingFaceService.getInstance().captionImage(imageBytes);
+                        javafx.application.Platform.runLater(() -> {
+                            if (postTextArea.getText().isBlank()) {
+                                postTextArea.setText(caption);
+                            } else {
+                                postTextArea.appendText("\n" + caption);
+                            }
+                            showAiStatus("✅ Légende générée par l'IA !");
+                            setAiButtonsDisabled(false);
+                            // Auto-hide status after 4 seconds
+                            PauseTransition hide = new PauseTransition(Duration.seconds(4));
+                            hide.setOnFinished(ev -> hideAiStatus());
+                            hide.play();
+                        });
+                    } catch (Exception ex) {
+                        javafx.application.Platform.runLater(() -> {
+                            showAiStatus("⚠️ Impossible de générer la légende: " + ex.getMessage());
+                            setAiButtonsDisabled(false);
+                        });
+                        ex.printStackTrace();
+                    }
+                });
+                captionThread.setDaemon(true);
+                captionThread.start();
+                // ────────────────────────────────────────────────────────────────
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1427,39 +1509,180 @@ public class UserFeedController implements Initializable {
     private void handleAddHobby() {
         showAlert("Info", "Fonctionnalité d'ajout de hobby à venir!");
     }
-    
+
     @FXML
     private void handleAddFeeling() {
         showAlert("Info", "Fonctionnalité d'ajout de sentiment à venir!");
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  AI FEATURE HANDLERS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Feature 1 – AI text completion.
+     * Takes the current text and asks Hugging Face to continue it.
+     */
+    @FXML
+    private void handleAiComplete() {
+        String currentText = postTextArea.getText();
+        if (currentText == null || currentText.isBlank()) {
+            showAlert("Info", "Écrivez quelques mots d'abord, puis l'IA complétera votre post.");
+            return;
+        }
+        showAiStatus("🤖 L'IA complète votre texte...");
+        setAiButtonsDisabled(true);
+
+        Thread t = new Thread(() -> {
+            try {
+                String completion = HuggingFaceService.getInstance().completeText(currentText);
+                javafx.application.Platform.runLater(() -> {
+                    // Append the completion to what the user already wrote
+                    String separator = currentText.endsWith(" ") ? "" : " ";
+                    postTextArea.setText(currentText + separator + completion);
+                    postTextArea.positionCaret(postTextArea.getText().length());
+                    showAiStatus("✅ Texte complété !");
+                    setAiButtonsDisabled(false);
+                    PauseTransition hide = new PauseTransition(Duration.seconds(4));
+                    hide.setOnFinished(ev -> hideAiStatus());
+                    hide.play();
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() -> {
+                    showAiStatus("⚠️ Erreur: " + ex.getMessage());
+                    setAiButtonsDisabled(false);
+                });
+                ex.printStackTrace();
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * Feature 2 – Image generation.
+     * Generates an image based on the current post text.
+     */
+    @FXML
+    private void handleAiGenerateImage() {
+        String prompt = postTextArea.getText();
+        if (prompt == null || prompt.isBlank()) {
+            showAlert("Info", "Décrivez d'abord votre post, puis l'IA créera une image correspondante.");
+            return;
+        }
+        showAiStatus("🎨 Génération de l'image en cours (peut prendre ~30s)...");
+        setAiButtonsDisabled(true);
+
+        Thread t = new Thread(() -> {
+            try {
+                byte[] imageBytes = HuggingFaceService.getInstance().generateImage(prompt);
+                javafx.application.Platform.runLater(() -> {
+                    try {
+                        aiGeneratedImageBytes = imageBytes;
+                        javafx.scene.image.Image img = new javafx.scene.image.Image(
+                                new ByteArrayInputStream(imageBytes));
+                        aiImagePreview.setImage(img);
+                        aiImageContainer.setVisible(true);
+                        aiImageContainer.setManaged(true);
+                        showAiStatus("✅ Image générée !");
+                        setAiButtonsDisabled(false);
+                        PauseTransition hide = new PauseTransition(Duration.seconds(5));
+                        hide.setOnFinished(ev -> hideAiStatus());
+                        hide.play();
+                    } catch (Exception inner) {
+                        showAiStatus("⚠️ Impossible d'afficher l'image.");
+                        setAiButtonsDisabled(false);
+                    }
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() -> {
+                    showAiStatus("⚠️ Erreur: " + ex.getMessage());
+                    setAiButtonsDisabled(false);
+                });
+                ex.printStackTrace();
+            }
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * Removes the AI-generated image preview.
+     */
+    @FXML
+    private void handleRemoveAiImage() {
+        aiGeneratedImageBytes = null;
+        aiImagePreview.setImage(null);
+        aiImageContainer.setVisible(false);
+        aiImageContainer.setManaged(false);
+    }
+
+    // ── AI UI helpers ─────────────────────────────────────────────────────────
+
+    private void showAiStatus(String message) {
+        if (aiStatusLabel != null) {
+            aiStatusLabel.setText(message);
+            aiStatusLabel.setVisible(true);
+            aiStatusLabel.setManaged(true);
+        }
+    }
+
+    private void hideAiStatus() {
+        if (aiStatusLabel != null) {
+            aiStatusLabel.setVisible(false);
+            aiStatusLabel.setManaged(false);
+        }
+    }
+
+    private void setAiButtonsDisabled(boolean disabled) {
+        if (btnAiComplete != null) btnAiComplete.setDisable(disabled);
+        if (btnAiImage != null)    btnAiImage.setDisable(disabled);
     }
     
     @FXML
     private void handlePublish() {
         try {
-            String postText = postTextField.getText();
+            String postText = postTextArea.getText();
             if (postText == null || postText.trim().isEmpty()) {
                 showAlert("Erreur", "Le contenu du post ne peut pas être vide");
                 return;
             }
-            
             if (postText.length() > 5000) {
                 showAlert("Erreur", "Le contenu du post est trop long (max 5000 caractères)");
                 return;
             }
-            
+
             long userId = sessionManager.getUserId();
+
+            // If an AI-generated image exists, save it as a file first
+            if (aiGeneratedImageBytes != null && (selectedImagePath == null || selectedImagePath.isEmpty())) {
+                try {
+                    Path postsDir = Paths.get("src/main/resources/images/posts/");
+                    if (!Files.exists(postsDir)) Files.createDirectories(postsDir);
+                    String fname = userId + "_ai_" + System.currentTimeMillis() + ".png";
+                    Path dest = postsDir.resolve(fname);
+                    Files.write(dest, aiGeneratedImageBytes);
+                    selectedImagePath = fname;
+                } catch (Exception saveEx) {
+                    saveEx.printStackTrace();
+                }
+            }
+
             Post newPost;
             if (selectedImagePath != null && !selectedImagePath.isEmpty()) {
                 newPost = new Post(userId, postText.trim(), selectedImagePath);
             } else {
                 newPost = new Post(userId, postText.trim());
             }
-            
+
             Post created = postController.create(newPost);
-            
+
             if (created != null) {
-                postTextField.clear();
+                postTextArea.clear();
                 selectedImagePath = null;
+                aiGeneratedImageBytes = null;
+                handleRemoveAiImage();
+                hideAiStatus();
                 loadFeed();
                 loadUserInfo();
                 showAlert("Succès", "Post publié avec succès! 🎉");

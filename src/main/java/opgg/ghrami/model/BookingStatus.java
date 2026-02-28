@@ -4,6 +4,7 @@ package opgg.ghrami.model;
  * Enum representing the status of a booking
  */
 public enum BookingStatus {
+    PENDING("pending"),
     SCHEDULED("scheduled"),
     COMPLETED("completed"),
     CANCELLED("cancelled");

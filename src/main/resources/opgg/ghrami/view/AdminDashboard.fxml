@@ -328,6 +328,19 @@
                         </ScrollPane>
                     </Tab>
                     
+                    <!-- ============= ANALYTICS TAB ============= -->
+                    <Tab>
+                        <graphic>
+                            <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                                <Label text="📊" style="-fx-font-size: 18;"/>
+                                <Label text="Analytics" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                            </HBox>
+                        </graphic>
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                            <VBox fx:id="analyticsContainer" spacing="22" style="-fx-padding: 28; -fx-background-color: transparent;"/>
+                        </ScrollPane>
+                    </Tab>
+
                 </TabPane>
                 
                 <!-- Modern Footer -->

@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="opgg.ghrami.view.VRRoomsController"
+            stylesheets="@../../../css/social-style.css"
+            prefWidth="1400" prefHeight="900"
+            style="-fx-background-color: #f0f2f5;">
+
+    <!-- ── TOP NAVIGATION (matches UserFeed top-nav) ───────────────────── -->
+    <top>
+        <HBox styleClass="top-nav" alignment="CENTER_LEFT" spacing="20" prefHeight="70">
+            <padding><Insets top="0" right="30" bottom="0" left="30"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <ImageView fitWidth="120" fitHeight="40" preserveRatio="true">
+                    <image><Image url="@../../../images/assets/ghrami-logo.png"/></image>
+                </ImageView>
+            </HBox>
+
+            <!-- Page breadcrumb chip -->
+            <HBox alignment="CENTER" spacing="8"
+                  style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 6 14;">
+                <Label text="🎮" style="-fx-font-size: 15;"/>
+                <Label text="Salles VR"
+                       style="-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #1c1e21;"/>
+            </HBox>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Live counter -->
+            <HBox spacing="7" alignment="CENTER"
+                  style="-fx-background-color: #e6f4ea; -fx-background-radius: 20; -fx-padding: 6 14;">
+                <Circle radius="5" style="-fx-fill: #2e7d32;"/>
+                <Label fx:id="liveCountLabel" text="0 en ligne"
+                       style="-fx-text-fill: #2e7d32; -fx-font-size: 12; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- URL bar (custom nav) -->
+            <HBox styleClass="search-container" alignment="CENTER_LEFT" prefWidth="280">
+                <TextField fx:id="urlBar" promptText="https://framevr.io/..."
+                           styleClass="search-input" HBox.hgrow="ALWAYS"
+                           onAction="#handleGoToUrl"/>
+            </HBox>
+
+            <Button text="▶ Aller" styleClass="btn-primary"
+                    style="-fx-background-radius: 20; -fx-padding: 8 18;"
+                    onAction="#handleGoToUrl"/>
+
+            <Button fx:id="btnBack" text="← Retour" styleClass="btn-secondary"
+                    style="-fx-background-radius: 20; -fx-padding: 8 18;"
+                    onAction="#handleBack"/>
+        </HBox>
+    </top>
+
+    <!-- ── MAIN BODY ──────────────────────────────────────────────────────── -->
+    <center>
+        <HBox style="-fx-background-color: #f0f2f5;" spacing="20">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+            <!-- ── LEFT PANEL ────────────────────────────────────────────── -->
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                <VBox spacing="12" prefWidth="285" maxWidth="285">
+
+                    <!-- Room list card -->
+                    <VBox styleClass="quick-actions-card" spacing="12">
+                        <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+                        <Label text="🌌 Choisir une Salle" styleClass="section-title">
+                            <font><Font name="System Bold" size="14"/></font>
+                        </Label>
+
+                        <HBox styleClass="search-container" alignment="CENTER_LEFT">
+                            <TextField fx:id="roomSearchField"
+                                       promptText="🔍 Filtrer les salles..."
+                                       styleClass="search-input" HBox.hgrow="ALWAYS"
+                                       onKeyReleased="#handleRoomSearch"/>
+                        </HBox>
+
+                        <ScrollPane fitToWidth="true" prefHeight="400" minHeight="400"
+                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                            <VBox fx:id="roomListContainer" spacing="6">
+                                <padding><Insets top="2" right="2" bottom="2" left="0"/></padding>
+                            </VBox>
+                        </ScrollPane>
+                    </VBox>
+
+                    <!-- Create room card -->
+                    <VBox styleClass="quick-actions-card" spacing="10">
+                        <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+
+                        <Label text="✨ Créer votre salle" styleClass="section-title">
+                            <font><Font name="System Bold" size="13"/></font>
+                        </Label>
+                        <Label text="Un nom unique crée automatiquement une nouvelle salle FRAME."
+                               style="-fx-text-fill: #65676b; -fx-font-size: 11;" wrapText="true"/>
+
+                        <TextField fx:id="newRoomNameField"
+                                   promptText="ex: ma-salle-photo"
+                                   style="-fx-background-color: #f0f2f5; -fx-background-radius: 8;
+                                          -fx-border-color: transparent; -fx-padding: 8 12;
+                                          -fx-font-size: 12; -fx-text-fill: #1c1e21;"/>
+
+                        <Button text="✨ Créer &amp; Rejoindre"
+                                styleClass="btn-primary"
+                                maxWidth="Infinity"
+                                style="-fx-background-radius: 8; -fx-padding: 10 0;"
+                                onAction="#handleCreateRoom"/>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+            <!-- ── CENTER PANEL ───────────────────────────────────────────── -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+
+                <!-- WebGL warning banner -->
+                <HBox styleClass="post-card" alignment="CENTER_LEFT" spacing="14">
+                    <padding><Insets top="13" right="20" bottom="13" left="20"/></padding>
+                    <Label text="⚠️" style="-fx-font-size: 20;"/>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="WebGL requis — utilisez votre navigateur pour l'expérience complète"
+                               style="-fx-font-weight: bold; -fx-font-size: 13; -fx-text-fill: #1c1e21;"/>
+                        <Label text="JavaFX ne supporte pas WebGL. La prévisualisation ci-dessous peut afficher une erreur — le bouton ouvre FRAME dans Chrome / Firefox avec WebGL complet."
+                               style="-fx-text-fill: #65676b; -fx-font-size: 11;" wrapText="true"/>
+                    </VBox>
+                    <Button fx:id="btnOpenBrowser"
+                            text="🌐 Ouvrir dans le navigateur"
+                            styleClass="btn-primary"
+                            style="-fx-background-radius: 8; -fx-padding: 10 16; -fx-font-size: 13;"
+                            onAction="#handleOpenInBrowser"/>
+                </HBox>
+
+                <!-- Active Room Hero (hidden until a room is selected) -->
+                <VBox fx:id="roomHeroCard" styleClass="post-card" spacing="0"
+                      visible="false" managed="false">
+                    <StackPane prefHeight="130"
+                               style="-fx-background-color: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+                                      -fx-background-radius: 12 12 0 0;">
+                        <VBox alignment="CENTER" spacing="6">
+                            <Label fx:id="heroEmoji" text="🌐" style="-fx-font-size: 48;"/>
+                            <Label fx:id="heroRoomName" text=""
+                                   style="-fx-text-fill: white; -fx-font-size: 20; -fx-font-weight: bold;"/>
+                        </VBox>
+                    </StackPane>
+                    <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 14 20;">
+                        <VBox spacing="3" HBox.hgrow="ALWAYS">
+                            <Label fx:id="heroDescription" text=""
+                                   style="-fx-text-fill: #65676b; -fx-font-size: 13;"/>
+                            <Label fx:id="heroUrl" text=""
+                                   style="-fx-text-fill: #667eea; -fx-font-size: 11;"/>
+                        </VBox>
+                        <HBox spacing="6" alignment="CENTER"
+                              style="-fx-background-color: #e6f4ea; -fx-background-radius: 20; -fx-padding: 5 12;">
+                            <Circle radius="5" style="-fx-fill: #2e7d32;"/>
+                            <Label fx:id="heroOnline" text=""
+                                   style="-fx-text-fill: #2e7d32; -fx-font-size: 12; -fx-font-weight: bold;"/>
+                        </HBox>
+                        <Button text="🌐 Rejoindre maintenant"
+                                styleClass="btn-primary"
+                                style="-fx-background-radius: 8; -fx-padding: 12 20; -fx-font-size: 14;"
+                                onAction="#handleOpenInBrowser"/>
+                    </HBox>
+                </VBox>
+
+                <!-- WebView / Idle / Loading pane -->
+                <StackPane VBox.vgrow="ALWAYS" styleClass="post-card">
+
+                    <!-- Idle welcome screen -->
+                    <VBox fx:id="idlePane" alignment="CENTER" spacing="22"
+                          style="-fx-background-color: white; -fx-background-radius: 12;"
+                          visible="true" managed="true">
+                        <Label text="🎮" style="-fx-font-size: 80;"/>
+                        <VBox alignment="CENTER" spacing="6">
+                            <Label text="Bienvenue dans les Salles VR"
+                                   style="-fx-text-fill: #1c1e21; -fx-font-size: 22; -fx-font-weight: bold;"/>
+                            <Label text="Sélectionnez une salle à gauche, puis cliquez sur « Ouvrir dans le navigateur »"
+                                   style="-fx-text-fill: #65676b; -fx-font-size: 14;"/>
+                        </VBox>
+                        <HBox spacing="16" alignment="CENTER">
+                            <VBox alignment="CENTER" spacing="8"
+                                  style="-fx-background-color: #f0f2f5; -fx-background-radius: 12; -fx-padding: 16 22;">
+                                <Label text="🎯" style="-fx-font-size: 30;"/>
+                                <Label text="12 Salles thématiques"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 12;"/>
+                            </VBox>
+                            <VBox alignment="CENTER" spacing="8"
+                                  style="-fx-background-color: #f0f2f5; -fx-background-radius: 12; -fx-padding: 16 22;">
+                                <Label text="🌐" style="-fx-font-size: 30;"/>
+                                <Label text="Navigateur requis (WebGL)"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 12;"/>
+                            </VBox>
+                            <VBox alignment="CENTER" spacing="8"
+                                  style="-fx-background-color: #f0f2f5; -fx-background-radius: 12; -fx-padding: 16 22;">
+                                <Label text="🚀" style="-fx-font-size: 30;"/>
+                                <Label text="Gratuit, sans compte"
+                                       style="-fx-font-weight: bold; -fx-text-fill: #1c1e21; -fx-font-size: 12;"/>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Loading indicator -->
+                    <VBox fx:id="loadingPane" alignment="CENTER" spacing="16"
+                          style="-fx-background-color: white; -fx-background-radius: 12;"
+                          visible="false" managed="false">
+                        <Label text="🌐" style="-fx-font-size: 60;"/>
+                        <Label text="Chargement..."
+                               style="-fx-text-fill: #1c1e21; -fx-font-size: 18; -fx-font-weight: bold;"/>
+                        <ProgressIndicator fx:id="loadingIndicator"
+                                           style="-fx-progress-color: #667eea;"
+                                           prefWidth="44" prefHeight="44"/>
+                        <Label fx:id="loadingUrlLabel" text=""
+                               style="-fx-text-fill: #65676b; -fx-font-size: 11;" wrapText="true"/>
+                    </VBox>
+
+                    <!-- Best-effort WebView -->
+                    <WebView fx:id="frameWebView" visible="false" managed="false"/>
+
+                </StackPane>
+            </VBox>
+
+        </HBox>
+    </center>
+
+    <!-- ── STATUS BAR ───────────────────────────────────────────────────── -->
+    <bottom>
+        <HBox spacing="12" alignment="CENTER_LEFT" prefHeight="34"
+              style="-fx-background-color: white; -fx-padding: 0 24;
+                     -fx-border-color: #e4e6eb; -fx-border-width: 1 0 0 0;">
+            <Circle fx:id="statusDot" radius="5" style="-fx-fill: #667eea;"/>
+            <Label fx:id="statusLabel"
+                   text="Sélectionnez une salle pour entrer dans la VR"
+                   style="-fx-text-fill: #65676b; -fx-font-size: 11;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="⚡ Propulsé par FRAME VR · framevr.io"
+                   style="-fx-text-fill: #bcc0c4; -fx-font-size: 10;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

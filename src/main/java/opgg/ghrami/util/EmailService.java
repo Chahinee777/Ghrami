@@ -8,10 +8,10 @@ import java.util.Base64;
 
 public class EmailService {
 
-    private static final String API_KEY    = "0851a8baa5dc2a95b67086153b0eb04c";
-private static final String API_SECRET = "97b1d9db7d49109fc208e309111d09f2";
-    private static final String FROM_EMAIL = "chahineaouledamor721@gmail.com";
-    private static final String FROM_NAME  = "Ghrami Platform";
+    private static final String API_KEY     = ConfigManager.getInstance().getMailjetApiKey();
+    private static final String API_SECRET  = ConfigManager.getInstance().getMailjetApiSecret();
+    private static final String FROM_EMAIL  = ConfigManager.getInstance().getMailjetFromEmail();
+    private static final String FROM_NAME   = ConfigManager.getInstance().getMailjetFromName();
     private static final String MAILJET_URL = "https://api.mailjet.com/v3.1/send";
 
     private static EmailService instance;

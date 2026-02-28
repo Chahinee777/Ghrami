@@ -505,7 +505,7 @@ public class FriendsViewController implements Initializable {
         Button messageBtn = new Button("💬 Message");
         messageBtn.setStyle("-fx-background-color: #0095f6; -fx-text-fill: white; -fx-font-weight: bold; " +
                 "-fx-padding: 10 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 13;");
-        messageBtn.setOnAction(e -> showAlert("Info", "Fonctionnalité de messagerie à venir!", Alert.AlertType.INFORMATION));
+        messageBtn.setOnAction(e -> navigateToMessages());
         
         Button removeBtn = new Button("🗑️");
         removeBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; " +
@@ -562,6 +562,27 @@ public class FriendsViewController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Erreur", "Impossible de charger le feed: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void navigateToMessages() {
+        try {
+            Stage stage = (Stage) browseSearchField.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/MessagesView.fxml"));
+            Scene scene = new Scene(loader.load(), width, height);
+            scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Messages");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir les messages: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
     

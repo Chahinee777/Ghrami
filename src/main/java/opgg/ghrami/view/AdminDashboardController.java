@@ -42,10 +42,19 @@ import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
+import opgg.ghrami.util.AnalyticsService;
+
 import java.io.File;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -93,6 +102,9 @@ public class AdminDashboardController implements Initializable {
     @FXML private TableColumn<Badge, String> descriptionCol;
     @FXML private TableColumn<Badge, Void> badgeActionsCol;
     
+    // Analytics Tab
+    @FXML private VBox analyticsContainer;
+
     // Instructor Tab
     @FXML private TableView<ClassProvider> instructorTable;
     @FXML private TableColumn<ClassProvider, Long> providerIdCol;
@@ -144,6 +156,7 @@ public class AdminDashboardController implements Initializable {
         
         loadAllData();
         setupSearchListeners();
+        buildAnalyticsDashboard();
     }
     
     @FXML
@@ -2073,5 +2086,443 @@ private Image loadProfileImage(String picUrl) {
         return friendshipList.stream()
                 .anyMatch(f -> (f.getUser1Id().equals(user1Id) && f.getUser2Id().equals(user2Id)) ||
                               (f.getUser1Id().equals(user2Id) && f.getUser2Id().equals(user1Id)));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  ANALYTICS DASHBOARD
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private void buildAnalyticsDashboard() {
+        if (analyticsContainer == null) return;
+        analyticsContainer.getChildren().clear();
+        AnalyticsService as = AnalyticsService.getInstance();
+
+        // ── Header ──────────────────────────────────────────────────────────
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setStyle("-fx-background-color: white; -fx-background-radius: 18; -fx-padding: 25 30;"
+                + "-fx-effect: dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+
+        VBox headerText = new VBox(5);
+        Label hTitle = new Label("📊 Platform Analytics");
+        hTitle.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #5a3fb8;");
+        Label hSub = new Label("Live overview of all Ghrami modules  —  "
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy  HH:mm")));
+        hSub.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b;");
+        headerText.getChildren().addAll(hTitle, hSub);
+
+        Region hSpacer = new Region();
+        HBox.setHgrow(hSpacer, Priority.ALWAYS);
+
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; "
+                + "-fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 20; "
+                + "-fx-background-radius: 25; -fx-cursor: hand;");
+        refreshBtn.setOnAction(e -> buildAnalyticsDashboard());
+
+        Button exportBtn = new Button("📄 Export Analytics PDF");
+        exportBtn.setStyle("-fx-background-color: linear-gradient(to right,#667eea,#764ba2); "
+                + "-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; "
+                + "-fx-padding: 12 28; -fx-background-radius: 25; -fx-cursor: hand;");
+        exportBtn.setOnAction(e -> handleExportAnalyticsPDF());
+
+        header.getChildren().addAll(headerText, hSpacer, refreshBtn, exportBtn);
+
+        // ── KPI Cards ────────────────────────────────────────────────────────
+        long totalUsers   = as.getTotalUsers();
+        long onlineUsers  = as.getOnlineUsers();
+        long bannedUsers  = as.getBannedUsers();
+        long totalPosts   = as.getTotalPosts();
+        long totalComments = as.getTotalComments();
+        long totalLikes   = as.getTotalLikes();
+        long totalClasses = as.getTotalClasses();
+        long totalBookings = as.getTotalBookings();
+        double revenue    = as.getTotalRevenue();
+        long totalHobbies = as.getTotalHobbies();
+        double hobbyHours = as.getTotalHobbyHours();
+        long achievedMilestones = as.getAchievedMilestones();
+        long totalMilestones   = as.getTotalMilestones();
+        long totalMeetings = as.getTotalMeetings();
+        long scheduledMtg  = as.getScheduledMeetings();
+        long completedMtg  = as.getCompletedMeetings();
+        long totalBadges   = as.getTotalBadges();
+        long uniqueBadgeTypes = as.getUniqueBadgeTypes();
+
+        HBox kpiRow = new HBox(15);
+        kpiRow.getChildren().addAll(
+            buildKpiCard("👥", "Users", String.valueOf(totalUsers),
+                    "Online: " + onlineUsers + "  •  Banned: " + bannedUsers, "#667eea"),
+            buildKpiCard("💬", "Social", String.valueOf(totalPosts + totalComments),
+                    "Posts: " + totalPosts + "  •  Comments: " + totalComments + "  •  Likes: " + totalLikes, "#f5576c"),
+            buildKpiCard("🎓", "Classes / Bookings", totalClasses + " / " + totalBookings,
+                    String.format("Revenue: TND %.0f", revenue), "#4CAF50"),
+            buildKpiCard("🌱", "Hobbies", String.valueOf(totalHobbies),
+                    String.format("%.0f hrs  •  %d/%d Goals", hobbyHours, achievedMilestones, totalMilestones), "#FF9800"),
+            buildKpiCard("🤝", "Meetings", String.valueOf(totalMeetings),
+                    "Scheduled: " + scheduledMtg + "  •  Done: " + completedMtg, "#00BCD4"),
+            buildKpiCard("🏆", "Badges", String.valueOf(totalBadges),
+                    "Unique types: " + uniqueBadgeTypes, "#9C27B0")
+        );
+        for (javafx.scene.Node card : kpiRow.getChildren()) {
+            HBox.setHgrow(card, Priority.ALWAYS);
+        }
+
+        // ── Platform Overview Bar Chart ──────────────────────────────────────
+        CategoryAxis xBar = new CategoryAxis();
+        NumberAxis   yBar = new NumberAxis();
+        xBar.setLabel("Module");
+        yBar.setLabel("Count");
+        BarChart<String, Number> barChart = new BarChart<>(xBar, yBar);
+        barChart.setTitle("Platform Overview — Module Population");
+        barChart.setLegendVisible(false);
+        barChart.setPrefHeight(320);
+        barChart.setAnimated(false);
+        barChart.setStyle("-fx-background-color: transparent;");
+        XYChart.Series<String, Number> bSeries = new XYChart.Series<>();
+        bSeries.getData().addAll(
+            new XYChart.Data<>("Users",       totalUsers),
+            new XYChart.Data<>("Posts",       totalPosts),
+            new XYChart.Data<>("Comments",    totalComments),
+            new XYChart.Data<>("Likes",       totalLikes),
+            new XYChart.Data<>("Friendships", as.getAcceptedFriendships()),
+            new XYChart.Data<>("Hobbies",     totalHobbies),
+            new XYChart.Data<>("Classes",     totalClasses),
+            new XYChart.Data<>("Bookings",    totalBookings),
+            new XYChart.Data<>("Meetings",    totalMeetings),
+            new XYChart.Data<>("Badges",      totalBadges)
+        );
+        barChart.getData().add(bSeries);
+        VBox barCard = new VBox(barChart);
+        barCard.setStyle("-fx-background-color: white; -fx-background-radius: 18; "
+                + "-fx-padding: 25; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.08),12,0,0,4);");
+
+        // ── Pie Charts Row (Bookings + Hobbies) ──────────────────────────────
+        HBox pieRow1 = new HBox(20);
+        VBox bookingPieCard = buildPieCard("🎓 Bookings by Status", as.getBookingsByStatus(),
+                new String[]{"#4CAF50","#2196F3","#FF9800","#f44336","#9E9E9E"});
+        VBox hobbyPieCard   = buildPieCard("🌱 Hobbies by Category", as.getHobbyByCategory(),
+                new String[]{"#667eea","#f5576c","#4CAF50","#FF9800","#00BCD4","#9C27B0","#795548","#E91E63"});
+        HBox.setHgrow(bookingPieCard, Priority.ALWAYS);
+        HBox.setHgrow(hobbyPieCard,   Priority.ALWAYS);
+        pieRow1.getChildren().addAll(bookingPieCard, hobbyPieCard);
+
+        // ── Second Charts Row (Meetings + Top Badges) ─────────────────────────
+        HBox pieRow2 = new HBox(20);
+        VBox meetingPieCard = buildPieCard("🤝 Meetings by Status", as.getMeetingsByStatus(),
+                new String[]{"#4CAF50","#2196F3","#f44336","#FF9800"});
+        VBox badgeBarCard   = buildHBarCard("🏆 Top Badges", as.getTopBadges(), "#9C27B0");
+        HBox.setHgrow(meetingPieCard, Priority.ALWAYS);
+        HBox.setHgrow(badgeBarCard,   Priority.ALWAYS);
+        pieRow2.getChildren().addAll(meetingPieCard, badgeBarCard);
+
+        // ── Module Detail Cards ───────────────────────────────────────────────
+        HBox detailRow = new HBox(15);
+        detailRow.getChildren().addAll(
+            buildDetailCard("👥 Users", new String[][]{
+                {"Total Users",        String.valueOf(totalUsers)},
+                {"Currently Online",   String.valueOf(onlineUsers)},
+                {"Banned Accounts",    String.valueOf(bannedUsers)},
+                {"Local Accounts",     String.valueOf(as.getLocalUsers())},
+                {"Google Sign-In",     String.valueOf(as.getGoogleUsers())},
+                {"Active Friendships", String.valueOf(as.getAcceptedFriendships())},
+                {"Pending Requests",   String.valueOf(as.getPendingFriendships())}
+            }, "#667eea"),
+            buildDetailCard("💬 Social", new String[][]{
+                {"Total Posts",        String.valueOf(totalPosts)},
+                {"Total Comments",     String.valueOf(totalComments)},
+                {"Total Likes",        String.valueOf(totalLikes)},
+                {"Stories",            String.valueOf(as.getTotalStories())},
+                {"Engagement Rate",    String.format("%.1fx",
+                        totalPosts > 0 ? (double)(totalComments + totalLikes) / totalPosts : 0)}
+            }, "#f5576c"),
+            buildDetailCard("🎓 Classes", new String[][]{
+                {"Total Classes",      String.valueOf(totalClasses)},
+                {"Total Bookings",     String.valueOf(totalBookings)},
+                {"Completed",          String.valueOf(as.getCompletedBookings())},
+                {"Scheduled",          String.valueOf(as.getScheduledBookings())},
+                {"Pending",            String.valueOf(as.getPendingBookings())},
+                {"Cancelled",          String.valueOf(as.getCancelledBookings())},
+                {"Total Revenue",      String.format("TND %.2f", revenue)}
+            }, "#4CAF50"),
+            buildDetailCard("🌱 Hobbies", new String[][]{
+                {"Total Hobbies",      String.valueOf(totalHobbies)},
+                {"Hours Logged",       String.format("%.1f hrs", hobbyHours)},
+                {"Total Milestones",   String.valueOf(totalMilestones)},
+                {"Achieved",           String.valueOf(achievedMilestones)},
+                {"Completion Rate",    totalMilestones > 0
+                        ? String.format("%.0f%%", 100.0 * achievedMilestones / totalMilestones)
+                        : "N/A"}
+            }, "#FF9800")
+        );
+        for (javafx.scene.Node card : detailRow.getChildren()) {
+            HBox.setHgrow(card, Priority.ALWAYS);
+        }
+
+        analyticsContainer.getChildren().addAll(
+                header, kpiRow, barCard, pieRow1, pieRow2, detailRow);
+    }
+
+    // ── KPI Card ──────────────────────────────────────────────────────────────
+
+    private VBox buildKpiCard(String icon, String title, String value,
+                               String subtitle, String color) {
+        VBox card = new VBox(8);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; "
+                + "-fx-padding: 20; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.09),12,0,0,4);");
+
+        // coloured top bar
+        Region bar = new Region();
+        bar.setMinHeight(5);
+        bar.setMaxHeight(5);
+        bar.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
+
+        HBox top = new HBox(10);
+        top.setAlignment(Pos.CENTER_LEFT);
+        Label iconLbl = new Label(icon);
+        iconLbl.setStyle("-fx-font-size: 28;");
+        VBox textBox = new VBox(3);
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b; -fx-font-weight: bold;");
+        Label valueLbl = new Label(value);
+        valueLbl.setStyle("-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+        textBox.getChildren().addAll(titleLbl, valueLbl);
+        top.getChildren().addAll(iconLbl, textBox);
+
+        Label subLbl = new Label(subtitle);
+        subLbl.setStyle("-fx-font-size: 11; -fx-text-fill: #9e9e9e;");
+        subLbl.setWrapText(true);
+
+        card.getChildren().addAll(bar, top, subLbl);
+        return card;
+    }
+
+    // ── Pie Card ──────────────────────────────────────────────────────────────
+
+    private VBox buildPieCard(String title, Map<String, Long> data, String[] palette) {
+        VBox card = new VBox(15);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; "
+                + "-fx-padding: 22; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.09),12,0,0,4);");
+
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        if (data.isEmpty()) {
+            card.getChildren().addAll(titleLbl, new Label("No data"));
+            return card;
+        }
+
+        PieChart pie = new PieChart();
+        pie.setLabelsVisible(true);
+        pie.setLegendVisible(true);
+        pie.setAnimated(false);
+        pie.setPrefHeight(260);
+        pie.setStyle("-fx-background-color: transparent;");
+
+        long total = data.values().stream().mapToLong(Long::longValue).sum();
+        int i = 0;
+        for (Map.Entry<String, Long> e : data.entrySet()) {
+            String pct = total > 0 ? String.format(" (%.0f%%)", 100.0 * e.getValue() / total) : "";
+            pie.getData().add(new PieChart.Data(e.getKey() + pct, e.getValue()));
+            i++;
+        }
+
+        // Apply palette colours after layout
+        pie.getData().forEach(d -> {
+            int idx = pie.getData().indexOf(d) % palette.length;
+            d.getNode().setStyle("-fx-pie-color: " + palette[idx] + ";");
+        });
+
+        card.getChildren().addAll(titleLbl, pie);
+        return card;
+    }
+
+    // ── Horizontal bar card (visual ProgressBar style) ───────────────────────
+
+    private VBox buildHBarCard(String title, Map<String, Long> data, String color) {
+        VBox card = new VBox(12);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; "
+                + "-fx-padding: 22; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.09),12,0,0,4);");
+
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #333;");
+        card.getChildren().add(titleLbl);
+
+        if (data.isEmpty()) {
+            card.getChildren().add(new Label("No data available"));
+            return card;
+        }
+
+        long maxVal = data.values().stream().mapToLong(Long::longValue).max().orElse(1);
+
+        data.forEach((label, cnt) -> {
+            VBox row = new VBox(4);
+            HBox labelRow = new HBox();
+            Label nameLbl = new Label(label);
+            nameLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #444;");
+            nameLbl.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(nameLbl, Priority.ALWAYS);
+            Label countLbl = new Label(" " + cnt);
+            countLbl.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+            labelRow.getChildren().addAll(nameLbl, countLbl);
+
+            double pct = maxVal > 0 ? (double) cnt / maxVal : 0;
+            HBox barBg = new HBox();
+            barBg.setStyle("-fx-background-color: #f0f0f0; -fx-background-radius: 6;");
+            barBg.setMinHeight(10);
+            barBg.setMaxHeight(10);
+            Region fill = new Region();
+            fill.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 6;");
+            fill.setPrefWidth(pct * 350);
+            barBg.getChildren().add(fill);
+
+            row.getChildren().addAll(labelRow, barBg);
+            card.getChildren().add(row);
+        });
+        return card;
+    }
+
+    // ── Module Detail Card ────────────────────────────────────────────────────
+
+    private VBox buildDetailCard(String title, String[][] rows, String color) {
+        VBox card = new VBox(10);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; "
+                + "-fx-padding: 20; -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.09),12,0,0,4);");
+
+        // Coloured heading bar
+        HBox heading = new HBox();
+        heading.setAlignment(Pos.CENTER_LEFT);
+        heading.setStyle("-fx-background-color: " + color + "22; "
+                + "-fx-background-radius: 10; -fx-padding: 10 14;");
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+        heading.getChildren().add(titleLbl);
+
+        card.getChildren().add(heading);
+
+        for (String[] row : rows) {
+            HBox rowBox = new HBox();
+            rowBox.setPadding(new Insets(6, 4, 0, 4));
+            Label keyLbl = new Label(row[0]);
+            keyLbl.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b;");
+            keyLbl.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(keyLbl, Priority.ALWAYS);
+            Label valLbl = new Label(row[1]);
+            valLbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: " + color + ";");
+            rowBox.getChildren().addAll(keyLbl, valLbl);
+            card.getChildren().add(rowBox);
+            Region sep = new Region();
+            sep.setMinHeight(1);
+            sep.setStyle("-fx-background-color: #f0f0f0;");
+            card.getChildren().add(sep);
+        }
+        return card;
+    }
+
+    // ── Export Analytics PDF ─────────────────────────────────────────────────
+
+    @FXML
+    private void handleExportAnalyticsPDF() {
+        try {
+            AnalyticsService as = AnalyticsService.getInstance();
+
+            String homeDir = System.getProperty("user.home");
+            File dir = new File(homeDir + "/Desktop/GhramiReports");
+            dir.mkdirs();
+
+            String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String path = dir.getAbsolutePath() + "/Analytics_" + ts + ".pdf";
+
+            PdfWriter writer     = new PdfWriter(path);
+            PdfDocument pdfDoc   = new PdfDocument(writer);
+            Document doc         = new Document(pdfDoc);
+
+            // Title
+            doc.add(new Paragraph("GHRAMI PLATFORM — ANALYTICS REPORT")
+                    .setBold().setFontSize(20).setFontColor(ColorConstants.BLUE)
+                    .setTextAlignment(TextAlignment.CENTER));
+            doc.add(new Paragraph("Generated: "
+                    + LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm")))
+                    .setFontSize(10).setFontColor(ColorConstants.GRAY)
+                    .setTextAlignment(TextAlignment.CENTER));
+            doc.add(new Paragraph("\n"));
+
+            // Helper lambda
+            java.util.function.BiConsumer<String, String[][]> addSection = (sTitle, rows) -> {
+                doc.add(new Paragraph(sTitle).setBold().setFontSize(14)
+                        .setFontColor(ColorConstants.DARK_GRAY));
+                Table t = new Table(UnitValue.createPercentArray(new float[]{65, 35}))
+                        .useAllAvailableWidth();
+                for (String[] row : rows) {
+                    t.addCell(new Cell().add(new Paragraph(row[0]).setFontSize(10)));
+                    t.addCell(new Cell().add(new Paragraph(row[1]).setFontSize(10).setBold()));
+                }
+                doc.add(t);
+                doc.add(new Paragraph("\n"));
+            };
+
+            addSection.accept("👥 Users", new String[][]{
+                {"Total Users",       String.valueOf(as.getTotalUsers())},
+                {"Online",            String.valueOf(as.getOnlineUsers())},
+                {"Banned",            String.valueOf(as.getBannedUsers())},
+                {"Local Accounts",    String.valueOf(as.getLocalUsers())},
+                {"Google Sign-In",    String.valueOf(as.getGoogleUsers())}
+            });
+
+            addSection.accept("💬 Social Feed", new String[][]{
+                {"Total Posts",    String.valueOf(as.getTotalPosts())},
+                {"Total Comments", String.valueOf(as.getTotalComments())},
+                {"Total Likes",    String.valueOf(as.getTotalLikes())},
+                {"Stories",        String.valueOf(as.getTotalStories())},
+                {"Active Friendships", String.valueOf(as.getAcceptedFriendships())}
+            });
+
+            addSection.accept("🎓 Classes & Bookings", new String[][]{
+                {"Total Classes",    String.valueOf(as.getTotalClasses())},
+                {"Total Bookings",   String.valueOf(as.getTotalBookings())},
+                {"Completed",        String.valueOf(as.getCompletedBookings())},
+                {"Scheduled",        String.valueOf(as.getScheduledBookings())},
+                {"Pending",          String.valueOf(as.getPendingBookings())},
+                {"Cancelled",        String.valueOf(as.getCancelledBookings())},
+                {"Total Revenue",    String.format("TND %.2f", as.getTotalRevenue())}
+            });
+
+            addSection.accept("🌱 Hobbies", new String[][]{
+                {"Total Hobbies",    String.valueOf(as.getTotalHobbies())},
+                {"Total Hours",      String.format("%.1f hrs", as.getTotalHobbyHours())},
+                {"Total Milestones", String.valueOf(as.getTotalMilestones())},
+                {"Achieved",         String.valueOf(as.getAchievedMilestones())}
+            });
+
+            addSection.accept("🤝 Meetings", new String[][]{
+                {"Total Meetings",   String.valueOf(as.getTotalMeetings())},
+                {"Scheduled",        String.valueOf(as.getScheduledMeetings())},
+                {"Completed",        String.valueOf(as.getCompletedMeetings())},
+                {"Cancelled",        String.valueOf(as.getCancelledMeetings())}
+            });
+
+            addSection.accept("🏆 Badges", new String[][]{
+                {"Total Badges",     String.valueOf(as.getTotalBadges())},
+                {"Unique Types",     String.valueOf(as.getUniqueBadgeTypes())}
+            });
+
+            doc.close();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Analytics PDF Exported");
+            alert.setHeaderText("Report saved successfully!");
+            alert.setContentText("📄 " + path);
+            ButtonType openFile = new ButtonType("📂 Open File");
+            alert.getButtonTypes().add(openFile);
+            alert.showAndWait().ifPresent(btn -> {
+                if (btn == openFile) {
+                    try { java.awt.Desktop.getDesktop().open(new File(path)); }
+                    catch (Exception ex) { ex.printStackTrace(); }
+                }
+            });
+
+        } catch (Exception e) {
+            showError("Failed to export analytics PDF: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

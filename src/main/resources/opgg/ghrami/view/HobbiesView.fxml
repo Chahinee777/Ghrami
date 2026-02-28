@@ -24,6 +24,12 @@
                 </HBox>
             </VBox>
             
+            <Button text="📊 Statistics" onAction="#handleOpenStats"
+                    style="-fx-background-color: #FF9800; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(255,152,0,0.4), 12, 0, 0, 4);"/>
+
+            <Button text="🤖 AI Coach" onAction="#handleOpenAICompanion"
+                    style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(155,89,182,0.4), 12, 0, 0, 4);"/>
+
             <Button text="← Retour au Fil" onAction="#handleBackToDashboard" 
                     style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 25; -fx-padding: 12 25; -fx-font-size: 14; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
             
