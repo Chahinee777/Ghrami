@@ -319,4 +319,19 @@ MIT License - see [LICENSE](LICENSE) file
 
 ---
 
+## 🔒 Sécurité & Gestion des Secrets
+
+- **Aucune clé API ou secret ne doit être hardcodé dans le code source.**
+- Toutes les clés (Google OAuth, Stripe, Mailjet, HuggingFace, Groq, etc.) doivent être placées dans les fichiers de configuration privés :
+  - `src/main/resources/ai_config.properties`
+  - `src/main/resources/google_oauth.properties`
+  - `src/main/resources/db.properties`
+- Ces fichiers sont listés dans `.gitignore` et ne doivent jamais être poussés sur GitHub.
+- Si GitHub bloque un push (erreur GH013) pour cause de secret détecté, vérifiez que :
+  - Aucun secret n'est présent dans le code source (ex : MeetingsViewController.java)
+  - Les fichiers de config ne sont pas ajoutés au commit
+  - Si un secret a été commité, utilisez [GitHub's guide](https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push) pour le supprimer de l'historique
+
+---
+
 **Made with ❤️ by OPGG Team**

@@ -23,6 +23,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import opgg.ghrami.controller.*;
 import opgg.ghrami.model.*;
+import opgg.ghrami.util.ConfigManager;
 import opgg.ghrami.util.SessionManager;
 
 import com.sun.net.httpserver.HttpServer;
@@ -93,8 +94,8 @@ public class MeetingsViewController {
     // ── Google OAuth2 config – fill in your CLIENT_ID from Google Cloud Console ──
     // Steps: console.cloud.google.com → New Project → Enable "Google Calendar API"
     //        → OAuth 2.0 Credentials → Desktop App → copy Client ID below
-    private static final String GOOGLE_CLIENT_ID     = "1074465622889-blplqio1k0dggnpffqc9v0oe4p8n5te0.apps.googleusercontent.com";
-    private static final String GOOGLE_CLIENT_SECRET = "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";
+    private static final String GOOGLE_CLIENT_ID     = ConfigManager.getInstance().getGoogleClientId();
+    private static final String GOOGLE_CLIENT_SECRET = ConfigManager.getInstance().getGoogleClientSecret();
     private static final String GOOGLE_REDIRECT_URI  = "http://localhost:8765/callback";
     private static final String GOOGLE_SCOPE         = "https://www.googleapis.com/auth/calendar.events";
     
