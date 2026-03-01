@@ -32,9 +32,6 @@ public class GhramiApplication extends Application {
         primaryStage.setMaximized(true);
 
         // --- Set application icon ---
-        // JavaFX does not support SVG icons directly. Use PNG as fallback for app icon.
-        // If you want to use SVG, you need to convert it to PNG first.
-        // Place ghrami.png in the same assets folder if you want a real icon.
         try {
             javafx.scene.image.Image icon = new javafx.scene.image.Image(getClass().getResourceAsStream("/images/assets/ghrami-logo.png"));
             primaryStage.getIcons().add(icon);

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 24, 2026 at 07:50 PM
+-- Generation Time: Mar 01, 2026 at 11:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,7 +51,8 @@ INSERT INTO `badges` (`badge_id`, `user_id`, `name`, `description`, `earned_date
 (9, 12, '🥇 First Friend', 'Made their first friend on Ghrami', '2026-02-10 08:16:42'),
 (10, 8, 'Booster', 'Boost ces amis', '2026-02-14 09:46:00'),
 (13, 46, 'el fasa3 el mo2ases', 'yafsa3 barcha wdima re9d', '2026-02-15 13:41:19'),
-(14, 51, '🥇 First Friend', 'Made their first friend on Ghrami', '2026-02-16 13:02:56');
+(14, 51, '🥇 First Friend', 'Made their first friend on Ghrami', '2026-02-16 13:02:56'),
+(15, 8, 'Old Member', 'OG', '2026-02-27 09:40:05');
 
 -- --------------------------------------------------------
 
@@ -92,10 +93,16 @@ INSERT INTO `bookings` (`booking_id`, `class_id`, `user_id`, `booking_date`, `st
 (24, 4, 51, '2026-02-23 11:11:03', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
 (25, 3, 8, '2026-02-23 19:58:24', 'scheduled', 'pending', 150, NULL, NULL, NULL, 0),
 (26, 13, 12, '2026-02-24 07:59:04', 'cancelled', 'paid', 100, NULL, NULL, NULL, 0),
-(28, 15, 12, '2026-02-24 15:45:46', 'scheduled', 'paid', 200, NULL, NULL, NULL, 0),
 (29, 13, 12, '2026-02-24 17:17:31', 'pending', 'pending', 100, NULL, NULL, NULL, 0),
-(30, 16, 12, '2026-02-24 17:20:49', 'cancelled', 'paid', 10, NULL, NULL, NULL, 10548),
-(31, 16, 12, '2026-02-24 17:25:21', 'pending', 'pending', 10, NULL, NULL, NULL, 0);
+(32, 17, 12, '2026-02-24 18:01:10', 'completed', 'paid', 200, NULL, 3, 'aaaa', 8),
+(33, 18, 12, '2026-02-24 18:22:30', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(34, 17, 57, '2026-02-24 18:29:31', 'completed', 'paid', 200, NULL, 4, 'aaaaaaa', 8),
+(35, 18, 57, '2026-02-24 18:31:00', 'cancelled', 'paid', 23, NULL, NULL, NULL, 0),
+(36, 18, 57, '2026-02-24 20:47:08', 'cancelled', 'paid', 23, NULL, NULL, NULL, 0),
+(37, 18, 57, '2026-02-24 20:51:59', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(38, 18, 11, '2026-02-24 21:34:18', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(39, 19, 57, '2026-02-27 11:20:07', 'completed', 'paid', 100, NULL, NULL, NULL, 0),
+(40, 20, 57, '2026-02-28 11:00:09', 'completed', 'paid', 50, NULL, NULL, NULL, 22);
 
 -- --------------------------------------------------------
 
@@ -129,8 +136,10 @@ INSERT INTO `classes` (`class_id`, `provider_id`, `title`, `description`, `categ
 (9, 4, 'Trading', 'Crypto Currencies', 'finance', 200, 200, 10, NULL, NULL),
 (11, 11, 'TLA', 'Matiere esprit', 'education', 50, 100, 30, NULL, NULL),
 (13, 4, 'Gaming', 'Fortnite', 'gaming', 100, 10, 10, 'C:\\Users\\MSI\\Videos\\2026-02-23 21-59-28.mkv', NULL),
-(15, 4, 'hamza', 'hamza', 'fitness', 200, 10, 10, 'C:\\Users\\MSI\\Desktop\\videoplayback.mp4', NULL),
-(16, 4, 'aaaaa', 'aaaaaaaaa', 'aaaaaaa', 10, 10, 10, 'C:\\Users\\MSI\\Desktop\\videoplayback.mp4', NULL);
+(17, 4, 'acting', 'movies', 'movie', 200, 10, 10, 'C:\\Users\\MSI\\Desktop\\7224626_Film_Filming_3840x2160.mp4', 'C:\\Users\\MSI\\Pictures\\Origin.jpg'),
+(18, 4, 'Movie', 'zzzzzz', 'zzzzzzz', 23, 10, 44, 'C:\\Users\\MSI\\Desktop\\7224626_Film_Filming_3840x2160.mp4', 'C:\\Users\\MSI\\Pictures\\msi_katana.jpg'),
+(19, 4, 'Editing', 'Video Editing', 'Montage', 100, 10, 10, 'C:\\Users\\MSI\\Desktop\\Full Original Clip w Trend Song.mp4', 'C:\\Users\\MSI\\Pictures\\1702804566190.jpg'),
+(20, 4, 'Movies Star', 'Fast AND Furios', 'Movies', 50, 20, 10, 'C:\\Users\\MSI\\Desktop\\Full Original Clip w Trend Song.mp4', 'C:\\Users\\MSI\\Pictures\\Screenshots\\Capture d\'écran 2025-08-26 190733.png');
 
 -- --------------------------------------------------------
 
@@ -155,7 +164,7 @@ INSERT INTO `class_providers` (`provider_id`, `user_id`, `company_name`, `expert
 (1, 2, 'Fitness First Tunisia', 'Yoga, Pilates, Nutrition', 4.8, 1),
 (2, 3, 'Code Academy TN', 'Web Development, Mobile Apps', 4.9, 1),
 (3, 4, 'Creative Studio', 'Graphic Design, UI/UX', 4.7, 1),
-(4, 8, 'Esprit', 'Coding', 0, 1),
+(4, 8, 'Esprit', 'Coding', 3.5, 1),
 (5, 15, 'Esprit', 'Un grand Footballeur', 0, 1),
 (10, 10, 'Esprit', 'el fas3a', 0, 1),
 (11, 46, 'Esprit', 'El fas3a', 0, 1),
@@ -289,7 +298,8 @@ INSERT INTO `hobbies` (`hobby_id`, `user_id`, `name`, `category`, `description`)
 (15, 46, 'Guitar', 'Music', 'Shawn Mendes'),
 (18, 8, 'violin player', 'Music', 'violoin player pro'),
 (19, 8, 'Fashion', 'Arts & Crafts', 'KEJFNIEZBFIrzf'),
-(20, 51, 'Football', 'Sports & Fitness', 'mILIEU DEFF');
+(20, 51, 'Football', 'Sports & Fitness', 'mILIEU DEFF'),
+(22, 57, 'Football', 'Sports & Fitness', 'Pro Player Like CR7');
 
 -- --------------------------------------------------------
 
@@ -320,8 +330,12 @@ INSERT INTO `meetings` (`meeting_id`, `connection_id`, `organizer_id`, `meeting_
 ('45bc106a-3e41-4def-a09b-06c70ae57694', '056d3c0e-91f3-4fe6-9920-383bc6edfef3', 8, 'physical', 'Montplaisir, خير الدين باشا, معتمدية حي الخضراء, Tunis, 1073, Tunisia', '2026-02-28 12:00:00', 60, 'scheduled'),
 ('4e14f84e-218e-4602-85e3-c913424c2726', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', 'esprit', '2026-02-16 12:21:24', 60, 'completed'),
 ('64025203-ccf3-4b48-bf09-aaef8b77a9e5', '69ccb289-1dfc-40b7-9066-9d6529bbe35d', 8, 'physical', 'cité olympique', '2026-02-16 14:22:40', 60, 'completed'),
+('72a97f1e-c3d0-4cb7-a531-d88269c865f2', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/vsp-kvwq-jrp', '2026-03-03 12:00:00', 60, 'scheduled'),
 ('8004b327-8425-4e7c-8997-3e62c2f27f9d', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 8, 'physical', 'Tunis, شارع المحطة, Sidi Al Bachir, باب البحر, معتمدية باب بحر, Tunis, 1151, Tunisia', '2026-02-27 12:00:00', 60, 'scheduled'),
+('865d76ed-9d47-4e89-81d9-f7eb49694f2b', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'physical', 'RL583, بورقبة, معتمدية المرناقية, Manouba, 1110, Tunisia', '2026-03-01 12:00:00', 60, 'scheduled'),
 ('9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', '', '2026-02-12 14:56:00', 60, 'completed'),
+('ad6cf3dc-fea8-4e0d-a002-a6332de70975', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/cam-maki-qmp', '2026-03-02 12:00:00', 20, 'scheduled'),
+('b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/shc-ddib-zsa', '2026-02-28 12:00:00', 90, 'scheduled'),
 ('c8c1c3e1-3597-45ef-a294-104adf2cb5c5', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', '', '2026-02-12 14:55:39', 60, 'cancelled'),
 ('d04020cb-0510-11f1-8e75-047c163dbfbf', 'd0334e28-0510-11f1-8e75-047c163dbfbf', 1, 'physical', 'Coffee Shop Tunis', '2024-02-15 13:00:00', 60, 'scheduled'),
 ('d812fc8e-9a86-4483-9f23-000966664c24', '056d3c0e-91f3-4fe6-9920-383bc6edfef3', 8, 'physical', 'Bouselem', '2026-02-19 12:00:00', 60, 'scheduled'),
@@ -350,8 +364,11 @@ INSERT INTO `meeting_participants` (`participant_id`, `meeting_id`, `user_id`, `
 ('15cd9338-16ec-4dde-94f7-7d18e7371941', '11e5617e-1192-44f6-ae7d-c7347166286f', 8, 1),
 ('1d0c4b4f-9558-453e-9fa0-ed12a363869e', '9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', 8, 1),
 ('20116c9e-28f0-4067-bd6a-d4461f4ec922', '2612f31d-590a-4a44-b7dd-3cb020990e2e', 8, 1),
+('2b2609af-4be2-478c-9f5e-125c0956c016', '865d76ed-9d47-4e89-81d9-f7eb49694f2b', 8, 1),
+('40c9bd61-069a-4077-be30-5470ac701a52', 'ad6cf3dc-fea8-4e0d-a002-a6332de70975', 8, 1),
 ('41c9ef8f-63e3-403c-b393-96553efe5cc9', '006c2d92-2d7a-4112-b60e-cd8a8afff914', 15, 1),
 ('466ca631-f13a-45c6-ac13-bf5fe39a639d', '8004b327-8425-4e7c-8997-3e62c2f27f9d', 8, 1),
+('6a08c7ce-cd65-4708-8976-3a93f5ac66be', 'ad6cf3dc-fea8-4e0d-a002-a6332de70975', 57, 1),
 ('715fe4cf-a23e-4709-8c7a-772e1796db27', '45bc106a-3e41-4def-a09b-06c70ae57694', 8, 1),
 ('75e1326b-cd1e-4100-b0b4-feb92691a23c', '1fc0d686-0dc3-4278-b143-83bc396ac910', 11, 1),
 ('77c51604-4f13-4156-8c28-519e86cf5931', '11e5617e-1192-44f6-ae7d-c7347166286f', 15, 1),
@@ -361,12 +378,17 @@ INSERT INTO `meeting_participants` (`participant_id`, `meeting_id`, `user_id`, `
 ('977a7735-2a37-483e-9510-532c5d78c630', '006c2d92-2d7a-4112-b60e-cd8a8afff914', 8, 1),
 ('97bf5b10-1074-4f4c-b35a-e3bef2cbe734', 'fac0a260-3ead-488c-9f5d-13c820bced43', 8, 1),
 ('a18b1ece-ac51-487d-9fec-073bd1b9f8a1', 'd812fc8e-9a86-4483-9f23-000966664c24', 8, 1),
+('a448fd08-9599-4049-85b2-cfe26a1bf2ae', 'b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', 57, 1),
+('a90078ac-1ec7-41fe-879b-3c9546929098', '865d76ed-9d47-4e89-81d9-f7eb49694f2b', 57, 1),
+('aafd4b4e-5508-4b74-8aef-86fd320ff534', '72a97f1e-c3d0-4cb7-a531-d88269c865f2', 8, 1),
+('b516f5ac-08ee-4fee-bcdd-ac674dd37e6b', 'b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', 8, 1),
 ('d0445ff7-0510-11f1-8e75-047c163dbfbf', 'd04020cb-0510-11f1-8e75-047c163dbfbf', 1, 1),
 ('d044bc36-0510-11f1-8e75-047c163dbfbf', 'd04020cb-0510-11f1-8e75-047c163dbfbf', 2, 1),
 ('d0d0fa27-11d4-409e-ad77-ba9787e171f5', 'c8c1c3e1-3597-45ef-a294-104adf2cb5c5', 15, 1),
 ('d180bd90-601c-49d4-b379-3252cace95dd', '8004b327-8425-4e7c-8997-3e62c2f27f9d', 57, 1),
 ('d32cebbc-e030-43ef-9937-240292f33643', '2612f31d-590a-4a44-b7dd-3cb020990e2e', 15, 1),
 ('dc7d3b3d-6532-4f5a-b64d-975b05a4e154', '64025203-ccf3-4b48-bf09-aaef8b77a9e5', 8, 1),
+('df7ad2d9-3925-4abe-b46e-da357af24c9d', '72a97f1e-c3d0-4cb7-a531-d88269c865f2', 57, 1),
 ('e0380b81-7ac3-4674-83a6-eea17af0c2d0', '4e14f84e-218e-4602-85e3-c913424c2726', 15, 1),
 ('e4416a44-0ef7-46a1-b8d4-f64f92825924', '9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', 15, 1),
 ('f9410b8f-1eb3-4f4a-b9b2-e7db76d59563', '1fc0d686-0dc3-4278-b143-83bc396ac910', 46, 1),
@@ -397,10 +419,17 @@ INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `content`, `se
 (3, 8, 51, 'coucou les babies', '2026-02-23 11:08:49', 1),
 (4, 51, 8, 'ahla bkhouya', '2026-02-23 11:09:35', 1),
 (5, 8, 51, 'hello', '2026-02-23 11:54:34', 1),
-(6, 51, 8, 'hey', '2026-02-23 11:55:10', 0),
+(6, 51, 8, 'hey', '2026-02-23 11:55:10', 1),
 (7, 8, 51, 'hey', '2026-02-23 11:55:27', 0),
 (8, 8, 12, 'hello', '2026-02-23 13:21:34', 1),
-(9, 8, 12, 'cc', '2026-02-23 14:48:37', 1);
+(9, 8, 12, 'cc', '2026-02-23 14:48:37', 1),
+(10, 57, 8, 'hello', '2026-02-27 10:26:40', 1),
+(11, 8, 57, 'hey', '2026-02-27 10:26:44', 1),
+(12, 8, 12, 'Hamza, s\'il vous plaît, réponds à moi.', '2026-02-28 11:11:14', 1),
+(13, 12, 8, 'hey biggie', '2026-02-28 11:27:39', 1),
+(14, 8, 12, 'Qu\'est-ce que vous voulez discuter', '2026-02-28 11:33:01', 1),
+(15, 57, 8, 'Salut comment vas tu aujourd\'hui', '2026-02-28 11:49:47', 1),
+(16, 8, 57, 'Hi, how are you?', '2026-02-28 11:50:00', 1);
 
 -- --------------------------------------------------------
 
@@ -468,7 +497,14 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `type`, `content`, `r
 (9, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 14:48:37', 0),
 (10, 57, 'FRIEND_REQUEST', 'ANAS BIGGIE vous a envoyé une demande d\'amitié', 8, '2026-02-23 16:11:07', 1),
 (11, 8, 'FRIEND_ACCEPTED', 'Chahine Aouled Amor a accepté votre demande d\'amitié ✅', 57, '2026-02-23 16:11:36', 0),
-(12, 53, 'FRIEND_REQUEST', 'ANAS BIGGIE vous a envoyé une demande d\'amitié', 8, '2026-02-23 20:50:29', 0);
+(12, 53, 'FRIEND_REQUEST', 'ANAS BIGGIE vous a envoyé une demande d\'amitié', 8, '2026-02-23 20:50:29', 0),
+(13, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 57, '2026-02-27 10:26:40', 0),
+(14, 57, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-27 10:26:44', 0),
+(15, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:11:14', 0),
+(16, 8, 'MESSAGE', 'Hamza Mnajja vous a envoyé un message 💬', 12, '2026-02-28 11:27:39', 0),
+(17, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:33:01', 0),
+(18, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 57, '2026-02-28 11:49:47', 0),
+(19, 57, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:50:00', 0);
 
 -- --------------------------------------------------------
 
@@ -498,7 +534,10 @@ INSERT INTO `posts` (`post_id`, `user_id`, `content`, `image_url`, `created_at`)
 (9, 8, 'je suis heureux car je utilise Ghrami', '8_1771066256693_487744895_9596645127062608_1218059749256759297_n.jpg', '2026-02-14 09:50:58'),
 (23, 46, 'ahsen haja heya lfas3a', NULL, '2026-02-15 13:28:52'),
 (24, 11, 'astro burger for the win', '11_1771165890134_unnamed.jpg', '2026-02-15 13:31:32'),
-(30, 8, 'je suis anas et je suis content', '8_1771880160139_Origin.jpg', '2026-02-23 19:56:03');
+(30, 8, 'je suis anas et je suis content', '8_1771880160139_Origin.jpg', '2026-02-23 19:56:03'),
+(31, 8, 'football', '8_ai_1772197349264.png', '2026-02-27 12:02:29'),
+(35, 8, 'cristiano ronaldo', '8_ai_1772198314612.png', '2026-02-27 12:18:34'),
+(38, 8, 'playstation', '8_ai_1772200788829.png', '2026-02-27 12:59:48');
 
 -- --------------------------------------------------------
 
@@ -521,7 +560,8 @@ INSERT INTO `post_likes` (`user_id`, `post_id`, `created_at`) VALUES
 (8, 9, '2026-02-23 11:56:18'),
 (8, 30, '2026-02-23 20:56:17'),
 (12, 30, '2026-02-23 20:56:46'),
-(51, 9, '2026-02-23 12:00:27');
+(51, 9, '2026-02-23 12:00:27'),
+(57, 9, '2026-02-25 09:36:21');
 
 -- --------------------------------------------------------
 
@@ -547,14 +587,37 @@ INSERT INTO `progress` (`progress_id`, `hobby_id`, `hours_spent`, `notes`) VALUE
 (4, 4, 120.5, 'Mastered Adobe Creative Suite'),
 (5, 5, 95, 'Grew followers by 500%'),
 (6, 6, 35, 'Lyoum t3alemt devops'),
-(7, 7, 0, 'Started tracking'),
+(7, 7, 3, 'attack'),
 (9, 9, 2, 't3alemt el dribble'),
 (10, 10, 1, 'Chocolate Ships'),
 (12, 14, 2, '15 fev : first steps'),
 (13, 15, 2, ''),
 (15, 18, 6, 'bfbjr'),
 (16, 19, 0, 'Started tracking'),
-(17, 20, 2, 'LES BASICS DU FOOT');
+(17, 20, 2, 'LES BASICS DU FOOT'),
+(19, 22, 0, 'Started tracking');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `progress_log`
+--
+
+CREATE TABLE `progress_log` (
+  `log_id` bigint(20) NOT NULL,
+  `hobby_id` bigint(20) NOT NULL,
+  `hours_spent` double NOT NULL DEFAULT 0,
+  `notes` text DEFAULT NULL,
+  `log_date` date NOT NULL DEFAULT curdate()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `progress_log`
+--
+
+INSERT INTO `progress_log` (`log_id`, `hobby_id`, `hours_spent`, `notes`, `log_date`) VALUES
+(1, 7, 1, 'foot', '2026-02-24'),
+(2, 7, 2, 'attack', '2026-02-26');
 
 -- --------------------------------------------------------
 
@@ -570,13 +633,6 @@ CREATE TABLE `stories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 24 hour)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `stories`
---
-
-INSERT INTO `stories` (`story_id`, `user_id`, `caption`, `image_url`, `created_at`, `expires_at`) VALUES
-(4, 8, NULL, '8_story_1771880188803.jpg', '2026-02-23 19:56:28', '2026-02-24 19:56:28');
 
 -- --------------------------------------------------------
 
@@ -614,8 +670,8 @@ INSERT INTO `users` (`user_id`, `username`, `full_name`, `email`, `password`, `p
 (5, 'mehdi_jebali', 'Mehdi Jebali', 'mehdi@ghrami.tn', 'password123', NULL, 'Coach sportif et nutritionniste', 'Bizerte, Tunisie', 1, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
 (8, 'anasBiggie', 'ANAS BIGGIE', 'anas@ghrami.tn', '$2a$12$ThDEhWRKuC4sxga6jPzJX.YQPBULUymrkMBvyiKMMK.WAsccpIZR2', '8_1770192277278.png', 'Waa', 'hay zouhour', 0, '2026-01-26 18:06:50', NULL, NULL, 'local', 0),
 (10, 'roua', 'roue hammemi', 'roua@ghrami.tn', '$2a$12$ry5aPTSulQU5.TOuP7n5kOjD/VoFcAfJj2m82rUHA9SBv9NSnLa.a', '', 'aaaaa', 'sidi hsine', 0, '2026-01-28 17:18:14', NULL, NULL, 'local', 0),
-(11, 'nourhen2004', 'Nourhen Dheker', 'nourhen@ghrami.tn', '$2a$12$09T6NioWegcjGIHv5gdemOQ1ixQQi11sXjwk4DjuoCu51JPg4K3zW', '11_1770039241022.png', 'violonist', 'tunis', 1, '2026-02-02 12:32:06', NULL, NULL, 'local', 0),
-(12, 'hamza_laz3er', 'Hamza Mnajja', 'hamza@ghrami.tn', '$2a$12$7CM4rE4eWmEG0OcJ6CJZoOjLpILNeaAseKkmiLqz2.OXBfy2PhwoO', '12_1770714864510.png', 'Nheb el mekla', 'Yssminet', 1, '2026-02-10 08:12:55', NULL, NULL, 'local', 0),
+(11, 'nourhen2004', 'Nourhen Dheker', 'nourhen@ghrami.tn', '$2a$12$09T6NioWegcjGIHv5gdemOQ1ixQQi11sXjwk4DjuoCu51JPg4K3zW', '11_1770039241022.png', 'violonist', 'tunis', 0, '2026-02-02 12:32:06', NULL, NULL, 'local', 0),
+(12, 'hamza_laz3er', 'Hamza Mnajja', 'hamza@ghrami.tn', '$2a$12$7CM4rE4eWmEG0OcJ6CJZoOjLpILNeaAseKkmiLqz2.OXBfy2PhwoO', '12_1770714864510.png', 'Nheb el mekla', 'Yssminet', 0, '2026-02-10 08:12:55', NULL, NULL, 'local', 0),
 (14, 'astroNourhen', 'Nourhen Dhaker', 'nourhendhaker25@gmail.com', '$2a$12$7mU2tZhIEpNoWusPWg1sIOhrv/NYRSA8SJ16.4m/LyH2umuLDsDyW', '', 'Astro Burger', 'Ariana', 0, '2026-02-11 18:19:31', NULL, NULL, 'local', 0),
 (15, 'aymen_bavari', 'Aymen Le fils de Aziza', 'aymen.benaziza@icloud.com', '$2a$12$eAGbUjEQiycAxh0dhbuL2ubibczH9bnbMj/ZDJvkfyxqCMgSy9sRS', '15_1770903664598.jpeg', 'Nheb el denya wel mdina', 'Mdina Aarbi', 0, '2026-02-12 12:38:38', NULL, NULL, 'local', 0),
 (45, 'anasEsprit', 'Med Khelifi', 'dgxbigi@gmail.com', '$2a$12$/1xwRjyatb/thADazUxqNOBrBZKFjfHa86H7l563GYiTCrLUentIu', '', 'naturelle', 'Hay zouhour', 0, '2026-02-15 12:44:17', NULL, NULL, 'local', 0),
@@ -623,7 +679,7 @@ INSERT INTO `users` (`user_id`, `username`, `full_name`, `email`, `password`, `p
 (51, 'chahine_aouledamor', 'Chahine Aouled Amor', 'chahineaouledamor721@gmail.com', '$2a$12$yUWDER9cKsWonsXA9lSpYOR3kT1X0RKlnSwrW3Ho86mg3n6bEyNHC', '51_1771250440706.jpg', 'jaime le football', 'Ben Arous', 0, '2026-02-16 12:58:19', NULL, NULL, 'local', 0),
 (53, 'nour_medini', 'Nour Medini', 'medini.nour@esprit.tn', '$2a$12$ict7JRoDgt7f2rnpgavVL.ggr8/.95OlNj3P1SSfSXziJIz1c6rFK', '', '', 'Tunis', 0, '2026-02-17 09:40:44', NULL, NULL, 'local', 0),
 (56, 'aaaaaaa', 'aaaaaaaaaaa', 'chahi@gmai.co', '$2a$12$YIvkp1N.1GeEde6pC5dhtuEPTMQH1PtSdbC.20CosX9K0wsOb5kGW', '', '', 'aaaaaaaa', 0, '2026-02-21 13:24:53', NULL, NULL, 'local', 0),
-(57, 'acgamer35ca', 'Chahine Aouled Amor', 'acgamer35ca@gmail.com', NULL, 'https://lh3.googleusercontent.com/a/ACg8ocIZPaUWzdch1i-ece0sNQyxVSoyT0WlkBnP-ba_b69meJGd4G8=s96-c', NULL, NULL, 0, '2026-02-21 13:33:03', NULL, '100949373375872281937', 'google', 0);
+(57, 'acgamer35ca', 'Chahine Aouled Amor', 'acgamer35ca@gmail.com', '$2a$12$3KRxcY7nVkDZBvtwPOAdP.1ulMxRRXDtImQEKrBLQwg9Ac.ZqryB.', 'https://lh3.googleusercontent.com/a/ACg8ocIZPaUWzdch1i-ece0sNQyxVSoyT0WlkBnP-ba_b69meJGd4G8=s96-c', NULL, NULL, 0, '2026-02-21 13:33:03', NULL, '100949373375872281937', 'google', 0);
 
 --
 -- Indexes for dumped tables
@@ -775,6 +831,13 @@ ALTER TABLE `progress`
   ADD KEY `idx_hobby_id` (`hobby_id`);
 
 --
+-- Indexes for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `idx_progress_log_hobby` (`hobby_id`);
+
+--
 -- Indexes for table `stories`
 --
 ALTER TABLE `stories`
@@ -805,19 +868,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `badges`
 --
 ALTER TABLE `badges`
-  MODIFY `badge_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `badge_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `booking_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `booking_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `class_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `class_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `class_providers`
@@ -841,13 +904,13 @@ ALTER TABLE `friendships`
 -- AUTO_INCREMENT for table `hobbies`
 --
 ALTER TABLE `hobbies`
-  MODIFY `hobby_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `hobby_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `message_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `message_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `milestones`
@@ -859,25 +922,31 @@ ALTER TABLE `milestones`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `notification_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `post_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `post_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `progress`
 --
 ALTER TABLE `progress`
-  MODIFY `progress_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `progress_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  MODIFY `log_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `stories`
 --
 ALTER TABLE `stories`
-  MODIFY `story_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `story_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -993,6 +1062,12 @@ ALTER TABLE `post_likes`
 --
 ALTER TABLE `progress`
   ADD CONSTRAINT `progress_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  ADD CONSTRAINT `progress_log_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `stories`
