@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/21.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="opgg.ghrami.view.BadgesViewController"
+            fitToWidth="true"
+            style="-fx-background-color: #f0f2f5; -fx-background: #f0f2f5;">
+
+    <VBox style="-fx-background-color: #f0f2f5;" spacing="0">
+
+        <!-- ======== EN-TÊTE BANNIÈRE DE QUÊTE ======== -->
+        <VBox style="-fx-background-color: linear-gradient(to bottom right, #667eea, #764ba2); -fx-padding: 28 32 36 32;" spacing="18">
+
+            <!-- Ligne supérieure : Retour + Titre + Compteur de badges -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <Button text="&#8592; Retour" onAction="#handleBack"
+                        style="-fx-background-color: rgba(255,255,255,0.18); -fx-text-fill: white; -fx-background-radius: 22; -fx-padding: 8 20; -fx-font-size: 13; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.45); -fx-border-radius: 22; -fx-border-width: 1.5;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="&#9876;&#65039;  QUÊTE DES BADGES" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="badgeCountLabel" text="0 Badge"
+                       style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: rgba(255,255,255,0.9); -fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 20; -fx-padding: 5 16;"/>
+            </HBox>
+
+            <!-- Affichage du rang -->
+            <HBox alignment="CENTER" spacing="22">
+                <Label fx:id="rankIconLabel" text="&#127807;" style="-fx-font-size: 64;"/>
+                <VBox spacing="6" alignment="CENTER_LEFT">
+                    <Label fx:id="rankLabel" text="Novice"
+                           style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                    <Label fx:id="rankSubLabel" text="Commencez votre quête en gagnant votre premier badge !"
+                           style="-fx-font-size: 13; -fx-text-fill: rgba(255,255,255,0.78);"/>
+                </VBox>
+            </HBox>
+
+            <!-- Barre de progression XP -->
+            <VBox spacing="7">
+                <HBox>
+                    <Label text="Progression de la quête"
+                           style="-fx-font-size: 13; -fx-text-fill: rgba(255,255,255,0.88); -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="totalBadgesLabel" text="0 / 20"
+                           style="-fx-font-size: 13; -fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+                <ProgressBar fx:id="questProgressBar" progress="0" maxWidth="Infinity"
+                             prefHeight="14"
+                             style="-fx-accent: #f1c40f; -fx-control-inner-background: rgba(255,255,255,0.22); -fx-background-radius: 7; -fx-background-color: rgba(255,255,255,0.22);"/>
+                <HBox>
+                    <Label text="&#128275; Les badges obtenus débloquent votre rang"
+                           style="-fx-font-size: 11; -fx-text-fill: rgba(255,255,255,0.65);"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="progressLabel" text="0% Complété"
+                           style="-fx-font-size: 11; -fx-text-fill: rgba(255,255,255,0.65);"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <!-- ======== LIGNE DES CARTES STATISTIQUES ======== -->
+        <HBox spacing="15" style="-fx-padding: 22 32 12 32;">
+
+            <!-- Obtenus -->
+            <VBox spacing="6" alignment="CENTER" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: white; -fx-background-radius: 18; -fx-padding: 20 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                <Label text="&#127942;" style="-fx-font-size: 28;"/>
+                <Label fx:id="earnedCountLabel" text="0"
+                       style="-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                <Label text="Obtenus" style="-fx-font-size: 12; -fx-text-fill: #65676b;"/>
+            </VBox>
+
+            <!-- Ce mois-ci -->
+            <VBox spacing="6" alignment="CENTER" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: white; -fx-background-radius: 18; -fx-padding: 20 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                <Label text="&#128197;" style="-fx-font-size: 28;"/>
+                <Label fx:id="recentBadgesLabel" text="0"
+                       style="-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: #4CAF50;"/>
+                <Label text="Ce mois-ci" style="-fx-font-size: 12; -fx-text-fill: #65676b;"/>
+            </VBox>
+
+            <!-- À débloquer -->
+            <VBox spacing="6" alignment="CENTER" HBox.hgrow="ALWAYS"
+                  style="-fx-background-color: white; -fx-background-radius: 18; -fx-padding: 20 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 4);">
+                <Label text="&#128274;" style="-fx-font-size: 28;"/>
+                <Label fx:id="lockedCountLabel" text="0"
+                       style="-fx-font-size: 30; -fx-font-weight: bold; -fx-text-fill: #FF9800;"/>
+                <Label text="À débloquer" style="-fx-font-size: 12; -fx-text-fill: #65676b;"/>
+            </VBox>
+        </HBox>
+
+        <!-- ======== BARRE DE FILTRES ======== -->
+        <HBox alignment="CENTER_LEFT" spacing="12" style="-fx-padding: 12 32 12 32; -fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0, 0, 2);">
+            <Label text="Période :" style="-fx-font-size: 13; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            <ComboBox fx:id="filterCombo" onAction="#filterBadges" prefWidth="145"
+                      style="-fx-background-radius: 10; -fx-border-radius: 10;"/>
+            <Label text="  Catégorie :" style="-fx-font-size: 13; -fx-text-fill: #65676b; -fx-font-weight: bold;"/>
+            <ComboBox fx:id="categoryCombo" onAction="#filterBadges" prefWidth="155"
+                      style="-fx-background-radius: 10; -fx-border-radius: 10;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="&#128161; Comment obtenir" onAction="#showBadgeInfo"
+                    style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 8 18; -fx-font-size: 12; -fx-font-weight: bold; -fx-cursor: hand;"/>
+        </HBox>
+
+        <!-- ======== GRILLE DES BADGES ======== -->
+        <VBox spacing="20" style="-fx-padding: 20 32 35 32;">
+
+            <!-- État vide -->
+            <VBox fx:id="emptyState" alignment="CENTER" spacing="18" style="-fx-padding: 60 0;" managed="false" visible="false">
+                <Label text="&#127807;" style="-fx-font-size: 64;"/>
+                <Label text="Aucun Badge Pour l'Instant" style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                <Label text="Commencez à utiliser Ghrami pour obtenir votre premier badge !"
+                       style="-fx-font-size: 14; -fx-text-fill: #65676b;" wrapText="true" maxWidth="370"/>
+            </VBox>
+
+            <!-- FlowPane des badges -->
+            <FlowPane fx:id="badgesContainer" hgap="20" vgap="20" alignment="TOP_LEFT"
+                      style="-fx-padding: 5;"/>
+        </VBox>
+
+    </VBox>
+</ScrollPane>

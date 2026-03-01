@@ -9,11 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserController {
-    private Connection connection;
-
-    public UserController() {
-        this.connection = DatabaseConnection.getInstance().getConnection();
-    }
 
     public User create(User user) {
         // Special handling for admin user with ID=0
@@ -21,20 +16,23 @@ public class UserController {
             return createAdminUser(user);
         }
         
-        String sql = "INSERT INTO users (username, full_name, email, password, profile_picture, bio, location, is_online, created_at, last_login) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, full_name, email, password, google_id, auth_provider, profile_picture, bio, location, is_online, created_at, last_login) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getFullName());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPassword());
-            stmt.setString(5, user.getProfilePicture());
-            stmt.setString(6, user.getBio());
-            stmt.setString(7, user.getLocation());
-            stmt.setBoolean(8, user.isOnline());
-            stmt.setTimestamp(9, Timestamp.valueOf(user.getCreatedAt()));
-            stmt.setTimestamp(10, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
+            stmt.setString(5, user.getGoogleId());
+            stmt.setString(6, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
+            stmt.setString(7, user.getProfilePicture());
+            stmt.setString(8, user.getBio());
+            stmt.setString(9, user.getLocation());
+            stmt.setBoolean(10, user.isOnline());
+            stmt.setTimestamp(11, Timestamp.valueOf(user.getCreatedAt()));
+            stmt.setTimestamp(12, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
 
             int affectedRows = stmt.executeUpdate();
 
@@ -42,29 +40,29 @@ public class UserController {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         user.setUserId(generatedKeys.getLong(1));
-                        System.out.println("✅ User created: " + user.getUsername() + " (ID: " + user.getUserId() + ")");
+                        System.out.println("User created: " + user.getUsername() + " (ID: " + user.getUserId() + ")");
                         return user;
                     }
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating user: " + e.getMessage());
+            System.err.println("Error creating user: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
     
     private User createAdminUser(User user) {
-        try {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
             // First, check if a user with this username or email already exists
             String checkSql = "SELECT user_id FROM users WHERE username = ? OR email = ?";
-            try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
                 checkStmt.setString(1, user.getUsername());
                 checkStmt.setString(2, user.getEmail());
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
                         long existingId = rs.getLong("user_id");
-                        System.err.println("❌ Cannot create admin: User already exists with ID=" + existingId);
+                        System.err.println("Cannot create admin: User already exists with ID=" + existingId);
                         System.err.println("   Username or email 'chahine' / 'chahine@ghrami.tn' is already taken");
                         System.err.println("   Please delete this user or use a different admin username/email");
                         return null;
@@ -73,12 +71,12 @@ public class UserController {
             }
             
             // Enable NO_AUTO_VALUE_ON_ZERO mode to allow inserting 0 into AUTO_INCREMENT column
-            connection.createStatement().execute("SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO'");
+            conn.createStatement().execute("SET SESSION sql_mode = 'NO_AUTO_VALUE_ON_ZERO'");
             
             String sql = "INSERT INTO users (user_id, username, full_name, email, password, profile_picture, bio, location, is_online, created_at, last_login) " +
                     "VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            PreparedStatement stmt = connection.prepareStatement(sql);
+            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getFullName());
             stmt.setString(3, user.getEmail());
@@ -94,26 +92,26 @@ public class UserController {
             stmt.close();
             
             // Reset sql_mode
-            connection.createStatement().execute("SET SESSION sql_mode = DEFAULT");
+            conn.createStatement().execute("SET SESSION sql_mode = DEFAULT");
 
             if (affectedRows > 0) {
-                System.out.println("✅ Admin user SQL executed successfully (affected rows: " + affectedRows + ")");
+                System.out.println("Admin user SQL executed successfully (affected rows: " + affectedRows + ")");
                 
                 // Verify the user was actually inserted
                 User verifyAdmin = findById(0);
                 if (verifyAdmin != null) {
-                    System.out.println("✅ VERIFIED: Admin exists in database!");
+                    System.out.println("VERIFIED: Admin exists in database!");
                     System.out.println("   ID: " + verifyAdmin.getUserId());
                     System.out.println("   Username: " + verifyAdmin.getUsername());
                     System.out.println("   Email: " + verifyAdmin.getEmail());
                     return verifyAdmin;
                 } else {
-                    System.err.println("❌ FAILED: Admin was inserted but not found at ID=0");
+                    System.err.println("FAILED: Admin was inserted but not found at ID=0");
                     System.err.println("   MySQL may have auto-assigned a different ID");
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error creating admin user: " + e.getMessage());
+            System.err.println("Error creating admin user: " + e.getMessage());
             System.err.println("   SQL State: " + e.getSQLState());
             System.err.println("   Error Code: " + e.getErrorCode());
             e.printStackTrace();
@@ -124,7 +122,8 @@ public class UserController {
     public Optional<User> findById(Long userId) {
         String sql = "SELECT * FROM users WHERE user_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             ResultSet rs = stmt.executeQuery();
 
@@ -132,7 +131,7 @@ public class UserController {
                 return Optional.of(mapResultSetToUser(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding user by ID: " + e.getMessage());
+            System.err.println("Error finding user by ID: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
@@ -147,62 +146,91 @@ public class UserController {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY created_at DESC";
 
-        try (Statement stmt = connection.createStatement();
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 users.add(mapResultSetToUser(rs));
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding all users: " + e.getMessage());
+            System.err.println("Error finding all users: " + e.getMessage());
             e.printStackTrace();
         }
         return users;
     }
 
     public User update(User user) {
-        String sql = "UPDATE users SET username = ?, full_name = ?, email = ?, password = ?, profile_picture = ?, " +
-                "bio = ?, location = ?, is_online = ?, last_login = ? WHERE user_id = ?";
+        String sql = "UPDATE users SET username = ?, full_name = ?, email = ?, password = ?, " +
+                "google_id = ?, auth_provider = ?, profile_picture = ?, " +
+                "bio = ?, location = ?, is_online = ?, is_banned = ?, last_login = ? WHERE user_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getFullName());
             stmt.setString(3, user.getEmail());
             stmt.setString(4, user.getPassword());
-            stmt.setString(5, user.getProfilePicture());
-            stmt.setString(6, user.getBio());
-            stmt.setString(7, user.getLocation());
-            stmt.setBoolean(8, user.isOnline());
-            stmt.setTimestamp(9, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
-            stmt.setLong(10, user.getUserId());
+            stmt.setString(5, user.getGoogleId());
+            stmt.setString(6, user.getAuthProvider() != null ? user.getAuthProvider() : "local");
+            stmt.setString(7, user.getProfilePicture());
+            stmt.setString(8, user.getBio());
+            stmt.setString(9, user.getLocation());
+            stmt.setBoolean(10, user.isOnline());
+            stmt.setBoolean(11, user.isBanned());
+            stmt.setTimestamp(12, user.getLastLogin() != null ? Timestamp.valueOf(user.getLastLogin()) : null);
+            stmt.setLong(13, user.getUserId());
 
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ User updated: " + user.getUsername());
+                System.out.println("User updated: " + user.getUsername());
                 return user;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error updating user: " + e.getMessage());
+            System.err.println("Error updating user: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
+    /**
+     * Ban or unban a user by their ID.
+     * Uses a dedicated query so it works even if the update() method is not called.
+     */
+    public boolean setBanned(Long userId, boolean banned) {
+        String sql = "UPDATE users SET is_banned = ? WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, banned);
+            stmt.setLong(2, userId);
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                System.out.println("User " + userId + " is_banned set to " + banned);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error setting ban status: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean delete(Long userId) {
         String sql = "DELETE FROM users WHERE user_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
 
             int affectedRows = stmt.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("✅ User deleted: " + userId);
+                System.out.println("User deleted: " + userId);
                 return true;
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error deleting user: " + e.getMessage());
+            System.err.println("Error deleting user: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -210,7 +238,8 @@ public class UserController {
     
     public Optional<User> findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -218,10 +247,61 @@ public class UserController {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("❌ Error finding user by email: " + e.getMessage());
+            System.err.println("Error finding user by email: " + e.getMessage());
             e.printStackTrace();
         }
         return Optional.empty();
+    }
+
+    public Optional<User> findByGoogleId(String googleId) {
+        String sql = "SELECT * FROM users WHERE google_id = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, googleId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error finding user by Google ID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public User createGoogleUser(String googleId, String email, String fullName, String profilePictureUrl) {
+        // Generate unique username from email
+        String baseUsername = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "_");
+        String username = baseUsername;
+        int suffix = 1;
+        while (usernameExists(username)) {
+            username = baseUsername + suffix++;
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setFullName(fullName);
+        user.setEmail(email);
+        user.setPassword(null);
+        user.setGoogleId(googleId);
+        user.setAuthProvider("google");
+        user.setProfilePicture(profilePictureUrl);
+        user.setOnline(true);
+
+        return create(user);
+    }
+
+    private boolean usernameExists(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
@@ -231,10 +311,13 @@ public class UserController {
         user.setFullName(rs.getString("full_name"));
         user.setEmail(rs.getString("email"));
         user.setPassword(rs.getString("password"));
+        user.setGoogleId(rs.getString("google_id"));
+        user.setAuthProvider(rs.getString("auth_provider"));
         user.setProfilePicture(rs.getString("profile_picture"));
         user.setBio(rs.getString("bio"));
         user.setLocation(rs.getString("location"));
         user.setOnline(rs.getBoolean("is_online"));
+        try { user.setBanned(rs.getBoolean("is_banned")); } catch (SQLException ignored) {}
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {

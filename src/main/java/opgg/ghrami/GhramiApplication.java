@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import opgg.ghrami.controller.UserController;
 import opgg.ghrami.model.User;
+import opgg.ghrami.util.ChatClient;
+import opgg.ghrami.util.ChatServer;
 import opgg.ghrami.util.PasswordUtil;
 
 import java.time.LocalDateTime;
@@ -16,17 +18,48 @@ public class GhramiApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Initialize admin user on startup
         initializeAdmin();
-        
+
+        // Start the real-time chat server (daemon thread)
+        ChatServer.getInstance().start();
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
         Scene scene = new Scene(loader.load());
         scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
-        
+
         primaryStage.setTitle("Ghrami - Connexion");
         primaryStage.setScene(scene);
-        primaryStage.setWidth(450);
-        primaryStage.setHeight(600);
         primaryStage.setResizable(true);
-        primaryStage.setMaximized(false);
+        primaryStage.setMaximized(true);
+
+        // --- Set application icon ---
+        try {
+            javafx.scene.image.Image icon = new javafx.scene.image.Image(getClass().getResourceAsStream("/images/assets/ghrami-logo.png"));
+            primaryStage.getIcons().add(icon);
+        } catch (Exception e) {
+            System.err.println("App icon (ghrami.png) not found or failed to load. SVG is not supported as icon in JavaFX.");
+        }
+
+        // Set user offline when closing application window
+        primaryStage.setOnCloseRequest(event -> {
+            opgg.ghrami.util.SessionManager session = opgg.ghrami.util.SessionManager.getInstance();
+            if (session.isLoggedIn()) {
+                try {
+                    UserController userController = new UserController();
+                    long userId = session.getUserId();
+                    User user = userController.findById((int) userId);
+                    if (user != null) {
+                        user.setOnline(false);
+                        userController.update(user);
+                        System.out.println("User set to offline on window close: " + user.getUsername());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error setting user offline on close: " + e.getMessage());
+                }
+                // Disconnect chat client
+                ChatClient.getInstance().disconnect();
+            }
+        });
+
         primaryStage.show();
     }
 
@@ -53,12 +86,12 @@ public class GhramiApplication extends Application {
             
             User createdAdmin = userController.create(admin);
             if (createdAdmin != null) {
-                System.out.println("✅ Admin user created successfully!");
+                System.out.println("Admin user created successfully!");
             } else {
-                System.err.println("❌ Failed to create admin user");
+                System.err.println("Failed to create admin user");
             }
         } else {
-            System.out.println("✅ Admin user already exists (ID: " + existingAdmin.getUserId() + ")");
+            System.out.println("Admin user already exists (ID: " + existingAdmin.getUserId() + ")");
         }
     }
 

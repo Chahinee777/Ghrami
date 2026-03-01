@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -45,6 +46,8 @@ public class ProfileViewController implements Initializable {
     @FXML private Label postsCountLabel;
     @FXML private Label friendsCountLabel;
     @FXML private Label badgesCountLabel;
+    @FXML private Label onlineStatusLabel;
+    @FXML private Button toggleStatusButton;
     
     // Edit Fields
     @FXML private TextField fullNameField;
@@ -77,6 +80,7 @@ public class ProfileViewController implements Initializable {
         loadUserData();
         loadBadges();
         loadFriends();
+        updateOnlineStatusDisplay();
     }
     
     private void loadUserData() {
@@ -121,10 +125,8 @@ public class ProfileViewController implements Initializable {
             return;
         }
         
-        List<Badge> allBadges = badgeController.findAll();
-        List<Badge> userBadges = allBadges.stream()
-                .filter(badge -> badge.getUserId() == currentUser.getUserId().intValue())
-                .collect(Collectors.toList());
+        // Use the optimized method to get badges for this user
+        List<Badge> userBadges = badgeController.findByUserId(currentUser.getUserId());
         
         badgesCountLabel.setText(String.valueOf(userBadges.size()));
         
@@ -132,10 +134,25 @@ public class ProfileViewController implements Initializable {
         badgesContainer.getChildren().clear();
         
         if (userBadges.isEmpty()) {
-            Label emptyLabel = new Label("Aucun badge pour le moment\nCommencez à explorer pour en gagner!");
-            emptyLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 14; -fx-text-alignment: center;");
-            emptyLabel.setWrapText(true);
-            badgesContainer.getChildren().add(emptyLabel);
+            VBox emptyBox = new VBox(10);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setStyle("-fx-padding: 40; -fx-background-color: #f8f9fa; -fx-background-radius: 15;");
+            
+            Label icon = new Label("🏆");
+            icon.setStyle("-fx-font-size: 50; -fx-opacity: 0.5;");
+            
+            Label emptyLabel = new Label("No badges yet");
+            emptyLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 16; -fx-font-weight: bold;");
+            
+            Label subLabel = new Label("Keep being active to earn your first badge!");
+            subLabel.setStyle("-fx-text-fill: #65676b; -fx-font-size: 12;");
+            subLabel.setWrapText(true);
+            subLabel.setMaxWidth(200);
+            subLabel.setAlignment(Pos.CENTER);
+            subLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+            
+            emptyBox.getChildren().addAll(icon, emptyLabel, subLabel);
+            badgesContainer.getChildren().add(emptyBox);
         } else {
             for (Badge badge : userBadges) {
                 badgesContainer.getChildren().add(createBadgeCard(badge));
@@ -149,10 +166,27 @@ public class ProfileViewController implements Initializable {
         card.getStyleClass().add("badge-card");
         card.setPrefWidth(140);
         card.setMaxWidth(140);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 15; " +
+                "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3); " +
+                "-fx-border-color: #e4e6eb; -fx-border-radius: 15; -fx-border-width: 1; -fx-cursor: hand;");
         
-        // Badge Icon/Emoji
-        Label icon = new Label("🏆");
-        icon.setStyle("-fx-font-size: 40;");
+        // Add hover effect
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 15; " +
+                    "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 15, 0, 0, 5); " +
+                    "-fx-border-color: #667eea; -fx-border-radius: 15; -fx-border-width: 2; -fx-cursor: hand; " +
+                    "-fx-scale-x: 1.05; -fx-scale-y: 1.05;");
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 15; " +
+                    "-fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3); " +
+                    "-fx-border-color: #e4e6eb; -fx-border-radius: 15; -fx-border-width: 1; -fx-cursor: hand;");
+        });
+        
+        // Badge Icon/Emoji - Intelligent icon selection
+        String icon = getBadgeIcon(badge.getName());
+        Label iconLabel = new Label(icon);
+        iconLabel.setStyle("-fx-font-size: 45;");
         
         // Badge Name
         Label name = new Label(badge.getName());
@@ -160,21 +194,99 @@ public class ProfileViewController implements Initializable {
         name.setWrapText(true);
         name.setMaxWidth(120);
         name.setAlignment(Pos.CENTER);
+        name.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         
         // Badge Description
-        Label desc = new Label(badge.getDescription());
-        desc.setStyle("-fx-font-size: 11; -fx-text-fill: #65676b;");
+        Label desc = new Label(badge.getDescription() != null && !badge.getDescription().isEmpty() 
+            ? badge.getDescription() : "Special achievement");
+        desc.setStyle("-fx-font-size: 10; -fx-text-fill: #65676b;");
         desc.setWrapText(true);
         desc.setMaxWidth(120);
         desc.setAlignment(Pos.CENTER);
+        desc.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
         
         // Earned Date
-        Label date = new Label("✓ " + badge.getEarnedDate().toString().substring(0, 10));
-        date.setStyle("-fx-font-size: 10; -fx-text-fill: #667eea;");
+        String dateStr = badge.getEarnedDate() != null 
+            ? badge.getEarnedDate().toLocalDate().toString() 
+            : LocalDateTime.now().toLocalDate().toString();
+        Label date = new Label("✓ " + dateStr);
+        date.setStyle("-fx-font-size: 9; -fx-text-fill: #667eea; -fx-font-weight: bold; " +
+                "-fx-background-color: #e8eaf6; -fx-padding: 4 8; -fx-background-radius: 10;");
         
-        card.getChildren().addAll(icon, name, desc, date);
+        card.getChildren().addAll(iconLabel, name, desc, date);
+        
+        // Click to view details
+        card.setOnMouseClicked(e -> showBadgeDetails(badge));
         
         return card;
+    }
+    
+    /**
+     * Get appropriate icon based on badge name
+     */
+    private String getBadgeIcon(String badgeName) {
+        if (badgeName == null) return "🏆";
+        
+        String name = badgeName.toLowerCase();
+        
+        // Check for keywords and return appropriate icon
+        if (name.contains("first") || name.contains("welcome") || name.contains("aboard")) return "🎉";
+        if (name.contains("friend") || name.contains("social")) return "🤝";
+        if (name.contains("creator") || name.contains("content") || name.contains("post")) return "📝";
+        if (name.contains("vip") || name.contains("premium") || name.contains("diamond")) return "💎";
+        if (name.contains("star") || name.contains("rising")) return "🌟";
+        if (name.contains("fire") || name.contains("streak") || name.contains("on fire")) return "🔥";
+        if (name.contains("goal") || name.contains("achiever") || name.contains("target")) return "🎯";
+        if (name.contains("connect") || name.contains("butterfly")) return "🦋";
+        if (name.contains("champion") || name.contains("winner")) return "🏆";
+        if (name.contains("creative") || name.contains("artist")) return "🎨";
+        if (name.contains("support") || name.contains("helper")) return "⭐";
+        if (name.contains("early") || name.contains("pioneer") || name.contains("beta")) return "🚀";
+        if (name.contains("gold") || name.contains("golden")) return "🥇";
+        if (name.contains("silver")) return "🥈";
+        if (name.contains("bronze")) return "🥉";
+        if (name.contains("expert") || name.contains("master")) return "👨‍🎓";
+        if (name.contains("love") || name.contains("heart")) return "❤️";
+        if (name.contains("verified") || name.contains("authentic")) return "✅";
+        
+        return "🏆"; // Default
+    }
+    
+    /**
+     * Show detailed badge information in a modal
+     */
+    private void showBadgeDetails(Badge badge) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Badge Details");
+        alert.setHeaderText(getBadgeIcon(badge.getName()) + " " + badge.getName());
+        
+        VBox content = new VBox(10);
+        content.setStyle("-fx-padding: 15;");
+        
+        Label descLabel = new Label("Description:");
+        descLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12;");
+        
+        Label descValue = new Label(badge.getDescription() != null && !badge.getDescription().isEmpty() 
+            ? badge.getDescription() : "No description available");
+        descValue.setWrapText(true);
+        descValue.setMaxWidth(350);
+        descValue.setStyle("-fx-font-size: 12; -fx-text-fill: #65676b;");
+        
+        Label earnedLabel = new Label("Earned on:");
+        earnedLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12;");
+        
+        String earnedDate = badge.getEarnedDate() != null 
+            ? badge.getEarnedDate().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' HH:mm"))
+            : "Unknown date";
+        Label earnedValue = new Label(earnedDate);
+        earnedValue.setStyle("-fx-font-size: 12; -fx-text-fill: #667eea; -fx-font-weight: bold;");
+        
+        content.getChildren().addAll(descLabel, descValue, new Separator(), earnedLabel, earnedValue);
+        
+        alert.getDialogPane().setContent(content);
+        alert.getDialogPane().setStyle("-fx-background-color: white; -fx-background-radius: 20;");
+        
+        alert.showAndWait();
     }
     
     private void loadFriends() {
@@ -224,9 +336,26 @@ public class ProfileViewController implements Initializable {
         card.getStyleClass().add("friend-card");
         card.setPadding(new Insets(15));
         
+        // Get full user details
+        User friendUser = userController.findById(friend.getUserId());
+        
         // Friend Avatar
         Circle avatar = new Circle(25);
-        avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+        if (friendUser != null && friendUser.getProfilePicture() != null && !friendUser.getProfilePicture().isEmpty()) {
+            try {
+                java.nio.file.Path imagePath = java.nio.file.Paths.get("src/main/resources/images/profile_pictures/" + friendUser.getProfilePicture());
+                if (java.nio.file.Files.exists(imagePath)) {
+                    javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+                    avatar.setFill(new ImagePattern(image));
+                } else {
+                    avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+                }
+            } catch (Exception e) {
+                avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+            }
+        } else {
+            avatar.setStyle("-fx-fill: linear-gradient(135deg, #667eea 0%, #764ba2 100%);");
+        }
         
         // Friend Info
         VBox info = new VBox(5);
@@ -381,7 +510,7 @@ public class ProfileViewController implements Initializable {
                 currentUser.setProfilePicture(fileName);
                 userController.update(currentUser);
                 
-                System.out.println("✅ Profile picture updated: " + fileName);
+                System.out.println("Profile picture updated: " + fileName);
                 
                 // Load the new image
                 loadProfileImage();
@@ -394,28 +523,51 @@ public class ProfileViewController implements Initializable {
         }
     }
     
-    private void loadProfileImage() {
-        // Try to load profile picture from profilePicture field
-        if (currentUser.getProfilePicture() != null && !currentUser.getProfilePicture().isEmpty()) {
-            try {
-                Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + currentUser.getProfilePicture());
-                if (Files.exists(imagePath)) {
-                    javafx.scene.image.Image image = new javafx.scene.image.Image(
-                        imagePath.toUri().toString()
-                    );
-                    profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image));
-                    return;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        
-        // Default gradient if no image
-        profileImageCircle.setFill(
-            javafx.scene.paint.Color.web("#667eea")
-        );
+  // METHOD 2 - UserFeedController (profileImageCircle)
+private void loadProfileImage() {
+    if (currentUser.getProfilePicture() == null || currentUser.getProfilePicture().isEmpty()) {
+        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+        return;
     }
+
+    try {
+        String pic = currentUser.getProfilePicture();
+
+        if (pic.startsWith("http://") || pic.startsWith("https://")) {
+            javafx.scene.image.Image image = new javafx.scene.image.Image(pic, true);
+
+            image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal.doubleValue() >= 1.0 && !image.isError()) {
+                    javafx.application.Platform.runLater(() ->
+                        profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image))
+                    );
+                }
+            });
+
+            image.errorProperty().addListener((obs, oldVal, hasError) -> {
+                if (hasError) {
+                    javafx.application.Platform.runLater(() ->
+                        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"))
+                    );
+                }
+            });
+
+        } else {
+            Path imagePath = Paths.get("src/main/resources/images/profile_pictures/" + pic);
+            if (!Files.exists(imagePath)) {
+                profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+                return;
+            }
+
+            javafx.scene.image.Image image = new javafx.scene.image.Image(imagePath.toUri().toString());
+            profileImageCircle.setFill(new javafx.scene.paint.ImagePattern(image));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        profileImageCircle.setFill(javafx.scene.paint.Color.web("#667eea"));
+    }
+}
     
     @FXML
     private void handleRefreshBadges() {
@@ -431,19 +583,105 @@ public class ProfileViewController implements Initializable {
     private void handleBackToDashboard() {
         try {
             System.out.println("Back button clicked - loading UserFeed...");
+            Stage stage = (Stage) fullNameLabel.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/UserFeed.fxml"));
             loader.load();
             
-            Stage stage = (Stage) fullNameLabel.getScene().getWindow();
-            Scene scene = new Scene(loader.getRoot(), 1400, 900);
+            Scene scene = new Scene(loader.getRoot(), width, height);
             scene.getStylesheets().add(getClass().getResource("/css/social-style.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Ghrami - Feed");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
             System.out.println("Successfully loaded UserFeed!");
         } catch (Exception e) {
             System.err.println("ERROR in handleBackToDashboard: " + e.getMessage());
             e.printStackTrace();
             showAlert("Erreur", "Erreur lors du retour au feed: " + e.getMessage());
+        }
+    }
+    
+    @FXML
+    private void handleToggleOnlineStatus() {
+        try {
+            if (currentUser == null) {
+                showAlert("Erreur", "Utilisateur non trouvé");
+                return;
+            }
+            
+            // Toggle the online status
+            boolean newStatus = !currentUser.isOnline();
+            currentUser.setOnline(newStatus);
+            userController.update(currentUser);
+            
+            // Update the display
+            updateOnlineStatusDisplay();
+            
+            String statusText = newStatus ? "En ligne" : "Hors ligne";
+            System.out.println("Status changed to: " + statusText);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors du changement de statut: " + e.getMessage());
+        }
+    }
+    
+    private void updateOnlineStatusDisplay() {
+        if (currentUser == null || onlineStatusLabel == null || toggleStatusButton == null) {
+            return;
+        }
+        
+        if (currentUser.isOnline()) {
+            onlineStatusLabel.setText("🟢 En ligne");
+            onlineStatusLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #22c55e;");
+            toggleStatusButton.setText("Passer Hors ligne");
+            toggleStatusButton.setStyle("-fx-background-color: #ef4444; -fx-text-fill: white; " +
+                    "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
+                    "-fx-font-weight: bold; -fx-cursor: hand;");
+        } else {
+            onlineStatusLabel.setText("⚫ Hors ligne");
+            onlineStatusLabel.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #6b7280;");
+            toggleStatusButton.setText("Passer En ligne");
+            toggleStatusButton.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white; " +
+                    "-fx-background-radius: 20; -fx-padding: 10 20; -fx-font-size: 13; " +
+                    "-fx-font-weight: bold; -fx-cursor: hand;");
+        }
+    }
+    
+    @FXML
+    private void handleLogout() {
+        try {
+            // Set user offline before logout
+            if (currentUser != null) {
+                currentUser.setOnline(false);
+                userController.update(currentUser);
+                System.out.println("User set to offline on logout: " + currentUser.getUsername());
+            }
+            
+            sessionManager.logout();
+            
+            // Navigate to login
+            Stage stage = (Stage) fullNameLabel.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
+            Scene scene = new Scene(loader.load(), width, height);
+            scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("Ghrami - Connexion");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors de la déconnexion: " + e.getMessage());
         }
     }
     

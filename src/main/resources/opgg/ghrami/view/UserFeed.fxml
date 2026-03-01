@@ -44,12 +44,26 @@
                 <Button text="👥" styleClass="icon-btn" onAction="#handleFriends" minWidth="50" minHeight="50">
                     <tooltip><Tooltip text="Amis"/></tooltip>
                 </Button>
-                <Button text="🔔" styleClass="icon-btn" onAction="#handleNotifications" minWidth="50" minHeight="50">
-                    <tooltip><Tooltip text="Notifications"/></tooltip>
-                </Button>
-                <Button text="💬" styleClass="icon-btn" onAction="#handleMessages" minWidth="50" minHeight="50">
-                    <tooltip><Tooltip text="Messages"/></tooltip>
-                </Button>
+
+                <!-- Notifications Button with Badge -->
+                <StackPane maxWidth="50" maxHeight="50" minWidth="50" minHeight="50">
+                    <Button text="🔔" fx:id="notificationsButton" styleClass="icon-btn" onAction="#handleNotifications" minWidth="50" minHeight="50">
+                        <tooltip><Tooltip text="Notifications"/></tooltip>
+                    </Button>
+                    <Label fx:id="notificationsBadge" text="" visible="false"
+                           style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 9; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 1 5;"
+                           StackPane.alignment="TOP_RIGHT" translateX="4" translateY="-4"/>
+                </StackPane>
+
+                <!-- Messages Button with Badge -->
+                <StackPane maxWidth="50" maxHeight="50" minWidth="50" minHeight="50">
+                    <Button text="💬" fx:id="messagesButton" styleClass="icon-btn" onAction="#handleMessages" minWidth="50" minHeight="50">
+                        <tooltip><Tooltip text="Messages"/></tooltip>
+                    </Button>
+                    <Label fx:id="messagesBadge" text="" visible="false"
+                           style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-size: 9; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 1 5;"
+                           StackPane.alignment="TOP_RIGHT" translateX="4" translateY="-4"/>
+                </StackPane>
                 
                 <!-- Profile Menu -->
                 <MenuButton styleClass="profile-menu-btn" minWidth="50" minHeight="50">
@@ -141,8 +155,8 @@
                             <Button text="📅 Événements" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleEvents"/>
                             <Button text="💡 Groupes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleGroups"/>
                             <Button text="🎓 Classes" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleClasses"/>
-                            <Button text="🥽 Salles VR" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleVRRooms"/>
-                            <Button text="🤝 Matchings" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMatchings"/>
+                            <Button text="🤝 Meetups" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleMeetups"/>
+                            <Button text="🎮 Salles VR" styleClass="nav-btn-left" maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleVRRooms"/>
                         </VBox>
                     </VBox>
                     
@@ -193,57 +207,61 @@
                     <padding>
                         <Insets top="15" right="15" bottom="15" left="15"/>
                     </padding>
-                    <ScrollPane fitToHeight="true" hbarPolicy="NEVER" minHeight="200" prefHeight="200" maxHeight="200" style="-fx-background-color: transparent; -fx-background: transparent;">
-                        <HBox spacing="15" styleClass="stories-container">
+                    <ScrollPane fx:id="storiesScrollPane" fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" minHeight="200" prefHeight="200" maxHeight="200" style="-fx-background-color: transparent; -fx-background: transparent;">
+                        <HBox fx:id="storiesContainer" spacing="15" styleClass="stories-container">
                             <padding>
                                 <Insets top="10" right="10" bottom="10" left="10"/>
                             </padding>
-                            
-                            <!-- Add Story -->
-                            <VBox styleClass="story-card add-story" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-add" style="-fx-stroke-width: 3; -fx-stroke: #667eea;"/>
-                                <Label text="➕" style="-fx-font-size: 24;"/>
-                                <Label text="Créer Story" styleClass="story-name"/>
-                            </VBox>
-                            
-                            <!-- Story Items -->
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Amine" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Salma" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Youssef" styleClass="story-name"/>
-                            </VBox>
-                            <VBox styleClass="story-card" alignment="CENTER" spacing="5" minWidth="120" maxWidth="120">
-                                <Circle radius="50" styleClass="story-circle-active" style="-fx-stroke-width: 3; -fx-stroke: linear-gradient(to right, #667eea, #764ba2);"/>
-                                <Label text="Lina" styleClass="story-name"/>
-                            </VBox>
                         </HBox>
                     </ScrollPane>
                 </VBox>
                 
-                <!-- Create Post Box -->
-                <VBox styleClass="create-post-card" spacing="15">
+                <!-- Create Post Box (AI Enhanced) -->
+                <VBox styleClass="create-post-card" spacing="12">
                     <padding>
                         <Insets top="20" right="20" bottom="20" left="20"/>
                     </padding>
-                    
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <Circle radius="25" styleClass="profile-circle"/>
-                        <TextField fx:id="postTextField" promptText="Quoi de neuf? Partagez votre passion..." styleClass="post-input" HBox.hgrow="ALWAYS"/>
+
+                    <!-- Profile + TextArea -->
+                    <HBox spacing="15" alignment="TOP_LEFT">
+                        <Circle fx:id="postProfileCircle" radius="25" styleClass="profile-circle"/>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS">
+                            <TextArea fx:id="postTextArea"
+                                      promptText="Quoi de neuf ? Partagez votre passion... 🤖 L'IA peut vous aider !"
+                                      styleClass="post-input"
+                                      wrapText="true"
+                                      prefRowCount="3"
+                                      style="-fx-font-size: 14; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10; -fx-border-color: #e4e6eb; -fx-border-width: 1;"/>
+
+                            <!-- AI Status label (shown during AI calls) -->
+                            <Label fx:id="aiStatusLabel" text=""
+                                   style="-fx-text-fill: #667eea; -fx-font-size: 12; -fx-font-style: italic;"
+                                   visible="false" managed="false"/>
+
+                            <!-- AI-generated image preview (shown after image generation) -->
+                            <StackPane fx:id="aiImageContainer" visible="false" managed="false"
+                                       style="-fx-background-color: #f0f2f5; -fx-background-radius: 10; -fx-padding: 6;">
+                                <ImageView fx:id="aiImagePreview" fitWidth="480" fitHeight="280" preserveRatio="true"/>
+                                <Button text="✕ Supprimer" onAction="#handleRemoveAiImage"
+                                        style="-fx-background-color: rgba(0,0,0,0.55); -fx-text-fill: white; -fx-font-size: 11; -fx-background-radius: 15; -fx-padding: 4 10; -fx-cursor: hand;"
+                                        StackPane.alignment="TOP_RIGHT" translateX="-6" translateY="6"/>
+                            </StackPane>
+                        </VBox>
                     </HBox>
-                    
+
                     <Separator/>
-                    
-                    <HBox spacing="10" alignment="CENTER">
-                        <Button text="📷 Photo/Vidéo" styleClass="post-action-btn" onAction="#handleAddMedia"/>
-                        <Button text="🎯 Hobby" styleClass="post-action-btn" onAction="#handleAddHobby"/>
-                        <Button text="😊 Sentiment" styleClass="post-action-btn" onAction="#handleAddFeeling"/>
+
+                    <!-- Action buttons row -->
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button text="📷 Photo" styleClass="post-action-btn" onAction="#handleAddMedia">
+                            <tooltip><Tooltip text="Ajouter une photo (l'IA génère une légende automatiquement)"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnAiComplete" text="🤖 Compléter" styleClass="post-action-btn" onAction="#handleAiComplete">
+                            <tooltip><Tooltip text="L'IA complète votre texte"/></tooltip>
+                        </Button>
+                        <Button fx:id="btnAiImage" text="🎨 Générer Image" styleClass="post-action-btn" onAction="#handleAiGenerateImage">
+                            <tooltip><Tooltip text="Générer une image à partir de votre texte"/></tooltip>
+                        </Button>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button text="Publier" styleClass="btn-publish" onAction="#handlePublish"/>
                     </HBox>

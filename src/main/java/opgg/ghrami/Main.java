@@ -27,22 +27,28 @@ public class Main {
         System.out.println("\n📋 USER OPERATIONS");
         System.out.println("-------------------");
 
-        // Create a new user
+        // Create a new user with profile picture
+        System.out.println("➕ Creating new user with profile picture...");
         final User newUser = new User(
                 "farah_khelifi",
                 "farah.khelifi@ghrami.tn",
                 "securePassword123",
-                "https://example.com/avatar.jpg",
+                "biggie.png",  // Profile picture from resources/images/profile_pictures/
                 "Développeuse passionnée par la tech et l'innovation",
                 "Nabeul, Tunisie"
         );
+        newUser.setFullName("Farah Khelifi");
         User createdUser = userController.create(newUser);
 
         // Find user by ID
         if (createdUser != null && createdUser.getUserId() != null) {
             System.out.println("\n🔍 Finding user by ID: " + createdUser.getUserId());
             Optional<User> foundUser = userController.findById(createdUser.getUserId());
-            foundUser.ifPresent(u -> System.out.println("   Found: " + u.getUsername()));
+            foundUser.ifPresent(u -> {
+                System.out.println("   Found: " + u.getUsername());
+                System.out.println("   Full Name: " + (u.getFullName() != null ? u.getFullName() : "N/A"));
+                System.out.println("   Profile Picture: " + (u.getProfilePicture() != null ? u.getProfilePicture() : "N/A"));
+            });
         } else {
             System.out.println("\n⚠️ User creation failed or user already exists");
         }
@@ -56,7 +62,7 @@ public class Main {
         System.out.println("\n🔍 Finding user again...");
         Optional<User> foundAgain = userController.findById(newUser != null ? newUser.getUserId() : 1L);
         if (foundAgain.isPresent()) {
-            System.out.println("   ✅ User found!");
+            System.out.println("   User found!");
             System.out.println("   User: " + foundAgain.get().getUsername());
         }
 
@@ -77,7 +83,10 @@ public class Main {
         // List all users
         System.out.println("\n👥 All registered users:");
         List<User> allUsers = userController.findAll();
-        allUsers.forEach(u -> System.out.println("   - " + u.getUsername() + " (" + u.getEmail() + ")"));
+        allUsers.forEach(u -> System.out.println("   - " + u.getUsername() + 
+            " (" + u.getEmail() + ") | " + 
+            (u.getFullName() != null ? u.getFullName() : "No full name") + " | " +
+            (u.isOnline() ? "🟢 Online" : "🔴 Offline")));
 
         // Display user count
         System.out.println("\n📊 Total users in system: " + allUsers.size());
@@ -97,7 +106,7 @@ public class Main {
 
             // Update friendship status
             if (friendRequest != null) {
-                System.out.println("\n✅ Accepting friend request...");
+                System.out.println("\nAccepting friend request...");
                 friendRequest.setStatus(FriendshipStatus.ACCEPTED);
                 friendRequest.setAcceptedDate(java.time.LocalDateTime.now());
                 friendshipController.update(friendRequest);
@@ -105,9 +114,15 @@ public class Main {
                 // List all friendships
                 System.out.println("\n👥 All friendships:");
                 List<Friendship> friends = friendshipController.findAll();
-                friends.forEach(fr -> 
-                    System.out.println("   - User " + fr.getUser1Id() + " <-> User " + fr.getUser2Id() + " (Status: " + fr.getStatus() + ")")
-                );
+                friends.forEach(fr -> {
+                    String statusEmoji = fr.getStatus() == FriendshipStatus.ACCEPTED ? "✅" : 
+                                       fr.getStatus() == FriendshipStatus.PENDING ? "⏳" : 
+                                       fr.getStatus() == FriendshipStatus.REJECTED ? "❌" : "🚫";
+                    System.out.println("   " + statusEmoji + " User " + fr.getUser1Id() + " <-> User " + fr.getUser2Id() + 
+                                     " (Status: " + fr.getStatus() + ")");
+                });
+                
+                System.out.println("\n📊 Total friendships: " + friends.size());
             }
         }
 
@@ -145,7 +160,12 @@ public class Main {
             List<Badge> userBadges = badgeController.findAll();
             userBadges.stream()
                 .filter(b -> b.getUserId().equals(newUser.getUserId()))
-                .forEach(b -> System.out.println("   " + b.getName() + " - " + b.getDescription()));
+                .forEach(b -> {
+                    String earnedDate = b.getEarnedDate() != null ? 
+                        b.getEarnedDate().toLocalDate().toString() : "N/A";
+                    System.out.println("   🎖️  " + b.getName() + " - " + b.getDescription() + 
+                                     " (Earned: " + earnedDate + ")");
+                });
 
             // Count badges
             long badgeCount = userBadges.stream().filter(b -> b.getUserId().equals(newUser.getUserId())).count();
@@ -155,6 +175,7 @@ public class Main {
         // Display all badges in system
         System.out.println("\n🏆 All badges in system:");
         List<Badge> allBadges = badgeController.findAll();
+        System.out.println("   Total badges awarded: " + allBadges.size());
         allBadges.forEach(b -> System.out.println("   User " + b.getUserId() + ": " + b.getName()));
 
         // ===== CLEANUP (Optional - uncomment to test delete operations) =====
@@ -174,7 +195,7 @@ public class Main {
         */
 
         System.out.println("\n========================================");
-        System.out.println("✅ Demo completed successfully!");
+        System.out.println("Demo completed successfully!");
         System.out.println("========================================\n");
     }
 }

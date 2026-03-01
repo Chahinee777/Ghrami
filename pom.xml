@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>opgg.ghrami</groupId>
-    <artifactId>Ghrami-UserManagement</artifactId>
+    <artifactId>Ghrami</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -34,6 +34,23 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- Stripe Payment Integration -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>25.12.0</version>
+        </dependency>
 
         <!-- JWT -->
         <dependency>
@@ -60,6 +77,51 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
+
+        <!-- JavaMail API for email sending -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <!-- iText PDF for exporting -->
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext7-core</artifactId>
+            <version>7.2.5</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- Jackson for JSON parsing (Google OAuth) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
+        <!-- JUnit 5 for testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.8.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -68,13 +130,44 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
+                <configuration>
+                    <compilerArgs>
+                        <!-- Allows your named module to read iText JARs
+                             which are non-modular (unnamed module) -->
+                        <arg>--add-reads</arg>
+                        <arg>opgg.ghrami=ALL-UNNAMED</arg>
+                    </compilerArgs>
+                </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.3</version>
+                <configuration>
+                    <testSourceDirectory>src/main/java</testSourceDirectory>
+                    <includes>
+                        <include>**/test/*Test.java</include>
+                    </includes>
+                    <argLine>
+                        --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
+                        --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
+                        --add-reads opgg.ghrami=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>opgg.ghrami.GhramiApplication</mainClass>
+                    <!-- Allows the app at runtime to reach iText on the classpath -->
+                    <options>
+                        <option>--add-reads</option>
+                        <option>opgg.ghrami=ALL-UNNAMED</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>

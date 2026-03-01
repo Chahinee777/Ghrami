@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" 
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="opgg.ghrami.view.FriendsViewController"
+            stylesheets="@../../../css/social-style.css"
+            prefWidth="1200" prefHeight="800">
+    
+    <!-- Header -->
+    <top>
+        <VBox style="-fx-background-color: white; -fx-padding: 25 35; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 15, 0, 0, 5);">
+            <HBox alignment="CENTER_LEFT" spacing="25">
+                <HBox alignment="CENTER_LEFT" spacing="18">
+                    <StackPane>
+                        <Circle radius="28" style="-fx-fill: linear-gradient(to bottom right, #667eea, #764ba2);"/>
+                        <Label text="👥" style="-fx-font-size: 32;"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Label text="Mes Amis" style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #1c1e21;">
+                            <font><Font name="System Bold" size="28"/></font>
+                        </Label>
+                        <Label text="Gérez vos connexions et découvrez de nouvelles personnes" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                    </VBox>
+                </HBox>
+                
+                <Region HBox.hgrow="ALWAYS"/>
+                
+                <Button text="← Retour au Feed" onAction="#handleBackToFeed" 
+                        style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 12 28; -fx-background-radius: 25; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.4), 12, 0, 0, 4);"/>
+            </HBox>
+        </VBox>
+    </top>
+    
+    <!-- Main Content -->
+    <center>
+        <VBox spacing="20" style="-fx-padding: 30 35;">
+            
+            <!-- Stats Cards -->
+            <HBox spacing="20" alignment="CENTER">
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="✅" style="-fx-font-size: 28;"/>
+                        <VBox spacing="2">
+                            <Label fx:id="myFriendsCountLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #667eea;"/>
+                            <Label text="Mes Amis" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+                
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="⏳" style="-fx-font-size: 28;"/>
+                        <VBox spacing="2">
+                            <Label fx:id="pendingRequestsCountLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #ff9800;"/>
+                            <Label text="En Attente" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+                
+                <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 20; -fx-padding: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 15, 0, 0, 5); -fx-min-width: 200;">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="🌐" style="-fx-font-size: 28;"/>
+                        <VBox spacing="2">
+                            <Label fx:id="totalUsersCountLabel" text="0" style="-fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: #4caf50;"/>
+                            <Label text="Utilisateurs" style="-fx-font-size: 13; -fx-text-fill: #65676b;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </HBox>
+            
+            <!-- Tab Pane -->
+            <TabPane tabClosingPolicy="UNAVAILABLE" 
+                     style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 10); -fx-padding: 5;">
+                
+                <!-- Tab 1: Browse Users -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="🌐" style="-fx-font-size: 18;"/>
+                            <Label text="Découvrir" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <!-- Search Bar -->
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <TextField fx:id="browseSearchField" promptText="🔍 Rechercher des utilisateurs..." 
+                                           style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 12 25; -fx-font-size: 14; -fx-min-width: 400;"/>
+                                <Button text="🔄 Actualiser" onAction="#handleRefreshBrowse"
+                                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 24; -fx-background-radius: 25; -fx-cursor: hand;"/>
+                            </HBox>
+                            
+                            <!-- Users List -->
+                            <VBox fx:id="browseUsersContainer" spacing="12"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+                
+                <!-- Tab 2: Pending Requests -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="⏳" style="-fx-font-size: 18;"/>
+                            <Label text="Demandes Reçues" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <Label text="Demandes d'amitié en attente" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #1c1e21;"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button text="🔄 Actualiser" onAction="#handleRefreshPending"
+                                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 24; -fx-background-radius: 25; -fx-cursor: hand;"/>
+                            </HBox>
+                            
+                            <!-- Pending Requests List -->
+                            <VBox fx:id="pendingRequestsContainer" spacing="12"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+                
+                <!-- Tab 3: My Friends -->
+                <Tab>
+                    <graphic>
+                        <HBox spacing="10" alignment="CENTER" style="-fx-padding: 8 16;">
+                            <Label text="✅" style="-fx-font-size: 18;"/>
+                            <Label text="Mes Amis" style="-fx-font-size: 13; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+                        <VBox spacing="20" style="-fx-padding: 25;">
+                            
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <TextField fx:id="friendsSearchField" promptText="🔍 Rechercher dans mes amis..." 
+                                           style="-fx-background-color: #f0f2f5; -fx-background-radius: 20; -fx-padding: 12 25; -fx-font-size: 14; -fx-min-width: 400;"/>
+                                <Button text="🔄 Actualiser" onAction="#handleRefreshFriends"
+                                        style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13; -fx-padding: 12 24; -fx-background-radius: 25; -fx-cursor: hand;"/>
+                            </HBox>
+                            
+                            <!-- Friends List -->
+                            <VBox fx:id="myFriendsContainer" spacing="12"/>
+                        </VBox>
+                    </ScrollPane>
+                </Tab>
+                
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>

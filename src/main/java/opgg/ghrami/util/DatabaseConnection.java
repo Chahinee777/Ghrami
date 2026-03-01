@@ -9,7 +9,6 @@ import java.util.Properties;
 
 public class DatabaseConnection {
     private static DatabaseConnection instance;
-    private Connection connection;
     private String url;
     private String username;
     private String password;
@@ -18,13 +17,19 @@ public class DatabaseConnection {
         loadConfiguration();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            this.connection = DriverManager.getConnection(url, username, password);
-            System.out.println("✅ Database connection established successfully!");
+            // Test that we can connect
+            try (Connection testConn = DriverManager.getConnection(url, username, password)) {
+                if (testConn.isValid(2)) {
+                    System.out.println("Database connection established successfully!");
+                } else {
+                    System.err.println("Warning: Database connection may not be valid!");
+                }
+            }
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ MySQL JDBC Driver not found!");
+            System.err.println("MySQL JDBC Driver not found!");
             e.printStackTrace();
         } catch (SQLException e) {
-            System.err.println("❌ Failed to connect to database!");
+            System.err.println("Failed to connect to database!");
             e.printStackTrace();
         }
     }
@@ -33,22 +38,33 @@ public class DatabaseConnection {
         Properties properties = new Properties();
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("db.properties")) {
             if (input == null) {
-                System.err.println("❌ db.properties file not found! Using default values.");
+                System.err.println("db.properties file not found! Using default values.");
                 useDefaultValues();
                 return;
             }
             properties.load(input);
-            this.url = properties.getProperty("db.url");
+            String baseUrl = properties.getProperty("db.url");
+            
+            // Add connection parameters if not already present
+            if (baseUrl != null && !baseUrl.contains("autoReconnect")) {
+                if (baseUrl.contains("?")) {
+                    baseUrl += "&autoReconnect=true&maxReconnects=3&initialTimeout=2";
+                } else {
+                    baseUrl += "?autoReconnect=true&maxReconnects=3&initialTimeout=2";
+                }
+            }
+            
+            this.url = baseUrl;
             this.username = properties.getProperty("db.username");
             this.password = properties.getProperty("db.password");
         } catch (IOException e) {
-            System.err.println("❌ Error loading db.properties! Using default values.");
+            System.err.println("Error loading db.properties! Using default values.");
             useDefaultValues();
         }
     }
 
     private void useDefaultValues() {
-        this.url = "jdbc:mysql://localhost:3306/ghrami_db?useSSL=false&serverTimezone=UTC";
+        this.url = "jdbc:mysql://localhost:3306/ghrami_db?useSSL=false&serverTimezone=UTC&autoReconnect=true&maxReconnects=3&initialTimeout=2";
         this.username = "root";
         this.password = "";
     }
@@ -64,27 +80,16 @@ public class DatabaseConnection {
         return instance;
     }
 
-    public synchronized Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(url, username, password);
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Failed to reconnect to database!");
-            e.printStackTrace();
-        }
-        return connection;
+    /**
+     * Creates and returns a NEW database connection for each call.
+     * This connection should be closed by the caller using try-with-resources.
+     */
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, username, password);
     }
 
     public void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println("🔒 Database connection closed.");
-            } catch (SQLException e) {
-                System.err.println("❌ Error closing database connection!");
-                e.printStackTrace();
-            }
-        }
+        // No-op since we don't hold a single connection anymore
+        System.out.println("Connection closing is now handled by try-with-resources in controllers.");
     }
 }

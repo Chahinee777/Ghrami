@@ -105,11 +105,18 @@ public class RegisterViewController {
     private void handleBackToLogin() {
         try {
             Stage stage = (Stage) registerButton.getScene().getWindow();
+            double width = stage.getWidth();
+            double height = stage.getHeight();
+            boolean wasMaximized = stage.isMaximized();
+            
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/opgg/ghrami/view/LoginView.fxml"));
-            Scene scene = new Scene(loader.load());
+            Scene scene = new Scene(loader.load(), width, height);
             scene.getStylesheets().add(getClass().getResource("/css/style.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("Ghrami - Connexion");
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

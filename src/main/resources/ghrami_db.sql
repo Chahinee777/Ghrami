@@ -1,0 +1,1081 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Mar 01, 2026 at 11:50 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `ghrami_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `badges`
+--
+
+CREATE TABLE `badges` (
+  `badge_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `earned_date` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `badges`
+--
+
+INSERT INTO `badges` (`badge_id`, `user_id`, `name`, `description`, `earned_date`) VALUES
+(1, 1, 'Pionnier Ghrami', 'Parmi les premiers utilisateurs de la plateforme', '2026-01-26 18:21:03'),
+(2, 1, 'Social Actif', 'A créé plus de 10 connexion', '2026-01-26 18:21:03'),
+(3, 2, 'Mentor Certifié', 'A aidé 5 personnes à atteindre leurs objectifs', '2026-01-26 18:21:03'),
+(4, 3, 'Explorateur du Sahara', 'A partagé des expériences de randonnée dans le désert', '2026-01-26 18:21:03'),
+(5, 3, 'Constance 30 Jours', 'A pratiqué un hobby pendant 30 jours consécutifs', '2026-01-26 18:21:03'),
+(6, 5, 'Coach Inspiration', 'A inspiré la communauté avec ses conseils sportifs', '2026-01-26 18:21:03'),
+(7, 1, 'Pro Footbaleur', 'Milieu de terrain offensif', '2026-02-03 18:14:35'),
+(8, 8, '💎 Diamond Member', '1 year anniversary', '2026-02-10 08:04:51'),
+(9, 12, '🥇 First Friend', 'Made their first friend on Ghrami', '2026-02-10 08:16:42'),
+(10, 8, 'Booster', 'Boost ces amis', '2026-02-14 09:46:00'),
+(13, 46, 'el fasa3 el mo2ases', 'yafsa3 barcha wdima re9d', '2026-02-15 13:41:19'),
+(14, 51, '🥇 First Friend', 'Made their first friend on Ghrami', '2026-02-16 13:02:56'),
+(15, 8, 'Old Member', 'OG', '2026-02-27 09:40:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `bookings`
+--
+
+CREATE TABLE `bookings` (
+  `booking_id` bigint(20) NOT NULL,
+  `class_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `booking_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` varchar(20) DEFAULT 'scheduled',
+  `payment_status` varchar(20) DEFAULT 'pending',
+  `total_amount` double NOT NULL,
+  `stripe_session_id` varchar(255) DEFAULT NULL,
+  `rating` tinyint(4) DEFAULT NULL COMMENT '1–5 star rating left by student after completion',
+  `review` text DEFAULT NULL COMMENT 'Written review left by student',
+  `watch_progress` int(11) DEFAULT 0 COMMENT 'Last watched position saved in seconds'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `bookings`
+--
+
+INSERT INTO `bookings` (`booking_id`, `class_id`, `user_id`, `booking_date`, `status`, `payment_status`, `total_amount`, `stripe_session_id`, `rating`, `review`, `watch_progress`) VALUES
+(1, 1, 1, '2024-02-01 09:00:00', 'completed', 'paid', 50, NULL, NULL, NULL, 0),
+(2, 3, 2, '2024-02-02 13:00:00', 'scheduled', 'paid', 150, NULL, NULL, NULL, 0),
+(3, 4, 4, '2024-02-03 08:00:00', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(4, 5, 5, '2024-02-04 10:00:00', 'scheduled', 'paid', 120, NULL, NULL, NULL, 0),
+(5, 1, 8, '2026-02-11 19:59:04', 'scheduled', 'pending', 50, NULL, NULL, NULL, 0),
+(17, 5, 8, '2026-02-15 12:22:47', 'cancelled', 'pending', 120, NULL, NULL, NULL, 0),
+(18, 9, 10, '2026-02-15 12:27:35', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(19, 9, 46, '2026-02-15 13:44:04', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(20, 11, 8, '2026-02-15 13:48:18', 'scheduled', 'pending', 50, NULL, NULL, NULL, 0),
+(21, 4, 8, '2026-02-16 11:49:46', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(22, 9, 51, '2026-02-16 13:25:50', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(24, 4, 51, '2026-02-23 11:11:03', 'scheduled', 'pending', 200, NULL, NULL, NULL, 0),
+(25, 3, 8, '2026-02-23 19:58:24', 'scheduled', 'pending', 150, NULL, NULL, NULL, 0),
+(26, 13, 12, '2026-02-24 07:59:04', 'cancelled', 'paid', 100, NULL, NULL, NULL, 0),
+(29, 13, 12, '2026-02-24 17:17:31', 'pending', 'pending', 100, NULL, NULL, NULL, 0),
+(32, 17, 12, '2026-02-24 18:01:10', 'completed', 'paid', 200, NULL, 3, 'aaaa', 8),
+(33, 18, 12, '2026-02-24 18:22:30', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(34, 17, 57, '2026-02-24 18:29:31', 'completed', 'paid', 200, NULL, 4, 'aaaaaaa', 8),
+(35, 18, 57, '2026-02-24 18:31:00', 'cancelled', 'paid', 23, NULL, NULL, NULL, 0),
+(36, 18, 57, '2026-02-24 20:47:08', 'cancelled', 'paid', 23, NULL, NULL, NULL, 0),
+(37, 18, 57, '2026-02-24 20:51:59', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(38, 18, 11, '2026-02-24 21:34:18', 'completed', 'paid', 23, NULL, NULL, NULL, 8),
+(39, 19, 57, '2026-02-27 11:20:07', 'completed', 'paid', 100, NULL, NULL, NULL, 0),
+(40, 20, 57, '2026-02-28 11:00:09', 'completed', 'paid', 50, NULL, NULL, NULL, 22);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `classes`
+--
+
+CREATE TABLE `classes` (
+  `class_id` bigint(20) NOT NULL,
+  `provider_id` bigint(20) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `price` double NOT NULL,
+  `duration` int(11) NOT NULL,
+  `max_participants` int(11) NOT NULL,
+  `video_path` varchar(500) DEFAULT NULL,
+  `image_path` varchar(500) DEFAULT NULL COMMENT 'Absolute path to local thumbnail image'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `classes`
+--
+
+INSERT INTO `classes` (`class_id`, `provider_id`, `title`, `description`, `category`, `price`, `duration`, `max_participants`, `video_path`, `image_path`) VALUES
+(1, 1, 'Beginner Yoga Workshop', 'Introduction to yoga fundamentals', 'fitness', 50, 90, 15, NULL, NULL),
+(2, 1, 'Advanced Pilates', 'Intensive pilates training', 'fitness', 75, 60, 10, NULL, NULL),
+(3, 2, 'JavaFX Masterclass', 'Build modern desktop applications', 'tech', 150, 180, 20, NULL, NULL),
+(4, 2, 'React Native Bootcamp', 'Mobile app development from scratch', 'tech', 200, 240, 25, NULL, NULL),
+(5, 3, 'UX Design Fundamentals', 'Learn user experience design', 'design', 120, 120, 15, NULL, NULL),
+(9, 4, 'Trading', 'Crypto Currencies', 'finance', 200, 200, 10, NULL, NULL),
+(11, 11, 'TLA', 'Matiere esprit', 'education', 50, 100, 30, NULL, NULL),
+(13, 4, 'Gaming', 'Fortnite', 'gaming', 100, 10, 10, 'C:\\Users\\MSI\\Videos\\2026-02-23 21-59-28.mkv', NULL),
+(17, 4, 'acting', 'movies', 'movie', 200, 10, 10, 'C:\\Users\\MSI\\Desktop\\7224626_Film_Filming_3840x2160.mp4', 'C:\\Users\\MSI\\Pictures\\Origin.jpg'),
+(18, 4, 'Movie', 'zzzzzz', 'zzzzzzz', 23, 10, 44, 'C:\\Users\\MSI\\Desktop\\7224626_Film_Filming_3840x2160.mp4', 'C:\\Users\\MSI\\Pictures\\msi_katana.jpg'),
+(19, 4, 'Editing', 'Video Editing', 'Montage', 100, 10, 10, 'C:\\Users\\MSI\\Desktop\\Full Original Clip w Trend Song.mp4', 'C:\\Users\\MSI\\Pictures\\1702804566190.jpg'),
+(20, 4, 'Movies Star', 'Fast AND Furios', 'Movies', 50, 20, 10, 'C:\\Users\\MSI\\Desktop\\Full Original Clip w Trend Song.mp4', 'C:\\Users\\MSI\\Pictures\\Screenshots\\Capture d\'écran 2025-08-26 190733.png');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `class_providers`
+--
+
+CREATE TABLE `class_providers` (
+  `provider_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `company_name` varchar(100) DEFAULT NULL,
+  `expertise` text DEFAULT NULL,
+  `rating` double DEFAULT 0,
+  `is_verified` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `class_providers`
+--
+
+INSERT INTO `class_providers` (`provider_id`, `user_id`, `company_name`, `expertise`, `rating`, `is_verified`) VALUES
+(1, 2, 'Fitness First Tunisia', 'Yoga, Pilates, Nutrition', 4.8, 1),
+(2, 3, 'Code Academy TN', 'Web Development, Mobile Apps', 4.9, 1),
+(3, 4, 'Creative Studio', 'Graphic Design, UI/UX', 4.7, 1),
+(4, 8, 'Esprit', 'Coding', 3.5, 1),
+(5, 15, 'Esprit', 'Un grand Footballeur', 0, 1),
+(10, 10, 'Esprit', 'el fas3a', 0, 1),
+(11, 46, 'Esprit', 'El fas3a', 0, 1),
+(12, 51, 'minds academy', 'tla\numl', 0, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `comments`
+--
+
+CREATE TABLE `comments` (
+  `comment_id` bigint(20) NOT NULL,
+  `post_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `content` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `comments`
+--
+
+INSERT INTO `comments` (`comment_id`, `post_id`, `user_id`, `content`, `created_at`) VALUES
+(1, 1, 2, 'Beautiful shot! What camera did you use?', '2024-02-01 18:00:00'),
+(2, 1, 3, 'La Marsa beaches are the best! 😍', '2024-02-01 18:15:00'),
+(3, 2, 1, 'Keep it up! Consistency is key 💪', '2024-02-02 06:30:00'),
+(4, 3, 4, 'JavaFX is great! Need any help with UI/UX?', '2024-02-02 14:00:00'),
+(5, 5, 3, 'Very insightful! Thanks for sharing', '2024-02-03 15:30:00'),
+(6, 7, 8, 'Grand Equipe', '2026-02-13 15:38:21'),
+(8, 9, 8, 'Merci OPGG', '2026-02-14 10:21:37'),
+(22, 23, 11, 'klem ma39oul wmwzoun', '2026-02-15 13:30:07'),
+(23, 24, 46, 'j\'aime le food bcp', '2026-02-15 15:16:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `connections`
+--
+
+CREATE TABLE `connections` (
+  `connection_id` varchar(36) NOT NULL,
+  `initiator_id` bigint(20) NOT NULL,
+  `receiver_id` bigint(20) NOT NULL,
+  `connection_type` varchar(50) NOT NULL,
+  `receiver_skill` varchar(100) DEFAULT NULL,
+  `initiator_skill` varchar(100) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `connections`
+--
+
+INSERT INTO `connections` (`connection_id`, `initiator_id`, `receiver_id`, `connection_type`, `receiver_skill`, `initiator_skill`, `status`) VALUES
+('056d3c0e-91f3-4fe6-9920-383bc6edfef3', 8, 51, 'activity', 'bbbb', 'aaaa', 'accepted'),
+('186e3bea-3590-4a1b-a86e-90780f9d86be', 15, 8, 'skill', 'Baking', 'Art', 'accepted'),
+('1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 8, 'skill', 'fffff', 'hhh', 'accepted'),
+('648aab68-94e3-43b0-9311-b823bc2628aa', 8, 10, 'hobby', 'gaming', 'football', 'pending'),
+('69ccb289-1dfc-40b7-9066-9d6529bbe35d', 8, 12, 'skill', 'cooking', 'driving', 'accepted'),
+('86db099b-6941-46e5-80a3-4878ae40a81f', 46, 11, 'hobby', 'music', 'music', 'accepted'),
+('9f017a4a-0cea-44c5-bea2-406068b3c240', 8, 46, 'skill', 'sport', 'cooking', 'pending'),
+('d0334e28-0510-11f1-8e75-047c163dbfbf', 1, 2, 'skill', 'Fitness Training', 'Photography', 'accepted'),
+('d033a8ca-0510-11f1-8e75-047c163dbfbf', 3, 4, 'activity', 'Design', 'Programming', 'pending'),
+('d033a9ee-0510-11f1-8e75-047c163dbfbf', 2, 5, 'skill', 'Marketing', 'Yoga', 'accepted');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `friendships`
+--
+
+CREATE TABLE `friendships` (
+  `friendship_id` bigint(20) NOT NULL,
+  `user1_id` bigint(20) NOT NULL,
+  `user2_id` bigint(20) NOT NULL,
+  `status` enum('PENDING','ACCEPTED','REJECTED','BLOCKED') DEFAULT 'PENDING',
+  `created_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `accepted_date` timestamp NULL DEFAULT NULL
+) ;
+
+--
+-- Dumping data for table `friendships`
+--
+
+INSERT INTO `friendships` (`friendship_id`, `user1_id`, `user2_id`, `status`, `created_date`, `accepted_date`) VALUES
+(1, 1, 2, 'ACCEPTED', '2026-01-26 18:21:03', '2026-01-26 18:21:03'),
+(2, 1, 3, 'ACCEPTED', '2026-01-26 18:21:03', '2026-01-26 18:21:03'),
+(3, 2, 3, 'ACCEPTED', '2026-01-26 18:21:03', '2026-01-26 18:21:03'),
+(4, 1, 4, 'PENDING', '2026-01-26 18:21:03', NULL),
+(5, 3, 5, 'ACCEPTED', '2026-01-26 18:21:03', '2026-01-26 18:21:03'),
+(6, 4, 5, 'PENDING', '2026-01-26 18:21:03', NULL),
+(7, 8, 11, 'PENDING', '2026-02-08 09:48:27', NULL),
+(8, 10, 8, 'ACCEPTED', '2026-02-08 09:50:08', '2026-02-08 09:50:42'),
+(9, 12, 8, 'ACCEPTED', '2026-02-10 08:15:17', '2026-02-10 08:15:48'),
+(10, 15, 8, 'ACCEPTED', '2026-02-12 12:41:30', '2026-02-12 12:45:15'),
+(14, 46, 11, 'ACCEPTED', '2026-02-15 13:29:14', '2026-02-15 13:29:41'),
+(16, 51, 8, 'ACCEPTED', '2026-02-16 13:00:59', '2026-02-16 13:01:23'),
+(17, 8, 57, 'ACCEPTED', '2026-02-23 15:11:05', '2026-02-23 15:11:34'),
+(18, 8, 53, 'PENDING', '2026-02-23 19:50:26', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `hobbies`
+--
+
+CREATE TABLE `hobbies` (
+  `hobby_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `hobbies`
+--
+
+INSERT INTO `hobbies` (`hobby_id`, `user_id`, `name`, `category`, `description`) VALUES
+(1, 1, 'Photography', 'art', 'Landscape and portrait photography'),
+(2, 2, 'Yoga', 'fitness', 'Daily yoga practice and meditation'),
+(3, 3, 'Programming', 'tech', 'Learning new frameworks and languages'),
+(4, 4, 'Digital Art', 'art', 'Creating illustrations and designs'),
+(5, 5, 'Content Creation', 'marketing', 'Social media content and copywriting'),
+(6, 8, 'Coding', 'Technology', 'Developper applications web'),
+(7, 8, 'Football', 'Sports & Fitness', 'Real Madrid'),
+(9, 11, 'Football', 'Sports & Fitness', 'Barca'),
+(10, 8, 'Baking', 'Cooking', 'Cookies'),
+(14, 46, 'Piano', 'Music', 'Piano Tiles'),
+(15, 46, 'Guitar', 'Music', 'Shawn Mendes'),
+(18, 8, 'violin player', 'Music', 'violoin player pro'),
+(19, 8, 'Fashion', 'Arts & Crafts', 'KEJFNIEZBFIrzf'),
+(20, 51, 'Football', 'Sports & Fitness', 'mILIEU DEFF'),
+(22, 57, 'Football', 'Sports & Fitness', 'Pro Player Like CR7');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `meetings`
+--
+
+CREATE TABLE `meetings` (
+  `meeting_id` varchar(36) NOT NULL,
+  `connection_id` varchar(36) NOT NULL,
+  `organizer_id` bigint(20) NOT NULL,
+  `meeting_type` varchar(20) NOT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `scheduled_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `duration` int(11) NOT NULL,
+  `status` varchar(20) DEFAULT 'scheduled'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `meetings`
+--
+
+INSERT INTO `meetings` (`meeting_id`, `connection_id`, `organizer_id`, `meeting_type`, `location`, `scheduled_at`, `duration`, `status`) VALUES
+('006c2d92-2d7a-4112-b60e-cd8a8afff914', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', 'fahs', '2026-02-16 12:12:51', 60, 'cancelled'),
+('11e5617e-1192-44f6-ae7d-c7347166286f', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', 'sidi bousaid', '2026-02-12 15:03:58', 60, 'cancelled'),
+('1fc0d686-0dc3-4278-b143-83bc396ac910', '86db099b-6941-46e5-80a3-4878ae40a81f', 11, 'physical', 'neb3do aala sidi hsine', '2026-02-21 12:00:00', 60, 'scheduled'),
+('2612f31d-590a-4a44-b7dd-3cb020990e2e', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', 'centre ville', '2026-02-14 12:27:32', 60, 'completed'),
+('45bc106a-3e41-4def-a09b-06c70ae57694', '056d3c0e-91f3-4fe6-9920-383bc6edfef3', 8, 'physical', 'Montplaisir, خير الدين باشا, معتمدية حي الخضراء, Tunis, 1073, Tunisia', '2026-02-28 12:00:00', 60, 'scheduled'),
+('4e14f84e-218e-4602-85e3-c913424c2726', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', 'esprit', '2026-02-16 12:21:24', 60, 'completed'),
+('64025203-ccf3-4b48-bf09-aaef8b77a9e5', '69ccb289-1dfc-40b7-9066-9d6529bbe35d', 8, 'physical', 'cité olympique', '2026-02-16 14:22:40', 60, 'completed'),
+('72a97f1e-c3d0-4cb7-a531-d88269c865f2', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/vsp-kvwq-jrp', '2026-03-03 12:00:00', 60, 'scheduled'),
+('8004b327-8425-4e7c-8997-3e62c2f27f9d', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 8, 'physical', 'Tunis, شارع المحطة, Sidi Al Bachir, باب البحر, معتمدية باب بحر, Tunis, 1151, Tunisia', '2026-02-27 12:00:00', 60, 'scheduled'),
+('865d76ed-9d47-4e89-81d9-f7eb49694f2b', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'physical', 'RL583, بورقبة, معتمدية المرناقية, Manouba, 1110, Tunisia', '2026-03-01 12:00:00', 60, 'scheduled'),
+('9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', '', '2026-02-12 14:56:00', 60, 'completed'),
+('ad6cf3dc-fea8-4e0d-a002-a6332de70975', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/cam-maki-qmp', '2026-03-02 12:00:00', 20, 'scheduled'),
+('b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', '1f727e36-7008-4b2e-8ac1-25d9c2230327', 57, 'virtual', 'https://meet.google.com/shc-ddib-zsa', '2026-02-28 12:00:00', 90, 'scheduled'),
+('c8c1c3e1-3597-45ef-a294-104adf2cb5c5', '186e3bea-3590-4a1b-a86e-90780f9d86be', 8, 'physical', '', '2026-02-12 14:55:39', 60, 'cancelled'),
+('d04020cb-0510-11f1-8e75-047c163dbfbf', 'd0334e28-0510-11f1-8e75-047c163dbfbf', 1, 'physical', 'Coffee Shop Tunis', '2024-02-15 13:00:00', 60, 'scheduled'),
+('d812fc8e-9a86-4483-9f23-000966664c24', '056d3c0e-91f3-4fe6-9920-383bc6edfef3', 8, 'physical', 'Bouselem', '2026-02-19 12:00:00', 60, 'scheduled'),
+('fac0a260-3ead-488c-9f5d-13c820bced43', '69ccb289-1dfc-40b7-9066-9d6529bbe35d', 12, 'physical', 'rades', '2026-02-16 12:12:43', 60, 'cancelled');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `meeting_participants`
+--
+
+CREATE TABLE `meeting_participants` (
+  `participant_id` varchar(36) NOT NULL,
+  `meeting_id` varchar(36) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `is_active` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `meeting_participants`
+--
+
+INSERT INTO `meeting_participants` (`participant_id`, `meeting_id`, `user_id`, `is_active`) VALUES
+('001d40af-3b31-4a14-9401-19d9f678ced9', 'd812fc8e-9a86-4483-9f23-000966664c24', 51, 1),
+('026e932a-bb32-4850-ab8b-833fe035c027', '4e14f84e-218e-4602-85e3-c913424c2726', 8, 1),
+('15cd9338-16ec-4dde-94f7-7d18e7371941', '11e5617e-1192-44f6-ae7d-c7347166286f', 8, 1),
+('1d0c4b4f-9558-453e-9fa0-ed12a363869e', '9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', 8, 1),
+('20116c9e-28f0-4067-bd6a-d4461f4ec922', '2612f31d-590a-4a44-b7dd-3cb020990e2e', 8, 1),
+('2b2609af-4be2-478c-9f5e-125c0956c016', '865d76ed-9d47-4e89-81d9-f7eb49694f2b', 8, 1),
+('40c9bd61-069a-4077-be30-5470ac701a52', 'ad6cf3dc-fea8-4e0d-a002-a6332de70975', 8, 1),
+('41c9ef8f-63e3-403c-b393-96553efe5cc9', '006c2d92-2d7a-4112-b60e-cd8a8afff914', 15, 1),
+('466ca631-f13a-45c6-ac13-bf5fe39a639d', '8004b327-8425-4e7c-8997-3e62c2f27f9d', 8, 1),
+('6a08c7ce-cd65-4708-8976-3a93f5ac66be', 'ad6cf3dc-fea8-4e0d-a002-a6332de70975', 57, 1),
+('715fe4cf-a23e-4709-8c7a-772e1796db27', '45bc106a-3e41-4def-a09b-06c70ae57694', 8, 1),
+('75e1326b-cd1e-4100-b0b4-feb92691a23c', '1fc0d686-0dc3-4278-b143-83bc396ac910', 11, 1),
+('77c51604-4f13-4156-8c28-519e86cf5931', '11e5617e-1192-44f6-ae7d-c7347166286f', 15, 1),
+('869ee50d-ef7e-48f0-a980-9b9a82ad1a32', 'fac0a260-3ead-488c-9f5d-13c820bced43', 12, 1),
+('8b741892-32d9-4e71-ac20-2dcdb5d5a016', 'c8c1c3e1-3597-45ef-a294-104adf2cb5c5', 8, 1),
+('945429fe-5039-4a5d-bf70-58fc856f6aad', '64025203-ccf3-4b48-bf09-aaef8b77a9e5', 12, 1),
+('977a7735-2a37-483e-9510-532c5d78c630', '006c2d92-2d7a-4112-b60e-cd8a8afff914', 8, 1),
+('97bf5b10-1074-4f4c-b35a-e3bef2cbe734', 'fac0a260-3ead-488c-9f5d-13c820bced43', 8, 1),
+('a18b1ece-ac51-487d-9fec-073bd1b9f8a1', 'd812fc8e-9a86-4483-9f23-000966664c24', 8, 1),
+('a448fd08-9599-4049-85b2-cfe26a1bf2ae', 'b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', 57, 1),
+('a90078ac-1ec7-41fe-879b-3c9546929098', '865d76ed-9d47-4e89-81d9-f7eb49694f2b', 57, 1),
+('aafd4b4e-5508-4b74-8aef-86fd320ff534', '72a97f1e-c3d0-4cb7-a531-d88269c865f2', 8, 1),
+('b516f5ac-08ee-4fee-bcdd-ac674dd37e6b', 'b8378c6f-7ecf-4b08-b8d7-f6ab727e2c03', 8, 1),
+('d0445ff7-0510-11f1-8e75-047c163dbfbf', 'd04020cb-0510-11f1-8e75-047c163dbfbf', 1, 1),
+('d044bc36-0510-11f1-8e75-047c163dbfbf', 'd04020cb-0510-11f1-8e75-047c163dbfbf', 2, 1),
+('d0d0fa27-11d4-409e-ad77-ba9787e171f5', 'c8c1c3e1-3597-45ef-a294-104adf2cb5c5', 15, 1),
+('d180bd90-601c-49d4-b379-3252cace95dd', '8004b327-8425-4e7c-8997-3e62c2f27f9d', 57, 1),
+('d32cebbc-e030-43ef-9937-240292f33643', '2612f31d-590a-4a44-b7dd-3cb020990e2e', 15, 1),
+('dc7d3b3d-6532-4f5a-b64d-975b05a4e154', '64025203-ccf3-4b48-bf09-aaef8b77a9e5', 8, 1),
+('df7ad2d9-3925-4abe-b46e-da357af24c9d', '72a97f1e-c3d0-4cb7-a531-d88269c865f2', 57, 1),
+('e0380b81-7ac3-4674-83a6-eea17af0c2d0', '4e14f84e-218e-4602-85e3-c913424c2726', 15, 1),
+('e4416a44-0ef7-46a1-b8d4-f64f92825924', '9ace2db6-4bc2-43a4-b22d-7b208ac40bfb', 15, 1),
+('f9410b8f-1eb3-4f4a-b9b2-e7db76d59563', '1fc0d686-0dc3-4278-b143-83bc396ac910', 46, 1),
+('f94e6a23-6cf5-4587-89ef-40d346ad902e', '45bc106a-3e41-4def-a09b-06c70ae57694', 51, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `message_id` bigint(20) NOT NULL,
+  `sender_id` bigint(20) NOT NULL,
+  `receiver_id` bigint(20) NOT NULL,
+  `content` text NOT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`message_id`, `sender_id`, `receiver_id`, `content`, `sent_at`, `is_read`) VALUES
+(1, 8, 51, 'salut chahine', '2026-02-21 15:01:26', 1),
+(2, 51, 8, 'ahla bik', '2026-02-21 15:09:55', 1),
+(3, 8, 51, 'coucou les babies', '2026-02-23 11:08:49', 1),
+(4, 51, 8, 'ahla bkhouya', '2026-02-23 11:09:35', 1),
+(5, 8, 51, 'hello', '2026-02-23 11:54:34', 1),
+(6, 51, 8, 'hey', '2026-02-23 11:55:10', 1),
+(7, 8, 51, 'hey', '2026-02-23 11:55:27', 0),
+(8, 8, 12, 'hello', '2026-02-23 13:21:34', 1),
+(9, 8, 12, 'cc', '2026-02-23 14:48:37', 1),
+(10, 57, 8, 'hello', '2026-02-27 10:26:40', 1),
+(11, 8, 57, 'hey', '2026-02-27 10:26:44', 1),
+(12, 8, 12, 'Hamza, s\'il vous plaît, réponds à moi.', '2026-02-28 11:11:14', 1),
+(13, 12, 8, 'hey biggie', '2026-02-28 11:27:39', 1),
+(14, 8, 12, 'Qu\'est-ce que vous voulez discuter', '2026-02-28 11:33:01', 1),
+(15, 57, 8, 'Salut comment vas tu aujourd\'hui', '2026-02-28 11:49:47', 1),
+(16, 8, 57, 'Hi, how are you?', '2026-02-28 11:50:00', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `milestones`
+--
+
+CREATE TABLE `milestones` (
+  `milestone_id` bigint(20) NOT NULL,
+  `hobby_id` bigint(20) NOT NULL,
+  `title` varchar(100) NOT NULL,
+  `target_date` date DEFAULT NULL,
+  `is_achieved` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `milestones`
+--
+
+INSERT INTO `milestones` (`milestone_id`, `hobby_id`, `title`, `target_date`, `is_achieved`) VALUES
+(1, 1, 'First exhibition', '2024-06-01', 0),
+(2, 2, 'Become certified instructor', '2024-08-01', 0),
+(3, 3, 'Contribute to open source', '2024-05-01', 1),
+(4, 4, 'Launch design agency', '2024-12-01', 0),
+(5, 5, 'Reach 10K followers', '2024-07-01', 0),
+(6, 9, 'Sa7e7t maa ljuve', '2026-02-26', 0),
+(7, 6, 'Engeneer', '2026-02-10', 0),
+(8, 10, 'Chef De Cuisine', '2026-02-28', 0),
+(9, 10, 'Milk and cookies', '2026-02-08', 0),
+(11, 14, 'Presenter mes skill infront ma famille', '2026-02-28', 0),
+(12, 14, 'Test', '2026-02-14', 0),
+(13, 18, 'proooooo', '2026-03-14', 0),
+(14, 20, 'Test', '2026-02-28', 1),
+(15, 20, 'gggg', '2026-02-11', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `notification_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `content` varchar(500) NOT NULL,
+  `related_user_id` bigint(20) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `user_id`, `type`, `content`, `related_user_id`, `created_at`, `is_read`) VALUES
+(1, 51, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-21 15:01:26', 1),
+(2, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 51, '2026-02-21 15:09:55', 1),
+(3, 51, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 11:08:49', 0),
+(4, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 51, '2026-02-23 11:09:35', 0),
+(5, 51, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 11:54:34', 0),
+(6, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 51, '2026-02-23 11:55:10', 0),
+(7, 51, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 11:55:27', 0),
+(8, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 13:21:34', 0),
+(9, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-23 14:48:37', 0),
+(10, 57, 'FRIEND_REQUEST', 'ANAS BIGGIE vous a envoyé une demande d\'amitié', 8, '2026-02-23 16:11:07', 1),
+(11, 8, 'FRIEND_ACCEPTED', 'Chahine Aouled Amor a accepté votre demande d\'amitié ✅', 57, '2026-02-23 16:11:36', 0),
+(12, 53, 'FRIEND_REQUEST', 'ANAS BIGGIE vous a envoyé une demande d\'amitié', 8, '2026-02-23 20:50:29', 0),
+(13, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 57, '2026-02-27 10:26:40', 0),
+(14, 57, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-27 10:26:44', 0),
+(15, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:11:14', 0),
+(16, 8, 'MESSAGE', 'Hamza Mnajja vous a envoyé un message 💬', 12, '2026-02-28 11:27:39', 0),
+(17, 12, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:33:01', 0),
+(18, 8, 'MESSAGE', 'Chahine Aouled Amor vous a envoyé un message 💬', 57, '2026-02-28 11:49:47', 0),
+(19, 57, 'MESSAGE', 'ANAS BIGGIE vous a envoyé un message 💬', 8, '2026-02-28 11:50:00', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `posts`
+--
+
+CREATE TABLE `posts` (
+  `post_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `content` text NOT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `posts`
+--
+
+INSERT INTO `posts` (`post_id`, `user_id`, `content`, `image_url`, `created_at`) VALUES
+(1, 1, 'Just captured an amazing sunset at La Marsa! 🌅 #Photography', NULL, '2024-02-01 17:30:00'),
+(2, 2, 'Morning yoga session complete! Starting the day with positive energy 🧘‍♀️', NULL, '2024-02-02 06:15:00'),
+(3, 3, 'Working on a new JavaFX project. Love the framework! 💻', NULL, '2024-02-02 13:20:00'),
+(4, 4, 'New design project completed! Check out my portfolio 🎨', NULL, '2024-02-03 10:45:00'),
+(5, 5, 'Marketing tip of the day: Know your audience! 📊', NULL, '2024-02-03 15:00:00'),
+(7, 10, 'Hala Madrid..Y nada mas', '10_1771000602829_8ece0.jpg', '2026-02-13 15:36:49'),
+(9, 8, 'je suis heureux car je utilise Ghrami', '8_1771066256693_487744895_9596645127062608_1218059749256759297_n.jpg', '2026-02-14 09:50:58'),
+(23, 46, 'ahsen haja heya lfas3a', NULL, '2026-02-15 13:28:52'),
+(24, 11, 'astro burger for the win', '11_1771165890134_unnamed.jpg', '2026-02-15 13:31:32'),
+(30, 8, 'je suis anas et je suis content', '8_1771880160139_Origin.jpg', '2026-02-23 19:56:03'),
+(31, 8, 'football', '8_ai_1772197349264.png', '2026-02-27 12:02:29'),
+(35, 8, 'cristiano ronaldo', '8_ai_1772198314612.png', '2026-02-27 12:18:34'),
+(38, 8, 'playstation', '8_ai_1772200788829.png', '2026-02-27 12:59:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `post_likes`
+--
+
+CREATE TABLE `post_likes` (
+  `user_id` bigint(20) NOT NULL,
+  `post_id` bigint(20) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `post_likes`
+--
+
+INSERT INTO `post_likes` (`user_id`, `post_id`, `created_at`) VALUES
+(8, 7, '2026-02-22 12:39:51'),
+(8, 9, '2026-02-23 11:56:18'),
+(8, 30, '2026-02-23 20:56:17'),
+(12, 30, '2026-02-23 20:56:46'),
+(51, 9, '2026-02-23 12:00:27'),
+(57, 9, '2026-02-25 09:36:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `progress`
+--
+
+CREATE TABLE `progress` (
+  `progress_id` bigint(20) NOT NULL,
+  `hobby_id` bigint(20) NOT NULL,
+  `hours_spent` double DEFAULT 0,
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `progress`
+--
+
+INSERT INTO `progress` (`progress_id`, `hobby_id`, `hours_spent`, `notes`) VALUES
+(1, 1, 150.5, 'Completed advanced lighting course'),
+(2, 2, 200, 'Achieved intermediate level certification'),
+(3, 3, 180, 'Built 5 complete projects'),
+(4, 4, 120.5, 'Mastered Adobe Creative Suite'),
+(5, 5, 95, 'Grew followers by 500%'),
+(6, 6, 35, 'Lyoum t3alemt devops'),
+(7, 7, 3, 'attack'),
+(9, 9, 2, 't3alemt el dribble'),
+(10, 10, 1, 'Chocolate Ships'),
+(12, 14, 2, '15 fev : first steps'),
+(13, 15, 2, ''),
+(15, 18, 6, 'bfbjr'),
+(16, 19, 0, 'Started tracking'),
+(17, 20, 2, 'LES BASICS DU FOOT'),
+(19, 22, 0, 'Started tracking');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `progress_log`
+--
+
+CREATE TABLE `progress_log` (
+  `log_id` bigint(20) NOT NULL,
+  `hobby_id` bigint(20) NOT NULL,
+  `hours_spent` double NOT NULL DEFAULT 0,
+  `notes` text DEFAULT NULL,
+  `log_date` date NOT NULL DEFAULT curdate()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `progress_log`
+--
+
+INSERT INTO `progress_log` (`log_id`, `hobby_id`, `hours_spent`, `notes`, `log_date`) VALUES
+(1, 7, 1, 'foot', '2026-02-24'),
+(2, 7, 2, 'attack', '2026-02-26');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stories`
+--
+
+CREATE TABLE `stories` (
+  `story_id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `caption` varchar(500) DEFAULT NULL,
+  `image_url` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expires_at` timestamp NOT NULL DEFAULT (current_timestamp() + interval 24 hour)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `user_id` bigint(20) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `profile_picture` varchar(500) DEFAULT NULL,
+  `bio` text DEFAULT NULL,
+  `location` varchar(100) DEFAULT NULL,
+  `is_online` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_login` timestamp NULL DEFAULT NULL,
+  `google_id` varchar(50) DEFAULT NULL,
+  `auth_provider` varchar(20) DEFAULT 'local',
+  `is_banned` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `username`, `full_name`, `email`, `password`, `profile_picture`, `bio`, `location`, `is_online`, `created_at`, `last_login`, `google_id`, `auth_provider`, `is_banned`) VALUES
+(0, 'chahine', 'Chahine Admin', 'chahine@ghrami.tn', '$2a$12$8DyT3LJQewW0m6EU94dEKeQYdZAafj2rboJtmAtRFpBFWrIC2u6K2', '', 'Administrateur système', 'Tunis', 0, '2026-01-26 17:32:35', NULL, NULL, 'local', 0),
+(1, 'amine_ben_ali', 'Amine Ben Ali', 'amine@ghrami.tn', 'password123', NULL, 'Passionné par le développement personnel et la lecture', 'Tunis, Tunisie', 1, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
+(2, 'salma_trabelsi', 'Salma Trabelsi', 'salma@ghrami.tn', 'password123', NULL, 'Entrepreneur social et mentor pour les jeunes', 'Sfax, Tunisie', 0, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
+(3, 'youssef_chaouch', 'Youssef Chaouch', 'youssef@ghrami.tn', 'password123', NULL, 'Amateur de randonnée et photographie', 'Sousse, Tunisie', 1, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
+(4, 'lina_gharbi', 'Lina Gharbi', 'lina@ghrami.tn', 'password123', NULL, 'Artiste peintre et passionnée de calligraphie arabe', 'La Marsa, Tunisie', 0, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
+(5, 'mehdi_jebali', 'Mehdi Jebali', 'mehdi@ghrami.tn', 'password123', NULL, 'Coach sportif et nutritionniste', 'Bizerte, Tunisie', 1, '2026-01-26 18:21:03', NULL, NULL, 'local', 0),
+(8, 'anasBiggie', 'ANAS BIGGIE', 'anas@ghrami.tn', '$2a$12$ThDEhWRKuC4sxga6jPzJX.YQPBULUymrkMBvyiKMMK.WAsccpIZR2', '8_1770192277278.png', 'Waa', 'hay zouhour', 0, '2026-01-26 18:06:50', NULL, NULL, 'local', 0),
+(10, 'roua', 'roue hammemi', 'roua@ghrami.tn', '$2a$12$ry5aPTSulQU5.TOuP7n5kOjD/VoFcAfJj2m82rUHA9SBv9NSnLa.a', '', 'aaaaa', 'sidi hsine', 0, '2026-01-28 17:18:14', NULL, NULL, 'local', 0),
+(11, 'nourhen2004', 'Nourhen Dheker', 'nourhen@ghrami.tn', '$2a$12$09T6NioWegcjGIHv5gdemOQ1ixQQi11sXjwk4DjuoCu51JPg4K3zW', '11_1770039241022.png', 'violonist', 'tunis', 0, '2026-02-02 12:32:06', NULL, NULL, 'local', 0),
+(12, 'hamza_laz3er', 'Hamza Mnajja', 'hamza@ghrami.tn', '$2a$12$7CM4rE4eWmEG0OcJ6CJZoOjLpILNeaAseKkmiLqz2.OXBfy2PhwoO', '12_1770714864510.png', 'Nheb el mekla', 'Yssminet', 0, '2026-02-10 08:12:55', NULL, NULL, 'local', 0),
+(14, 'astroNourhen', 'Nourhen Dhaker', 'nourhendhaker25@gmail.com', '$2a$12$7mU2tZhIEpNoWusPWg1sIOhrv/NYRSA8SJ16.4m/LyH2umuLDsDyW', '', 'Astro Burger', 'Ariana', 0, '2026-02-11 18:19:31', NULL, NULL, 'local', 0),
+(15, 'aymen_bavari', 'Aymen Le fils de Aziza', 'aymen.benaziza@icloud.com', '$2a$12$eAGbUjEQiycAxh0dhbuL2ubibczH9bnbMj/ZDJvkfyxqCMgSy9sRS', '15_1770903664598.jpeg', 'Nheb el denya wel mdina', 'Mdina Aarbi', 0, '2026-02-12 12:38:38', NULL, NULL, 'local', 0),
+(45, 'anasEsprit', 'Med Khelifi', 'dgxbigi@gmail.com', '$2a$12$/1xwRjyatb/thADazUxqNOBrBZKFjfHa86H7l563GYiTCrLUentIu', '', 'naturelle', 'Hay zouhour', 0, '2026-02-15 12:44:17', NULL, NULL, 'local', 0),
+(46, 'ptit_fille', 'la petite fille', 'roue.hamemi@esprit.tn', '$2a$12$JES25U3iho1dhBEiHaGTt.Lz6SVRMYpu3UgIHC8mqr2HYGQ15rwry', '', 'Jaime le fas3a et le 9oumen ma5er', 'Sidi hsine', 0, '2026-02-15 13:18:34', NULL, NULL, 'local', 0),
+(51, 'chahine_aouledamor', 'Chahine Aouled Amor', 'chahineaouledamor721@gmail.com', '$2a$12$yUWDER9cKsWonsXA9lSpYOR3kT1X0RKlnSwrW3Ho86mg3n6bEyNHC', '51_1771250440706.jpg', 'jaime le football', 'Ben Arous', 0, '2026-02-16 12:58:19', NULL, NULL, 'local', 0),
+(53, 'nour_medini', 'Nour Medini', 'medini.nour@esprit.tn', '$2a$12$ict7JRoDgt7f2rnpgavVL.ggr8/.95OlNj3P1SSfSXziJIz1c6rFK', '', '', 'Tunis', 0, '2026-02-17 09:40:44', NULL, NULL, 'local', 0),
+(56, 'aaaaaaa', 'aaaaaaaaaaa', 'chahi@gmai.co', '$2a$12$YIvkp1N.1GeEde6pC5dhtuEPTMQH1PtSdbC.20CosX9K0wsOb5kGW', '', '', 'aaaaaaaa', 0, '2026-02-21 13:24:53', NULL, NULL, 'local', 0),
+(57, 'acgamer35ca', 'Chahine Aouled Amor', 'acgamer35ca@gmail.com', '$2a$12$3KRxcY7nVkDZBvtwPOAdP.1ulMxRRXDtImQEKrBLQwg9Ac.ZqryB.', 'https://lh3.googleusercontent.com/a/ACg8ocIZPaUWzdch1i-ece0sNQyxVSoyT0WlkBnP-ba_b69meJGd4G8=s96-c', NULL, NULL, 0, '2026-02-21 13:33:03', NULL, '100949373375872281937', 'google', 0);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `badges`
+--
+ALTER TABLE `badges`
+  ADD PRIMARY KEY (`badge_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_name` (`name`),
+  ADD KEY `idx_earned_date` (`earned_date`),
+  ADD KEY `idx_badges_user_id` (`user_id`);
+
+--
+-- Indexes for table `bookings`
+--
+ALTER TABLE `bookings`
+  ADD PRIMARY KEY (`booking_id`),
+  ADD KEY `idx_class_id` (`class_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_payment_status` (`payment_status`);
+
+--
+-- Indexes for table `classes`
+--
+ALTER TABLE `classes`
+  ADD PRIMARY KEY (`class_id`),
+  ADD KEY `idx_provider_id` (`provider_id`),
+  ADD KEY `idx_category` (`category`),
+  ADD KEY `idx_price` (`price`);
+
+--
+-- Indexes for table `class_providers`
+--
+ALTER TABLE `class_providers`
+  ADD PRIMARY KEY (`provider_id`),
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_is_verified` (`is_verified`),
+  ADD KEY `idx_rating` (`rating`);
+
+--
+-- Indexes for table `comments`
+--
+ALTER TABLE `comments`
+  ADD PRIMARY KEY (`comment_id`),
+  ADD KEY `idx_post_id` (`post_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `connections`
+--
+ALTER TABLE `connections`
+  ADD PRIMARY KEY (`connection_id`),
+  ADD KEY `idx_initiator_id` (`initiator_id`),
+  ADD KEY `idx_receiver_id` (`receiver_id`),
+  ADD KEY `idx_status` (`status`);
+
+--
+-- Indexes for table `friendships`
+--
+ALTER TABLE `friendships`
+  ADD PRIMARY KEY (`friendship_id`),
+  ADD UNIQUE KEY `unique_friendship` (`user1_id`,`user2_id`),
+  ADD KEY `idx_user1` (`user1_id`),
+  ADD KEY `idx_user2` (`user2_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_date` (`created_date`),
+  ADD KEY `idx_friendships_user1_user2` (`user1_id`,`user2_id`),
+  ADD KEY `idx_friendships_status` (`status`);
+
+--
+-- Indexes for table `hobbies`
+--
+ALTER TABLE `hobbies`
+  ADD PRIMARY KEY (`hobby_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_category` (`category`);
+
+--
+-- Indexes for table `meetings`
+--
+ALTER TABLE `meetings`
+  ADD PRIMARY KEY (`meeting_id`),
+  ADD KEY `idx_connection_id` (`connection_id`),
+  ADD KEY `idx_organizer_id` (`organizer_id`),
+  ADD KEY `idx_scheduled_at` (`scheduled_at`),
+  ADD KEY `idx_status` (`status`);
+
+--
+-- Indexes for table `meeting_participants`
+--
+ALTER TABLE `meeting_participants`
+  ADD PRIMARY KEY (`participant_id`),
+  ADD KEY `idx_meeting_id` (`meeting_id`),
+  ADD KEY `idx_user_id` (`user_id`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `idx_sender` (`sender_id`),
+  ADD KEY `idx_receiver` (`receiver_id`),
+  ADD KEY `idx_sent_at` (`sent_at`);
+
+--
+-- Indexes for table `milestones`
+--
+ALTER TABLE `milestones`
+  ADD PRIMARY KEY (`milestone_id`),
+  ADD KEY `idx_hobby_id` (`hobby_id`),
+  ADD KEY `idx_is_achieved` (`is_achieved`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`notification_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_is_read` (`is_read`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `notifications_ibfk_2` (`related_user_id`);
+
+--
+-- Indexes for table `posts`
+--
+ALTER TABLE `posts`
+  ADD PRIMARY KEY (`post_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `post_likes`
+--
+ALTER TABLE `post_likes`
+  ADD PRIMARY KEY (`user_id`,`post_id`),
+  ADD KEY `post_likes_ibfk_2` (`post_id`);
+
+--
+-- Indexes for table `progress`
+--
+ALTER TABLE `progress`
+  ADD PRIMARY KEY (`progress_id`),
+  ADD KEY `idx_hobby_id` (`hobby_id`);
+
+--
+-- Indexes for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `idx_progress_log_hobby` (`hobby_id`);
+
+--
+-- Indexes for table `stories`
+--
+ALTER TABLE `stories`
+  ADD PRIMARY KEY (`story_id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_expires_at` (`expires_at`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `google_id` (`google_id`),
+  ADD KEY `idx_username` (`username`),
+  ADD KEY `idx_email` (`email`),
+  ADD KEY `idx_is_online` (`is_online`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_users_email` (`email`),
+  ADD KEY `idx_users_username` (`username`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `badges`
+--
+ALTER TABLE `badges`
+  MODIFY `badge_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `bookings`
+--
+ALTER TABLE `bookings`
+  MODIFY `booking_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+
+--
+-- AUTO_INCREMENT for table `classes`
+--
+ALTER TABLE `classes`
+  MODIFY `class_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- AUTO_INCREMENT for table `class_providers`
+--
+ALTER TABLE `class_providers`
+  MODIFY `provider_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `comments`
+--
+ALTER TABLE `comments`
+  MODIFY `comment_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT for table `friendships`
+--
+ALTER TABLE `friendships`
+  MODIFY `friendship_id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `hobbies`
+--
+ALTER TABLE `hobbies`
+  MODIFY `hobby_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `message_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `milestones`
+--
+ALTER TABLE `milestones`
+  MODIFY `milestone_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `notification_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `posts`
+--
+ALTER TABLE `posts`
+  MODIFY `post_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+
+--
+-- AUTO_INCREMENT for table `progress`
+--
+ALTER TABLE `progress`
+  MODIFY `progress_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  MODIFY `log_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `stories`
+--
+ALTER TABLE `stories`
+  MODIFY `story_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `badges`
+--
+ALTER TABLE `badges`
+  ADD CONSTRAINT `badges_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `bookings`
+--
+ALTER TABLE `bookings`
+  ADD CONSTRAINT `bookings_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`class_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `classes`
+--
+ALTER TABLE `classes`
+  ADD CONSTRAINT `classes_ibfk_1` FOREIGN KEY (`provider_id`) REFERENCES `class_providers` (`provider_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `class_providers`
+--
+ALTER TABLE `class_providers`
+  ADD CONSTRAINT `class_providers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `comments`
+--
+ALTER TABLE `comments`
+  ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`post_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `connections`
+--
+ALTER TABLE `connections`
+  ADD CONSTRAINT `connections_ibfk_1` FOREIGN KEY (`initiator_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `connections_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `friendships`
+--
+ALTER TABLE `friendships`
+  ADD CONSTRAINT `friendships_ibfk_1` FOREIGN KEY (`user1_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `friendships_ibfk_2` FOREIGN KEY (`user2_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `hobbies`
+--
+ALTER TABLE `hobbies`
+  ADD CONSTRAINT `hobbies_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `meetings`
+--
+ALTER TABLE `meetings`
+  ADD CONSTRAINT `meetings_ibfk_1` FOREIGN KEY (`connection_id`) REFERENCES `connections` (`connection_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `meetings_ibfk_2` FOREIGN KEY (`organizer_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `meeting_participants`
+--
+ALTER TABLE `meeting_participants`
+  ADD CONSTRAINT `meeting_participants_ibfk_1` FOREIGN KEY (`meeting_id`) REFERENCES `meetings` (`meeting_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `meeting_participants_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `milestones`
+--
+ALTER TABLE `milestones`
+  ADD CONSTRAINT `milestones_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`related_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `posts`
+--
+ALTER TABLE `posts`
+  ADD CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `post_likes`
+--
+ALTER TABLE `post_likes`
+  ADD CONSTRAINT `post_likes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `post_likes_ibfk_2` FOREIGN KEY (`post_id`) REFERENCES `posts` (`post_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `progress`
+--
+ALTER TABLE `progress`
+  ADD CONSTRAINT `progress_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `progress_log`
+--
+ALTER TABLE `progress_log`
+  ADD CONSTRAINT `progress_log_ibfk_1` FOREIGN KEY (`hobby_id`) REFERENCES `hobbies` (`hobby_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `stories`
+--
+ALTER TABLE `stories`
+  ADD CONSTRAINT `stories_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
