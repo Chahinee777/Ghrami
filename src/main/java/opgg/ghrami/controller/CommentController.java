@@ -21,7 +21,8 @@ public class CommentController {
         }
         return instance;
     }
-    
+
+
     // Create a new comment
     public Comment create(Comment comment) {
         String sql = "INSERT INTO comments (post_id, user_id, content, created_at) VALUES (?, ?, ?, ?)";

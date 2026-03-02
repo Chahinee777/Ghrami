@@ -21,6 +21,7 @@ public class ConnectionController {
         return instance;
     }
 
+
     public Connection create(Connection connection) {
         String sql = "INSERT INTO connections (connection_id, initiator_id, receiver_id, connection_type, receiver_skill, initiator_skill, status) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";

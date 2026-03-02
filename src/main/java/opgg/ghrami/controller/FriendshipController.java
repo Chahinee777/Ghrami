@@ -23,7 +23,8 @@ public class FriendshipController {
             System.err.println("Friendship already exists between users " + friendship.getUser1Id() + " and " + friendship.getUser2Id());
             return null;
         }
-        
+
+
         String sql = "INSERT INTO friendships (user1_id, user2_id, status, created_date) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getInstance().getConnection();

@@ -39,6 +39,7 @@ public class MessagesViewController implements Initializable {
     // Left panel
     @FXML private VBox conversationsList;
 
+
     // Right panel – chat
     @FXML private HBox chatHeader;
     @FXML private Circle chatAvatarCircle;
